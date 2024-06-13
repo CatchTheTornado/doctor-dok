@@ -1,7 +1,7 @@
 import PatientSearch from "@/components/patient-search";
 import PatientList from "@/components/patient-list";
 import PatientNotes from "@/components/patient-notes";
-import NewNoteForm from "@/components/new-note-form";
+import NewNoteForm from "@/components/note-form";
 
 export default function PatientPad() {
   const patients = [
