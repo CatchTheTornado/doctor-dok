@@ -1,8 +1,10 @@
 import { Patient } from "@/db/models";
-import ServerPatientRepository from "@/db/server/server-patient-repository";
-import { NextResponse } from "next/server";
 import path from 'path'
 import { setup } from '@/db/server/db-provider'
+import ServerHealthRecordRepository from "@/db/server/server-healthrecord-repository";
+
+
+//TODO: fix it!
 
 /**
  * Import patient data. Note: text data is end2end encrypted
@@ -12,7 +14,7 @@ export async function POST(request: Request) {
     try { 
         await setup()
         const patientData: Patient = await request.json() as Patient
-        const repo = new ServerPatientRepository()
+        const repo = new ServerHealthRecordRepository()
         const insertedData = await repo.create(patientData)
 
         return Response.json({ 
@@ -35,7 +37,7 @@ export async function PUT(request: Request) {
     try { 
         await setup()
         const patientData: Patient = await request.json() as Patient
-        const repo = new ServerPatientRepository()
+        const repo = new ServerHealthRecordRepository()
         if (!patientData.id) throw new Error('Please provide the "id" for the patient to be updated')
         const insertedData = await repo.update({ id: patientData.id }, patientData)
 

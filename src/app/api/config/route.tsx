@@ -7,7 +7,7 @@ import ServerConfigRepository from "@/db/server/server-config-repository";
  * @param request 
  */
 export async function POST(request: Request) {
-//    try { 
+    try { 
         await setup()
         const updatedConfig: Config = await request.json() as Config
         const repo = new ServerConfigRepository()
@@ -17,11 +17,12 @@ export async function POST(request: Request) {
             message: 'Config updated',
             data: insertedData
         })
-/*    } catch (e) {
+    } catch (e) {
+        console.error(e)
         return Response.json({ 
             error: e.message,
         }, { status: 400 })        
-    }*/
+    }
 }
 
 export async function GET(request: Request) {
