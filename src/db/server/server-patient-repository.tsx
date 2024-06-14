@@ -7,7 +7,7 @@ import { sql } from "drizzle-orm";
 import path from 'path'
 
 export default class ServerPatientRepository extends BaseRepository<Patient> {
-    readonly dbFilePath = process.env.DB_FILE ?? path.resolve(__dirname) + '/data/db.sqlite'
+    readonly dbFilePath = process.env.DB_FILE ?? path.resolve(process.cwd()) + '/data/db.sqlite'
     readonly sqlite = new Database(this.dbFilePath);
     readonly db = drizzle(this.sqlite);        
     readonly patients = sqliteTable('patients', {
