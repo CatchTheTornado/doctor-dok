@@ -10,7 +10,7 @@ export default class ServerPatientRepository extends BaseRepository<Patient> {
     readonly dbFilePath = process.env.DB_FILE ?? path.resolve(__dirname) + '/data/db.sqlite'
     readonly sqlite = new Database(this.dbFilePath);
     readonly db = drizzle(this.sqlite);        
-    readonly users = sqliteTable('users', {
+    readonly patients = sqliteTable('patients', {
         id: integer('id', { mode: 'number' }).primaryKey({ autoIncrement: true }),
         first_name: text('first_name'),
         last_name: text('last_name'),        
@@ -19,10 +19,10 @@ export default class ServerPatientRepository extends BaseRepository<Patient> {
 
     // create a new patinet
     create(item: Patient): Promise<Patient> {
-        const returnedPatient = this.db.insert(this.users).values({
+        const returnedPatient = this.db.insert(this.patients).values({
             first_name: item.firstName,
             last_name: item.lastName
-        }).returning({ id: this.users.id, firstName: this.users.first_name, lastName: this.users.last_name }).get()
+        }).returning({ id: this.patients.id, firstName: this.patients.first_name, lastName: this.patients.last_name }).get()
 
         console.log(returnedPatient)
         return Promise.resolve(returnedPatient as Patient)   
