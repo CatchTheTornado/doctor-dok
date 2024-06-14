@@ -2,18 +2,33 @@ import { Patient } from "@/db/models";
 import ServerPatientRepository from "@/db/server/server-patient-repository";
 import { NextResponse } from "next/server";
 import path from 'path'
+import { setup } from '@/db/server/db-provider'
 
 /**
- * Get the patients list. Note: text data is end2end encrypted
+ * Import patient data. Note: text data is end2end encrypted
  * @param request 
  */
 export async function POST(request: Request) {
-    const dbFilePath = process.env.DB_FILE ?? path.resolve(process.cwd()) + '/data/db.sqlite'
-    const patientData: Patient = await request.json() as Patient
-    console.log('Patient to insert ', patientData)
+    try { 
+        await setup()
+        const patientData: Patient = await request.json() as Patient
+        const repo = new ServerPatientRepository()
+        const insertedData = await repo.create(patientData)
 
-    const repo = new ServerPatientRepository(dbFilePath)
-    const insertedData = repo.create(patientData)
+        return Response.json({ 
+            message: 'Data inserted',
+            data: insertedData
+        })
+    } catch (e) {
+        return Response.json({ 
+            error: e,
+        }, { status: 400 })        
+    }
+}
 
-    return NextResponse.json(insertedData)
+export async function GET(request: Request) {
+    await setup()
+    const repo = new ServerPatientRepository()
+    const patients: Patient[] = await repo.findAll()
+    return Response.json(patients)
 }

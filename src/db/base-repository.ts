@@ -1,13 +1,13 @@
 // import all interfaces
 export interface IWrite<T> {
     create(item: T): Promise<T>;
-    update(id: string, item: T): Promise<boolean>;
-    delete(id: string): Promise<boolean>;
+    update(query: Record<string, any>, item: T): Promise<T>;
+    delete(query: Record<string, any>): Promise<boolean>;
   }
 
   export interface IRead<T> {
-    find(item: T): Promise<T[]>;
-    findOne(id: string): Promise<T>;
+    findAll(): Promise<T[]>;
+    findOne(query: Record<string, any>): Promise<T>;
   }
 
 // that class only can be extended
@@ -15,16 +15,16 @@ export abstract class BaseRepository<T> implements IWrite<T>, IRead<T> {
     create(item: T): Promise<T> {
         throw new Error("Method not implemented.");
     }
-    update(id: string, item: T): Promise<boolean> {
+    update(query: Record<string, any>, item: T): Promise<T> {
         throw new Error("Method not implemented.");
     }
-    delete(id: string): Promise<boolean> {
+    delete(query: Record<string, any>): Promise<boolean> {
         throw new Error("Method not implemented.");
     }
-    find(item: T): Promise<T[]> {
+    findAll(): Promise<T[]> {
         throw new Error("Method not implemented.");
     }
-    findOne(id: string): Promise<T> {
+    findOne(query: Record<string, any>): Promise<T> {
         throw new Error("Method not implemented.");
     }
 }

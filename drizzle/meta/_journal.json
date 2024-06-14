@@ -1,0 +1,20 @@
+{
+  "version": "7",
+  "dialect": "sqlite",
+  "entries": [
+    {
+      "idx": 0,
+      "version": "6",
+      "when": 1718382236194,
+      "tag": "0000_old_arclight",
+      "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "6",
+      "when": 1718383568149,
+      "tag": "0001_wandering_nightshade",
+      "breakpoints": true
+    }
+  ]
+}
