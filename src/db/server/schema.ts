@@ -15,10 +15,7 @@ export const config = sqliteTable('config', {
     updatedAt: text('updatedAt').notNull().default(sql`CURRENT_TIMESTAMP`)
 });
 
-
-
-
-export const healthrecords = sqliteTable('healthrecords', {
+export const patientRecords = sqliteTable('patientRecords', {
     id: integer('id', { mode: 'number' }).primaryKey({ autoIncrement: true }),
     patientId: integer('patientId', { mode: 'number' }).references(() => patients.id),
     description: text('description'),
@@ -31,10 +28,10 @@ export const healthrecords = sqliteTable('healthrecords', {
 });
 
 
-export const healthRecordAttachments = sqliteTable('healthrecordAttachments', {
+export const patientRecordAttachments = sqliteTable('patientrRecordAttachments', {
     id: integer('id', { mode: 'number' }).primaryKey({ autoIncrement: true }),
     patientId: integer('patientId', { mode: 'number' }).references(() => patients.id),
-    healthRecordId: integer('healthRecordId', { mode: 'number' }).references(() => healthrecords.id),
+    patientRecordId: integer('patientRecordId', { mode: 'number' }).references(() => patientRecords.id),
     
     displayName: text('displayName'),
     type: text('type'),

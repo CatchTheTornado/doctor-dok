@@ -9,7 +9,7 @@ import ServerConfigRepository from "@/db/server/server-config-repository";
 export async function POST(request: Request) {
     try { 
         await setup()
-        const updatedConfig: Config = await request.json() as Config
+        const updatedConfig: Config = await request.json() as Config // TODO: add validation - https://github.com/jquense/yup
         const repo = new ServerConfigRepository()
         const insertedData = await repo.update({ key: updatedConfig.key }, updatedConfig)
 

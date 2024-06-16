@@ -1,38 +1,58 @@
-export type Patient = {
-    id: number;
-    firstName: string;
-    lastName: string;
-    updatedAt: string;
-}
+import { object, string, number, date, InferType } from 'yup';
+import { getCurrentTS } from './server/db-provider';
 
-export type Config = {
-    key: string;
-    value: string;
-    updatedAt: string;
-}
+export const patientSchema = object({
+    id: number().positive().required(),
+    firstName: string().required(),
+    lastName: string().required(),
+    updatedAt: date().default(() => new Date()),
+  });
 
-export type HealthRecordAttachment = {
+export type Patient = InferType<typeof patientSchema>;
 
-    id: number;
+export const configSchema = object({
+    key: string().required(),
+    value: string().required(),
+    updatedAt: string().default(getCurrentTS()),
+  });
+export type Config = InferType<typeof configSchema>;
 
-    healthRecordId: number;
-    patientId: number;
 
-    displayName: string;
-    type: string;
-    url: string;
-    mimeType: string;
-    size: number;
+export const patientRecordAttachmentSchema = object({
+    id: number().positive().required(),
+    patientId: number().positive().integer().required(),
+    patientRecordId: number().positive().integer().required(),
+  
+    displayName: string().required(),
+    description: string(),
 
-    description: string;
-    json?: string;
-    extra?: string;    
+    mimeType: string(),
+    type: string(),
+    json: string(),
+    extra: string(),
 
-    createdAt: string;
-    updatedAt: string;
-}
+    size: number().integer().positive(),
+  
+    createdAt: string().default(getCurrentTS()),
+    updatedAt: string().default(getCurrentTS()),
+  });
+export type PatientRecordAttachment = InferType<typeof patientRecordAttachmentSchema>;
 
-export type HealthRecord = {
+
+export const patientRecordSchema = object({
+  id: number().positive().required(),
+  patientId: number().positive().integer(),
+
+  description: string(),
+  type: string(),
+  json: string(),
+  extra: string(),
+
+  createdAt: string().default(getCurrentTS()),
+  updatedAt: string().default(getCurrentTS()),
+});
+
+export type PatientRecord = {
     id: number;
     patientId: number;
 
@@ -44,5 +64,5 @@ export type HealthRecord = {
     createdAt: string;
     updatedAt: string;
     
-    attachments?: HealthRecordAttachment[];
+    attachments?: PatientRecordAttachment[];
 }
