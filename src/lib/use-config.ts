@@ -1,7 +1,7 @@
 import { ConfigDTO } from '@/db/models';
 import { useEffect, useState } from 'react';
 
-const useConfig = (): { configs: ConfigDTO[], getByKey: (string) => any } => {
+const useConfig = (): { configs: ConfigDTO[], getByKey: (arg0:string) => any } => {
     const [configs, setConfigs] = useState<ConfigDTO[]>([]);
 
     useEffect(() => {
