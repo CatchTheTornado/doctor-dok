@@ -1,7 +1,7 @@
 'use client'
 import PatientSearch from "@/components/patient-search";
 import PatientList from "@/components/patient-list";
-import PatientNotes from "@/components/patient-notes";
+import PatientRecords from "@/components/patient-records";
 import NewPatientRecord from "@/components/patient-record-form";
 import useConfig from "@/lib/config";
 
@@ -16,14 +16,7 @@ export default function PatientPad() {
         { title: "Memo", date: "2 days ago", content: "Patient reported mild headache and fatigue. Recommended over-the-counter medication and follow-up in 3 days." },
         { title: "Visit", date: "1 week ago", content: "Routine checkup. Patient is in good health. Recommended annual follow-up." },
       ],
-    },
-    {
-      name: "Jane Appleseed",
-      lastVisit: "1 week ago",
-      notes: [
-        { title: "Results", date: "1 week ago", content: "Blood test results within normal range. No further action required." },
-      ],
-    },
+    }
   ];
 
   return (
@@ -33,14 +26,12 @@ export default function PatientPad() {
         <PatientList />
       </div>
       <div className="p-6 flex flex-col">
+        <NewPatientRecord patient={patients[0]} />
         <div className="flex-1 overflow-auto">
           <div className="grid gap-6">
-            {patients.map((patient, index) => (
-              <PatientNotes key={index} patient={patient} />
-            ))}
+            <PatientRecords key={0} patient={patients[0]} />
           </div>
         </div>
-        <NewPatientRecord />
       </div>
     </div>
   );
