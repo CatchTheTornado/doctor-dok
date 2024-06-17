@@ -1,4 +1,4 @@
-import { BaseRepository } from "../base-repository"
+import { BaseRepository, create } from "../base-repository"
 import { Patient } from "../models";
 import { db } from '@/db/server/db-provider'
 import { patients } from "./schema";
@@ -8,25 +8,20 @@ export default class ServerPatientRepository extends BaseRepository<Patient> {
 
     // create a new patinet
     async create(item: Patient): Promise<Patient> {
-        const returnedPatient = db.insert(patients).values({
-            firstName: item.firstName,
-            lastName: item.lastName
-        }).returning({ id: patients.id, firstName: patients.firstName, lastName: patients.lastName }).get()
-        return Promise.resolve(returnedPatient as Patient)   
+        return create(item, patients, db); // generic implementation
     }
 
     // update patient
-    async update(query:Record<string, any>, item: Patient): Promise<Patient> {        
+    async upsert(query:Record<string, any>, item: Patient): Promise<Patient> {        
 
-        if(!query.id) throw new Error('Please set the query.id to update the right patient');
-
-        let existingPatient = db.select().from(patients).where(eq(patients.id, query.id)).get()
+        let existingPatient = db.select().from(patients).where(eq(patients.id, query.id)).get() as Patient
         if (!existingPatient) {
-            throw new Error('Update failed, record does not exist')
+            existingPatient = await this.create(existingPatient)
+        } else {
+            existingPatient.firstName = item.firstName
+            existingPatient.lastName = item.lastName
+            db.update(patients).set(existingPatient).where(eq(patients.id, query.id)).run();
         }
-        existingPatient.firstName = item.firstName
-        existingPatient.lastName = item.lastName
-        db.update(patients).set(existingPatient).where(eq(patients.id, query.id)).run();
         return Promise.resolve(existingPatient as Patient)   
     }    
 

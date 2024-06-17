@@ -2,7 +2,7 @@ import { object, string, number, date, InferType } from 'yup';
 import { getCurrentTS } from './server/db-provider';
 
 export const patientSchema = object({
-    id: number().positive().required(),
+    id: number().positive(),
     firstName: string().required(),
     lastName: string().required(),
     updatedAt: string().default(() =>getCurrentTS()),
@@ -19,7 +19,7 @@ export type Config = InferType<typeof configSchema>;
 
 
 export const patientRecordAttachmentSchema = object({
-    id: number().positive().required(),
+    id: number().positive(),
     patientId: number().positive().integer().required(),
     patientRecordId: number().positive().integer().required(),
   
@@ -40,7 +40,7 @@ export type PatientRecordAttachment = InferType<typeof patientRecordAttachmentSc
 
 
 export const patientRecordSchema = object({
-  id: number().positive().required(),
+  id: number().positive(),
   patientId: number().positive().integer().required(),
 
   description: string(),

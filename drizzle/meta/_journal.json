@@ -15,6 +15,13 @@
       "when": 1718383568149,
       "tag": "0001_wandering_nightshade",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "6",
+      "when": 1718622034131,
+      "tag": "0002_odd_stardust",
+      "breakpoints": true
     }
   ]
 }
