@@ -7,7 +7,7 @@ import { eq } from "drizzle-orm";
 export default class ServerPatientRepository extends BaseRepository<Patient> {
 
     // create a new patinet
-    create(item: Patient): Promise<Patient> {
+    async create(item: Patient): Promise<Patient> {
         const returnedPatient = db.insert(patients).values({
             firstName: item.firstName,
             lastName: item.lastName
@@ -16,13 +16,13 @@ export default class ServerPatientRepository extends BaseRepository<Patient> {
     }
 
     // update patient
-    update(query:Record<string, any>, item: Patient): Promise<Patient> {        
+    async update(query:Record<string, any>, item: Patient): Promise<Patient> {        
 
         if(!query.id) throw new Error('Please set the query.id to update the right patient');
 
         let existingPatient = db.select().from(patients).where(eq(patients.id, query.id)).get()
         if (!existingPatient) {
-            existingPatient = db.insert(patients).values(item).returning().get()
+            throw new Error('Update failed, record does not exist')
         }
         existingPatient.firstName = item.firstName
         existingPatient.lastName = item.lastName
@@ -30,7 +30,7 @@ export default class ServerPatientRepository extends BaseRepository<Patient> {
         return Promise.resolve(existingPatient as Patient)   
     }    
 
-    findAll(): Promise<Patient[]> {
+    async findAll(): Promise<Patient[]> {
         return Promise.resolve(db.select({
             id: patients.id,
             firstName: patients.firstName,

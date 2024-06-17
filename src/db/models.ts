@@ -5,7 +5,7 @@ export const patientSchema = object({
     id: number().positive().required(),
     firstName: string().required(),
     lastName: string().required(),
-    updatedAt: date().default(() => new Date()),
+    updatedAt: string().default(() =>getCurrentTS()),
   });
 
 export type Patient = InferType<typeof patientSchema>;
@@ -41,10 +41,10 @@ export type PatientRecordAttachment = InferType<typeof patientRecordAttachmentSc
 
 export const patientRecordSchema = object({
   id: number().positive().required(),
-  patientId: number().positive().integer(),
+  patientId: number().positive().integer().required(),
 
   description: string(),
-  type: string(),
+  type: string().required(),
   json: string(),
   extra: string(),
 
@@ -55,9 +55,9 @@ export const patientRecordSchema = object({
 export type PatientRecord = {
     id: number;
     patientId: number;
-
-    description: string;
     type: string;
+
+    description?: string;
     json?: string;
     extra?: string;
 

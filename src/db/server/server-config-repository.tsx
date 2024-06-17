@@ -6,14 +6,21 @@ import { eq } from "drizzle-orm/sql";
 
 export default class ServerConfigRepository extends BaseRepository<Config> {
 
+
+    // create a new config
+    async create(item: Config): Promise<Config> {
+        const returnedConfig = db.insert(config).values(item).returning().get()
+        return Promise.resolve(returnedConfig as Config)   
+    }
+
     // update config
-    update(query:Record<string, any>, item: Config): Promise<Config> {        
+    async update(query:Record<string, any>, item: Config): Promise<Config> {        
 
         if(!query.key) throw new Error('Please set the query.key to update the proper config variable');
 
-        let existingConfig = db.select({ key: config.key, value: config.value, updatedAt: config.updatedAt}).from(config).where(eq(config.key, query.key)).get()
+        let existingConfig = db.select({ key: config.key, value: config.value, updatedAt: config.updatedAt}).from(config).where(eq(config.key, query.key)).get() as Config
         if (!existingConfig) {
-            existingConfig = db.insert(config).values(item).returning().get()
+            existingConfig = await this.create(existingConfig)
         }
         existingConfig.value = item.value
         existingConfig.updatedAt = getCurrentTS()
@@ -21,7 +28,7 @@ export default class ServerConfigRepository extends BaseRepository<Config> {
         return Promise.resolve(existingConfig as Config)   
     }
 
-    findAll(): Promise<Config[]> {
+    async findAll(): Promise<Config[]> {
         return Promise.resolve(db.select({
             key: config.key,
             value: config.value,

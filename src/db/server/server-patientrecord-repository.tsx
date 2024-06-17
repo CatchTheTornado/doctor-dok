@@ -3,6 +3,7 @@ import { PatientRecord, Patient } from "../models";
 import { db, getCurrentTS } from '@/db/server/db-provider'
 import { patientRecords } from "./schema";
 import { eq } from "drizzle-orm";
+import { error } from "console";
 
 export default class ServerPatientRecordRepository extends BaseRepository<PatientRecord> {
 
@@ -11,9 +12,8 @@ export default class ServerPatientRecordRepository extends BaseRepository<Patien
 
         let existingRecord:PatientRecord | null = query.id ? db.select().from(patientRecords).where(eq(patientRecords.id, query.id)).get() as PatientRecord : null
         if (!existingRecord) {
-            existingRecord = db.insert(patientRecords).values(item).returning().get() as PatientRecord
-            existingRecord.attachments = []
-        }
+            throw Error('Update failed, record does not exist')
+       }
         existingRecord = item
         existingRecord.updatedAt = getCurrentTS() // TODO: load attachments
         db.update(patientRecords).set(existingRecord).where(eq(patientRecords.id, query.id)).run();
