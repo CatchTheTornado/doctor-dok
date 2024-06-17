@@ -1,4 +1,4 @@
-import { ConfigDTO, configDTOSchema } from "@/data/models";
+import { ConfigDTO, configDTOSchema } from "@/data/dto";
 import ServerConfigRepository from "@/data/server/server-config-repository";
 import { genericGET, genericPUT } from "@/lib/generic-api";
 

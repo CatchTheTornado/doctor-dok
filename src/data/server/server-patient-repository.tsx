@@ -1,5 +1,5 @@
 import { BaseRepository } from "./base-repository"
-import { PatientDTO } from "../models";
+import { PatientDTO } from "../dto";
 import { db } from '@/data/server/db-provider'
 import { patients } from "./db-schema";
 import { eq } from "drizzle-orm";
@@ -17,7 +17,7 @@ export default class ServerPatientRepository extends BaseRepository<PatientDTO> 
 
         let existingPatient = db.select().from(patients).where(eq(patients.id, query.id)).get() as PatientDTO
         if (!existingPatient) {
-            existingPatient = await this.create(existingPatient)
+            existingPatient = await this.create(item)
         } else {
             existingPatient.firstName = item.firstName
             existingPatient.lastName = item.lastName

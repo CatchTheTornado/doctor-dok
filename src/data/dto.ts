@@ -24,12 +24,12 @@ export const patientRecordAttachmentDTOSchema = z.object({
   patientRecordId: z.number().positive().int(),
 
   displayName: z.string().min(1),
-  description: z.string().nullable(),
+  description: z.string().optional(),
 
-  mimeType: z.string().nullable(),
-  type: z.string().nullable(),
-  json: z.string().nullable(),
-  extra: z.string().nullable(),
+  mimeType: z.string().optional(),
+  type: z.string().optional(),
+  json: z.string().optional(),
+  extra: z.string().optional(),
 
   size: z.number().positive().int(),
 
@@ -43,10 +43,10 @@ export const patientRecordDTOSchema = z.object({
   id: z.number().positive(),
   patientId: z.number().positive().int(),
 
-  description: z.string().nullable(),
+  description: z.string().optional(),
   type: z.string().min(1),
-  json: z.string().nullable(),
-  extra: z.string().nullable(),
+  json: z.string().optional(),
+  extra: z.string().optional(),
 
   createdAt: z.string().default(() => getCurrentTS()),
   updatedAt: z.string().default(() => getCurrentTS()),

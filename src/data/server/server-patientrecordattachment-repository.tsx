@@ -1,5 +1,5 @@
 import { BaseRepository } from "./base-repository"
-import { PatientRecordAttachmentDTO, patientRecordAttachmentDTOSchema } from "../models";
+import { PatientRecordAttachmentDTO, patientRecordAttachmentDTOSchema } from "../dto";
 import { db, getCurrentTS } from '@/data/server/db-provider'
 import { patientRecordAttachments } from "./db-schema";
 import { eq } from "drizzle-orm";

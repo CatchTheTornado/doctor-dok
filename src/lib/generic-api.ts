@@ -1,18 +1,26 @@
 import { BaseRepository } from "@/data/server/base-repository";
-import { getErrorMessage } from "./utils";
+import { getErrorMessage, getZedErrorMessage } from "./utils";
 import { setup } from "@/data/server/db-provider";
-import { ZodObject } from "zod";
+import { ZodError, ZodObject } from "zod";
 
-export async function genericPUT<T extends { [key:string]: any }>(request: Request, schema: { parse: (arg0:any) => T }, repo: BaseRepository<T>, identityKey: string): Promise<Response> {
+export async function genericPUT<T extends { [key:string]: any }>(request: Request, schema: { safeParse: (a0:any) => { success: true; data: T; } | { success: false; error: ZodError; } }, repo: BaseRepository<T>, identityKey: string): Promise<Response> {
     try {
         await setup();
-        const updatedValues:T = schema.parse(await request.json()) as T; // cast + validation
-        const upsertedData = await repo.upsert({ [identityKey]: updatedValues[identityKey] }, updatedValues)
+        const validationResult = schema.safeParse(await request.json()); // validation
+        if (validationResult.success === true) {
+            const updatedValues:T = validationResult.data as T;
+            const upsertedData = await repo.upsert({ [identityKey]: updatedValues[identityKey] }, updatedValues)
 
-        return Response.json({
-            message: 'Data updated',
-            data: upsertedData
-        });
+            return Response.json({
+                message: 'Data saved successfully!',
+                data: upsertedData
+            });
+        } else {
+            return Response.json({
+                message: getZedErrorMessage(validationResult.error),
+                issues: validationResult.error.issues                
+            }, { status: 400 });
+        }
     } catch (e) {
         console.error(e);
         return Response.json({

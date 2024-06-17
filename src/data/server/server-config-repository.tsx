@@ -1,5 +1,5 @@
 import { BaseRepository } from "./base-repository"
-import { ConfigDTO } from "../models";
+import { ConfigDTO } from "../dto";
 import { db, getCurrentTS } from '@/data/server/db-provider'
 import { config } from "./db-schema";
 import { eq } from "drizzle-orm/sql";
@@ -17,7 +17,7 @@ export default class ServerConfigRepository extends BaseRepository<ConfigDTO> {
     async upsert(query:Record<string, any>, item: ConfigDTO): Promise<ConfigDTO> {        
         let existingConfig = db.select({ key: config.key, value: config.value, updatedAt: config.updatedAt}).from(config).where(eq(config.key, query.key)).get() as ConfigDTO
         if (!existingConfig) {
-            existingConfig = await this.create(existingConfig)
+            existingConfig = await this.create(item)
         } else {
             existingConfig.value = item.value
             existingConfig.updatedAt = getCurrentTS()

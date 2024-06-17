@@ -1,4 +1,4 @@
-import { PatientDTO, patientDTOSchema } from "@/data/models";
+import { PatientDTO, patientDTOSchema } from "@/data/dto";
 import ServerPatientRepository from "@/data/server/server-patient-repository";
 import { genericGET, genericPUT } from "@/lib/generic-api";
 

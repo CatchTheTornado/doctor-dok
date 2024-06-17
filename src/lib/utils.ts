@@ -1,5 +1,6 @@
 import { type ClassValue, clsx } from "clsx"
 import { twMerge } from "tailwind-merge"
+import { ZodError, ZodIssue, string } from "zod"
 
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs))
@@ -33,4 +34,8 @@ function toErrorWithMessage(maybeError: unknown): ErrorWithMessage {
 
 export function getErrorMessage(error: unknown) {
 	return toErrorWithMessage(error).message
+}
+
+export function getZedErrorMessage(error: ZodError) {
+	return error.errors.map((e:ZodIssue) => e.path[0] + ': ' + e.message).join(', ')
 }
