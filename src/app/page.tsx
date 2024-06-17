@@ -3,7 +3,7 @@ import PatientSearch from "@/components/patient-search";
 import PatientList from "@/components/patient-list";
 import PatientNotes from "@/components/patient-notes";
 import NewPatientRecord from "@/components/patient-record-form";
-import useConfig from "@/lib/use-config";
+import useConfig from "@/lib/config";
 
 export default function PatientPad() {
   const config = useConfig();
