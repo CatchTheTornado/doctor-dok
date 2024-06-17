@@ -1,5 +1,5 @@
-import { ConfigDTO, configDTOSchema } from "@/db/models";
-import ServerConfigRepository from "@/db/server/server-config-repository";
+import { ConfigDTO, configDTOSchema } from "@/data/models";
+import ServerConfigRepository from "@/data/server/server-config-repository";
 import { genericGET, genericPUT } from "@/lib/generic-api";
 
 export async function PUT(request: Request) {

@@ -1,6 +1,6 @@
 import { BaseRepository } from "./base-repository"
 import { PatientDTO } from "../models";
-import { db } from '@/db/server/db-provider'
+import { db } from '@/data/server/db-provider'
 import { patients } from "./db-schema";
 import { eq } from "drizzle-orm";
 import { create } from "./generic-repository";

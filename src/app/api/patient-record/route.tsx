@@ -1,5 +1,5 @@
-import { PatientRecordDTO, patientRecordDTOSchema } from "@/db/models";
-import ServerPatientRecordRepository from "@/db/server/server-patientrecord-repository";
+import { PatientRecordDTO, patientRecordDTOSchema } from "@/data/models";
+import ServerPatientRecordRepository from "@/data/server/server-patientrecord-repository";
 import { genericGET, genericPUT } from "@/lib/generic-api";
 
 export async function PUT(request: Request) {

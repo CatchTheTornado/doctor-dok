@@ -1,6 +1,6 @@
-import { BaseRepository } from "@/db/server/base-repository";
+import { BaseRepository } from "@/data/server/base-repository";
 import { getErrorMessage } from "./utils";
-import { setup } from "@/db/server/db-provider";
+import { setup } from "@/data/server/db-provider";
 import { ZodObject } from "zod";
 
 export async function genericPUT<T extends { [key:string]: any }>(request: Request, schema: { parse: (arg0:any) => T }, repo: BaseRepository<T>, identityKey: string): Promise<Response> {

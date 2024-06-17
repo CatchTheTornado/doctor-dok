@@ -1,4 +1,4 @@
-import { ConfigDTO } from '@/db/models';
+import { ConfigDTO } from '@/data/models';
 import { useEffect, useState } from 'react';
 
 const useConfig = (): { configs: ConfigDTO[], getByKey: (arg0:string) => any } => {
