@@ -1,20 +1,21 @@
-import { BaseRepository, create } from "../base-repository"
-import { PatientRecord, Patient } from "../models";
+import { BaseRepository } from "./base-repository"
+import { PatientRecordDTO } from "../models";
 import { db, getCurrentTS } from '@/db/server/db-provider'
-import { patientRecords } from "./schema";
+import { patientRecords } from "./db-schema";
 import { eq } from "drizzle-orm";
 import { error } from "console";
+import { create } from "./generic-repository";
 
-export default class ServerPatientRecordRepository extends BaseRepository<PatientRecord> {
+export default class ServerPatientRecordRepository extends BaseRepository<PatientRecordDTO> {
     
     
-    async create(item: PatientRecord): Promise<PatientRecord> {
+    async create(item: PatientRecordDTO): Promise<PatientRecordDTO> {
         return create(item, patientRecords, db); // generic implementation
     }
 
     // update patient
-    async upsert(query:Record<string, any>, item: PatientRecord): Promise<PatientRecord> {        
-        let existingRecord:PatientRecord | null = query.id ? db.select().from(patientRecords).where(eq(patientRecords.id, query.id)).get() as PatientRecord : null
+    async upsert(query:Record<string, any>, item: PatientRecordDTO): Promise<PatientRecordDTO> {        
+        let existingRecord:PatientRecordDTO | null = query.id ? db.select().from(patientRecords).where(eq(patientRecords.id, query.id)).get() as PatientRecordDTO : null
         if (!existingRecord) {
             existingRecord = await this.create(item);
        } else {
@@ -22,11 +23,11 @@ export default class ServerPatientRecordRepository extends BaseRepository<Patien
             existingRecord.updatedAt = getCurrentTS() // TODO: load attachments
             db.update(patientRecords).set(existingRecord).where(eq(patientRecords.id, query.id)).run();
        }
-       return Promise.resolve(existingRecord as PatientRecord)   
+       return Promise.resolve(existingRecord as PatientRecordDTO)   
     }    
 
-    findAll(): Promise<PatientRecord[]> {
-        return Promise.resolve(db.select().from(patientRecords).all() as PatientRecord[])
+    findAll(): Promise<PatientRecordDTO[]> {
+        return Promise.resolve(db.select().from(patientRecords).all() as PatientRecordDTO[])
     }
 
 }

@@ -39,7 +39,8 @@ export const patientRecordAttachments = sqliteTable('patientrRecordAttachments',
     mimeType: text('url'),
 
     json: text('json', { mode: 'json' }),
-    extra: text('extra', { mode: 'json' }),    
+    extra: text('extra', { mode: 'json' }),
+    size: integer('size', { mode: 'number' }),    
 
 
     description: text('description'),

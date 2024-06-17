@@ -1,68 +1,57 @@
-import { object, string, number, date, InferType } from 'yup';
+import { z } from 'zod';
 import { getCurrentTS } from './server/db-provider';
 
-export const patientSchema = object({
-    id: number().positive(),
-    firstName: string().required(),
-    lastName: string().required(),
-    updatedAt: string().default(() =>getCurrentTS()),
-  });
-
-export type Patient = InferType<typeof patientSchema>;
-
-export const configSchema = object({
-    key: string().required(),
-    value: string().required(),
-    updatedAt: string().default(getCurrentTS()),
-  });
-export type Config = InferType<typeof configSchema>;
-
-
-export const patientRecordAttachmentSchema = object({
-    id: number().positive(),
-    patientId: number().positive().integer().required(),
-    patientRecordId: number().positive().integer().required(),
-  
-    displayName: string().required(),
-    description: string(),
-
-    mimeType: string(),
-    type: string(),
-    json: string(),
-    extra: string(),
-
-    size: number().integer().positive(),
-  
-    createdAt: string().default(getCurrentTS()),
-    updatedAt: string().default(getCurrentTS()),
-  });
-export type PatientRecordAttachment = InferType<typeof patientRecordAttachmentSchema>;
-
-
-export const patientRecordSchema = object({
-  id: number().positive(),
-  patientId: number().positive().integer().required(),
-
-  description: string(),
-  type: string().required(),
-  json: string(),
-  extra: string(),
-
-  createdAt: string().default(getCurrentTS()),
-  updatedAt: string().default(getCurrentTS()),
+export const patientDTOSchema = z.object({
+  id: z.number().positive(),
+  firstName: z.string().min(1),
+  lastName: z.string().min(1),
+  updatedAt: z.string().default(() => getCurrentTS()),
 });
 
-export type PatientRecord = {
-    id: number;
-    patientId: number;
-    type: string;
+export type PatientDTO = z.infer<typeof patientDTOSchema>;
 
-    description?: string;
-    json?: string;
-    extra?: string;
+export const configDTOSchema = z.object({
+  key: z.string().min(1),
+  value: z.string().min(1),
+  updatedAt: z.string().default(() => getCurrentTS()),
+});
 
-    createdAt: string;
-    updatedAt: string;
-    
-    attachments?: PatientRecordAttachment[];
-}
+export type ConfigDTO = z.infer<typeof configDTOSchema>;
+
+export const patientRecordAttachmentDTOSchema = z.object({
+  id: z.number().positive(),
+  patientId: z.number().positive().int(),
+  patientRecordId: z.number().positive().int(),
+
+  displayName: z.string().min(1),
+  description: z.string().nullable(),
+
+  mimeType: z.string().nullable(),
+  type: z.string().nullable(),
+  json: z.string().nullable(),
+  extra: z.string().nullable(),
+
+  size: z.number().positive().int(),
+
+  createdAt: z.string().default(() => getCurrentTS()),
+  updatedAt: z.string().default(() => getCurrentTS()),
+});
+
+export type PatientRecordAttachmentDTO = z.infer<typeof patientRecordAttachmentDTOSchema>;
+
+export const patientRecordDTOSchema = z.object({
+  id: z.number().positive(),
+  patientId: z.number().positive().int(),
+
+  description: z.string().nullable(),
+  type: z.string().min(1),
+  json: z.string().nullable(),
+  extra: z.string().nullable(),
+
+  createdAt: z.string().default(() => getCurrentTS()),
+  updatedAt: z.string().default(() => getCurrentTS()),
+});
+
+export type PatientRecordDTO = z.infer<typeof patientRecordDTOSchema> & {
+  attachments?: PatientRecordAttachmentDTO[];
+};

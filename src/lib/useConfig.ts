@@ -1,8 +1,8 @@
-import { Config } from '@/db/models';
+import { ConfigDTO } from '@/db/models';
 import { useEffect, useState } from 'react';
 
-const useConfig = (): { configs: Config[], getByKey: (string) => any } => {
-    const [configs, setConfigs] = useState<Config[]>([]);
+const useConfig = (): { configs: ConfigDTO[], getByKey: (string) => any } => {
+    const [configs, setConfigs] = useState<ConfigDTO[]>([]);
 
     useEffect(() => {
         const fetchConfigs = async () => {

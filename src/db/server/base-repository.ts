@@ -1,6 +1,3 @@
-import { eq } from "drizzle-orm";
-import { BetterSQLite3Database } from "drizzle-orm/better-sqlite3";
-
 // import all interfaces
 export interface IWrite<T> {
     create(item: T): Promise<T>;
@@ -34,9 +31,3 @@ export abstract class BaseRepository<T> implements IWrite<T>, IRead<T> {
         throw new Error("Method not implemented.");
     }
 }
-
-    // create a new patient record
-export async function create<T extends { [key:string]: any }>(item: T, schema: any, db:BetterSQLite3Database<Record<string, never>>): Promise<T> {
-        const returnedItem = db.insert(schema).values(item).returning().get();
-        return Promise.resolve(returnedItem as T);
-    }
