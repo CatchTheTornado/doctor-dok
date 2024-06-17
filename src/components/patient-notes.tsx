@@ -1,4 +1,4 @@
-import Note from "./note";
+import PatientRecord from "./patient-record";
 
 export default function PatientNotes({ patient }) {
   return (
@@ -9,7 +9,7 @@ export default function PatientNotes({ patient }) {
       </div>
       <div className="mt-4 space-y-4">
         {patient.notes.map((note, index) => (
-          <Note key={index} {...note} />
+          <PatientRecord key={index} {...note} />
         ))}
       </div>
     </div>

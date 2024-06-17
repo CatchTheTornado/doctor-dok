@@ -1,9 +1,13 @@
+'use client'
 import PatientSearch from "@/components/patient-search";
 import PatientList from "@/components/patient-list";
 import PatientNotes from "@/components/patient-notes";
-import NewNoteForm from "@/components/note-form";
+import NewPatientRecord from "@/components/patient-record-form";
+import useConfig from "@/lib/useConfig";
 
 export default function PatientPad() {
+  const config = useConfig();
+  
   const patients = [
     {
       name: "John Doe",
@@ -36,7 +40,7 @@ export default function PatientPad() {
             ))}
           </div>
         </div>
-        <NewNoteForm />
+        <NewPatientRecord />
       </div>
     </div>
   );

@@ -1,7 +1,7 @@
 import { Button } from "@/components/ui/button";
 import { PaperclipIcon, Trash2Icon } from "./icons";
 
-export default function Note({ title, date, content }) {
+export default function PatientRecord({ title, date, content }) {
   return (
     <div className="bg-gray-100 dark:bg-gray-800 p-4 rounded-md">
       <div className="flex items-center justify-between">

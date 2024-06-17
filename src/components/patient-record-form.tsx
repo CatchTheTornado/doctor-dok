@@ -41,7 +41,7 @@ const FileSvgDraw = () => {
   );
 };
 
-export default function NewNoteForm() {
+export default function NewPatientRecord() {
   const [files, setFiles] = useState<UploadedFile[] | null>(null);
  
   const dropZoneConfig = {
