@@ -3,11 +3,9 @@ import PatientSearch from "@/components/patient-search";
 import PatientList from "@/components/patient-list";
 import PatientRecords from "@/components/patient-records";
 import NewPatientRecord from "@/components/patient-record-form";
-import useConfig from "@/lib/config";
+import PatientsTopHeader from "@/components/patient-pane-header";
 
 export default function PatientPad() {
-  const config = useConfig();
-  
   const patients = [
     {
       name: "John Doe",
@@ -22,8 +20,8 @@ export default function PatientPad() {
   return (
     <div className="grid min-h-screen w-full lg:grid-cols-[300px_1fr] bg-gray-100 dark:bg-gray-950">
       <div className="bg-white dark:bg-gray-900 border-r border-gray-200 dark:border-gray-800">
-        <PatientSearch />
-        <PatientList />
+        <PatientsTopHeader />
+        <PatientList />    
       </div>
       <div className="p-6 flex flex-col">
         <NewPatientRecord patient={patients[0]} />
