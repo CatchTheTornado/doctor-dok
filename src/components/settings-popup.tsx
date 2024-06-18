@@ -26,20 +26,25 @@ import { Label } from "@/components/ui/label"
 import { Input } from "@/components/ui/input"
 import Link from "next/link"
 import { Checkbox } from "@/components/ui/checkbox"
+import NoSSR from 'react-no-ssr';
 
 export function SettingsPopup() {
-  const [chatGptApiKey, setChatGptApiKey] = useState(localStorage.getItem("chatGptApiKey") || "")
-  const [encryptionKey, setEncryptionKey] = useState(localStorage.getItem("encryptionKey") || generateEncryptionKey())
-  const [saveToLocalStorage, setSaveToLocalStorage] = useState(localStorage.getItem("saveToLocalStorage") === "true")
+  const [chatGptApiKey, setChatGptApiKey] = useState((typeof localStorage !== 'undefined') && localStorage.getItem("chatGptApiKey") || "")
+  const [encryptionKey, setEncryptionKey] = useState((typeof localStorage !== 'undefined') && localStorage.getItem("encryptionKey") || generateEncryptionKey())
+  const [saveToLocalStorage, setSaveToLocalStorage] = useState((typeof localStorage !== 'undefined') && localStorage.getItem("saveToLocalStorage") === "true")
   function saveCredentials() {
     if (saveToLocalStorage) {
-      localStorage.setItem("chatGptApiKey", chatGptApiKey)
-      localStorage.setItem("encryptionKey", encryptionKey)
-      localStorage.setItem("saveToLocalStorage", "true")
+      if (typeof localStorage !== 'undefined') {
+        localStorage.setItem("chatGptApiKey", chatGptApiKey)
+        localStorage.setItem("encryptionKey", encryptionKey)
+        localStorage.setItem("saveToLocalStorage", "true")
+      }
     } else {
-      localStorage.removeItem("chatGptApiKey")
-      localStorage.removeItem("encryptionKey")
-      localStorage.removeItem("saveToLocalStorage")
+      if (typeof localStorage !== 'undefined') {
+        localStorage.removeItem("chatGptApiKey")
+        localStorage.removeItem("encryptionKey")
+        localStorage.removeItem("saveToLocalStorage")
+      }
     }
   }
   useEffect(() => {
@@ -49,57 +54,59 @@ export function SettingsPopup() {
     return btoa(String.fromCharCode(...key))
   }
   return (
-    <Dialog defaultOpen>
-      <DialogTrigger asChild>
-        <Button variant="outline" size="icon">
-          <SettingsIcon className="w-6 h-6" />
-        </Button>
-      </DialogTrigger>
-      <DialogContent className="sm:max-w-[425px]">
-        <DialogHeader>
-          <DialogTitle>Settings</DialogTitle>
-        </DialogHeader>
-        <div className="space-y-4">
-          <div className="grid gap-1">
-            <Label htmlFor="chatGptApiKey">ChatGPT API Key</Label>
-            <Input
-              type="text"
-              id="chatGptApiKey"
-              value={chatGptApiKey}
-              onChange={(e) => setChatGptApiKey(e.target.value)}
-            />
-            <Link href="https://help.openai.com/en/articles/4936850-where-do-i-find-my-openai-api-key" target="_blank" className="text-sm text-blue-500 hover:underline" prefetch={false}>
-              How to obtain ChatGPT API Key
-            </Link>
-          </div>
-          <div className="grid gap-1">
-            <Label htmlFor="encryptionKey">Encryption Key</Label>
-            <Input type="text" id="encryptionKey" value={encryptionKey} readOnly />
-            <p className="text-sm text-gray-500 dark:text-gray-400">
-              Please save or print this master key as after losing it your medical records won't be possible to recover.
-              We're using strong end-to-end encryption.
-            </p>
-          </div>
-        </div>
-        <DialogFooter>
-          <div className="flex items-center justify-between gap-4">
-            <div className="flex items-center gap-2">
-              <Checkbox
-                id="saveToLocalStorage"
-                checked={saveToLocalStorage}
-                onCheckedChange={(checked) => setSaveToLocalStorage(checked)}
+    <NoSSR>
+      <Dialog defaultOpen>
+        <DialogTrigger asChild>
+          <Button variant="outline" size="icon">
+            <SettingsIcon className="w-6 h-6" />
+          </Button>
+        </DialogTrigger>
+        <DialogContent className="sm:max-w-[425px]">
+          <DialogHeader>
+            <DialogTitle>Settings</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div className="grid gap-1">
+              <Label htmlFor="chatGptApiKey">ChatGPT API Key</Label>
+              <Input
+                type="text"
+                id="chatGptApiKey"
+                value={chatGptApiKey}
+                onChange={(e) => setChatGptApiKey(e.target.value)}
               />
-              <Label htmlFor="saveToLocalStorage">Save to localStorage</Label>
+              <Link href="https://help.openai.com/en/articles/4936850-where-do-i-find-my-openai-api-key" target="_blank" className="text-sm text-blue-500 hover:underline" prefetch={false}>
+                How to obtain ChatGPT API Key
+              </Link>
             </div>
-            <div className="flex gap-2">
-              <DialogClose asChild>
-                <Button type="submit" onClick={saveCredentials()}>Save</Button>
-              </DialogClose>
-              </div>
+            <div className="grid gap-1">
+              <Label htmlFor="encryptionKey">Encryption Key</Label>
+              <Input type="text" id="encryptionKey" value={encryptionKey} readOnly />
+              <p className="text-sm text-gray-500 dark:text-gray-400">
+                Please save or print this master key as after losing it your medical records won't be possible to recover.
+                We're using strong end-to-end encryption.
+              </p>
+            </div>
           </div>
-        </DialogFooter>
-      </DialogContent>
-    </Dialog>
+          <DialogFooter>
+            <div className="flex items-center justify-between gap-4">
+              <div className="flex items-center gap-2">
+                <Checkbox
+                  id="saveToLocalStorage"
+                  checked={saveToLocalStorage}
+                  onCheckedChange={(checked) => setSaveToLocalStorage(checked)}
+                />
+                <Label htmlFor="saveToLocalStorage">Save to localStorage</Label>
+              </div>
+              <div className="flex gap-2">
+                <DialogClose asChild>
+                  <Button type="submit" onClick={saveCredentials()}>Save</Button>
+                </DialogClose>
+                </div>
+            </div>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+    </NoSSR>
   )
 }
 

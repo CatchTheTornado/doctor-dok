@@ -1,5 +1,4 @@
 'use client'
-import PatientSearch from "@/components/patient-search";
 import PatientList from "@/components/patient-list";
 import PatientRecords from "@/components/patient-records";
 import NewPatientRecord from "@/components/patient-record-form";

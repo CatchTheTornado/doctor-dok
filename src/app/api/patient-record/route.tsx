@@ -3,9 +3,11 @@ import ServerPatientRecordRepository from "@/data/server/server-patientrecord-re
 import { genericGET, genericPUT } from "@/lib/generic-api";
 
 export async function PUT(request: Request) {
-    return genericPUT<PatientRecordDTO>(request, patientRecordDTOSchema, new ServerPatientRecordRepository(), 'id');
+    const apiResult = await genericPUT<PatientRecordDTO>(await request.json(), patientRecordDTOSchema, new ServerPatientRecordRepository(), 'id');
+    return Response.json(apiResult, { status: apiResult.status });
+
 }
 
 export async function GET(request: Request) {
-    return genericGET<PatientRecordDTO>(request, new ServerPatientRecordRepository());
+    return Response.json(genericGET<PatientRecordDTO>(request, new ServerPatientRecordRepository()));
 }

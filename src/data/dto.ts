@@ -32,6 +32,7 @@ export const patientRecordAttachmentDTOSchema = z.object({
   extra: z.string().optional(),
 
   size: z.number().positive().int(),
+  storageKey: z.string().min(1),
 
   createdAt: z.string().default(() => getCurrentTS()),
   updatedAt: z.string().default(() => getCurrentTS()),

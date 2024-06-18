@@ -43,6 +43,7 @@ export const patientRecordAttachments = sqliteTable('patientrRecordAttachments',
     size: integer('size', { mode: 'number' }),    
 
 
+    storageKey: text('storageKey'),
     description: text('description'),
     
     createdAt: text('updatedAt').notNull().default(sql`CURRENT_TIMESTAMP`),
