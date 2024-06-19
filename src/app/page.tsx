@@ -3,6 +3,7 @@ import PatientList from "@/components/patient-list";
 import PatientRecords from "@/components/patient-records";
 import NewPatientRecord from "@/components/patient-record-form";
 import PatientsTopHeader from "@/components/patient-pane-header";
+import { ConfigContextProvider } from "@/contexts/config-context";
 
 export default function PatientPad() {
   const patients = [
@@ -17,19 +18,21 @@ export default function PatientPad() {
   ];
 
   return (
-    <div className="grid min-h-screen w-full lg:grid-cols-[300px_1fr] bg-gray-100 dark:bg-gray-950">
-      <div className="bg-white dark:bg-gray-900 border-r border-gray-200 dark:border-gray-800">
-        <PatientsTopHeader />
-        <PatientList />    
-      </div>
-      <div className="p-6 flex flex-col">
-        <NewPatientRecord patient={patients[0]} />
-        <div className="flex-1 overflow-auto">
-          <div className="grid gap-6">
-            <PatientRecords key={0} patient={patients[0]} />
+    <ConfigContextProvider>
+      <div className="grid min-h-screen w-full lg:grid-cols-[300px_1fr] bg-gray-100 dark:bg-gray-950">
+        <div className="bg-white dark:bg-gray-900 border-r border-gray-200 dark:border-gray-800">
+          <PatientsTopHeader />
+          <PatientList />    
+        </div>
+        <div className="p-6 flex flex-col">
+          <NewPatientRecord patient={patients[0]} />
+          <div className="flex-1 overflow-auto">
+            <div className="grid gap-6">
+              <PatientRecords key={0} patient={patients[0]} />
+            </div>
           </div>
         </div>
       </div>
-    </div>
+    </ConfigContextProvider>
   );
 }
