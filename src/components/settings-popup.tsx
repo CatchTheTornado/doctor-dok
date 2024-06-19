@@ -28,6 +28,7 @@ import Link from "next/link"
 import { Checkbox } from "@/components/ui/checkbox"
 import NoSSR from 'react-no-ssr';
 import { ConfigContext } from "@/contexts/config-context"
+import { PasswordInput } from "./ui/password-input"
 
 export function SettingsPopup() {
   const config = useContext(ConfigContext);
@@ -68,7 +69,7 @@ export function SettingsPopup() {
             </div>
             <div className="grid gap-1">
               <Label htmlFor="encryptionKey">Encryption Key</Label>
-              <Input type="text" id="encryptionKey" value={encryptionKey} 
+              <PasswordInput  autoComplete="true" id="encryptionKey" value={encryptionKey} 
               onChange={(e) => config?.setLocalConfig("encryptionKey", e.target.value)} />
               <p className="text-sm text-gray-500 dark:text-gray-400">
                 Please save or print this master key as after losing it your medical records won't be possible to recover.
