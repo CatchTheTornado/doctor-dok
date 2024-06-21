@@ -1,6 +1,7 @@
 import { BaseRepository } from "./base-repository"
 import { ConfigDTO } from "../dto";
-import { db, getCurrentTS } from '@/data/server/db-provider'
+import { db } from '@/data/server/db-provider'
+import { getCurrentTS } from "@/lib/utils";
 import { config } from "./db-schema";
 import { eq } from "drizzle-orm/sql";
 import { create } from "./generic-repository";

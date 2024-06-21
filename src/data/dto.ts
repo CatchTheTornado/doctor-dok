@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { getCurrentTS } from './server/db-provider';
+import { getCurrentTS } from "@/lib/utils";
 
 export const patientDTOSchema = z.object({
   id: z.number().positive(),

@@ -3,7 +3,12 @@ import PatientList from "@/components/patient-list";
 import PatientRecords from "@/components/patient-records";
 import NewPatientRecord from "@/components/patient-record-form";
 import PatientsTopHeader from "@/components/patient-pane-header";
-import { ConfigContextProvider } from "@/contexts/config-context";
+import { ConfigContext, ConfigContextProvider } from "@/contexts/config-context";
+import { useContext, useEffect } from "react";
+import { PatientApiClient } from "@/data/client/patient-api-client";
+import { ApiEncryptionConfig } from "@/data/client/base-api-client";
+import { PatientDTO } from "@/data/dto";
+import { getCurrentTS } from "@/lib/utils";
 
 export default function PatientPad() {
   const patients = [
@@ -16,6 +21,46 @@ export default function PatientPad() {
       ],
     }
   ];
+
+  const configContext = useContext(ConfigContext);
+  useEffect(() => {
+    (async () => {
+      const encryptionConfig: ApiEncryptionConfig = {
+        secretKey: "SecretKeyTest", // TODO: for entities other than Config we should take the masterKey from server config
+        useEncryption: true
+      };
+      const client = new PatientApiClient('', encryptionConfig);
+    
+      try {
+        const patients = await client.get();
+        console.log('Patients:', patients);
+      } catch (error) {
+        console.error('Error fetching patients:', error);
+      }
+    
+      const newPatient: PatientDTO = {
+        id: 123,
+        firstName: 'John',
+        lastName: 'Doe',
+        updatedAt: getCurrentTS()
+        // Populate other necessary fields
+      };
+    
+      try {
+        const response = await client.put(newPatient);
+        if (response.status === 200) {
+          console.log('Patient updated:', response.data);
+        } else {
+          console.error('Error updating patient:', response.message);
+          if (response.issues) {
+            console.error('Validation issues:', response.issues);
+          }
+        }
+      } catch (error) {
+        console.error('Error updating patient:', error);
+      }
+    })();    
+  });
 
   return (
     <ConfigContextProvider>
