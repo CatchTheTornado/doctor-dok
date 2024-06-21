@@ -4,7 +4,6 @@ import { db } from '@/data/server/db-provider'
 import { getCurrentTS } from "@/lib/utils";
 import { patientRecords } from "./db-schema";
 import { eq } from "drizzle-orm";
-import { error } from "console";
 import { create } from "./generic-repository";
 
 export default class ServerPatientRecordRepository extends BaseRepository<PatientRecordDTO> {
@@ -26,6 +25,10 @@ export default class ServerPatientRecordRepository extends BaseRepository<Patien
        }
        return Promise.resolve(existingRecord as PatientRecordDTO)   
     }    
+
+    async delete(query: Record<string, string>): Promise<boolean> {
+        return db.delete(patientRecords).where(eq(patientRecords.id, parseInt(query.id))).run()
+    }
 
     findAll(): Promise<PatientRecordDTO[]> {
         return Promise.resolve(db.select().from(patientRecords).all() as PatientRecordDTO[])
