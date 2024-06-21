@@ -33,5 +33,5 @@ export async function PUT(request: Request) {
 }
 
 export async function GET(request: Request) {
-    return Response.json(genericGET<PatientRecordAttachmentDTO>(request, new ServerPatientRecordAttachmentRepository()));
+    return Response.json(await genericGET<PatientRecordAttachmentDTO>(request, new ServerPatientRecordAttachmentRepository()));
 }

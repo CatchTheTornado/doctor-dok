@@ -2,7 +2,7 @@ import { z } from 'zod';
 import { getCurrentTS } from "@/lib/utils";
 
 export const patientDTOSchema = z.object({
-  id: z.number().positive(),
+  id: z.number().positive().optional(),
   firstName: z.string().min(1),
   lastName: z.string().min(1),
   updatedAt: z.string().default(() => getCurrentTS()),
@@ -19,7 +19,7 @@ export const configDTOSchema = z.object({
 export type ConfigDTO = z.infer<typeof configDTOSchema>;
 
 export const patientRecordAttachmentDTOSchema = z.object({
-  id: z.number().positive(),
+  id: z.number().positive().optional(),
   patientId: z.number().positive().int(),
   patientRecordId: z.number().positive().int(),
 
@@ -41,7 +41,7 @@ export const patientRecordAttachmentDTOSchema = z.object({
 export type PatientRecordAttachmentDTO = z.infer<typeof patientRecordAttachmentDTOSchema>;
 
 export const patientRecordDTOSchema = z.object({
-  id: z.number().positive(),
+  id: z.number().positive().optional(),
   patientId: z.number().positive().int(),
 
   description: z.string().optional(),

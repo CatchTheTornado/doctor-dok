@@ -27,7 +27,7 @@ export class ApiClient {
       });
   
       if (body && this.encryptionFilter) {
-        body = this.encryptionFilter.encrypt(body);
+        body = await this.encryptionFilter.encrypt(body);
       }
   
       const response = await fetch(`${this.baseUrl}${endpoint}`, {

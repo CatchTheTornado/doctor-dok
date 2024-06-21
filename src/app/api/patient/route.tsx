@@ -10,5 +10,5 @@ export async function PUT(request: Request) {
 }
 
 export async function GET(request: Request) {
-    return Response.json(genericGET<PatientDTO>(request, new ServerPatientRepository()));
+    return Response.json(await genericGET<PatientDTO>(request, new ServerPatientRepository()));
 }
