@@ -21,7 +21,7 @@ export class ApiClient {
       endpoint: string,
       method: 'GET' | 'POST' | 'PUT' | 'DELETE',
       body?: any
-    ): Promise<T> {
+    ): Promise<T | T[]> {
       const headers = new Headers({
         'Content-Type': 'application/json',
       });
@@ -43,6 +43,14 @@ export class ApiClient {
   
       const responseData = await response.json();
   
-      return this.encryptionFilter ? this.encryptionFilter.decrypt(responseData) : responseData;
+      if(this.encryptionFilter) {
+        if(responseData instanceof Array) {
+          return responseData.map((data) => this.encryptionFilter.decrypt(data)) as T[]
+        } else {
+          return this.encryptionFilter.decrypt(responseData)
+        }
+      } else {
+        return responseData;
+      }
     }
   }
