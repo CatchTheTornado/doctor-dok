@@ -1,19 +1,74 @@
-import * as CryptoJS from 'crypto-js';
 
 export class EncryptionUtils {
-  private key: CryptoJS.lib.WordArray;
-
+  private key: CryptoKey = {} as CryptoKey;
+  
   constructor(secretKey: string) {
-    this.key = CryptoJS.enc.Utf8.parse(secretKey);
+    this.generateKey(secretKey);
   }
 
-  encrypt(text: string): string {
-    return CryptoJS.AES.encrypt(text, this.key).toString();
+  async generateKey(secretKey: string): Promise<void> {
+    const encoder = new TextEncoder();
+    const keyData = await this.deriveKey(secretKey);
+    this.key = await crypto.subtle.importKey(
+      'raw',
+      keyData,
+      { name: 'AES-CBC' },
+      false,
+      ['encrypt', 'decrypt']
+    );
+  }
+  
+  private async deriveKey(secretKey: string): Promise<ArrayBuffer> {
+    const encoder = new TextEncoder();
+    const salt = encoder.encode('someSalt'); // Replace 'someSalt' with a suitable salt value
+    const iterations = 100000; // Adjust the number of iterations as needed
+    const keyLength = 256; // 256 bits (32 bytes)
+    const derivedKey = await crypto.subtle.importKey(
+      'raw',
+      encoder.encode(secretKey),
+      { name: 'PBKDF2' },
+      false,
+      ['deriveBits']
+    );
+    return crypto.subtle.deriveBits(
+      {
+        name: 'PBKDF2',
+        salt,
+        iterations,
+        hash: 'SHA-256'
+      },
+      derivedKey,
+      keyLength
+    );
   }
 
-  decrypt(cipherText: string): string {
-    const bytes = CryptoJS.AES.decrypt(cipherText, this.key);
-    return bytes.toString(CryptoJS.enc.Utf8);
+  async encrypt(text: string): Promise<string> {
+    const encoder = new TextEncoder();
+    const data = encoder.encode(text);
+    const iv = crypto.getRandomValues(new Uint8Array(16));
+    const encryptedData = await crypto.subtle.encrypt(
+      { name: 'AES-CBC', iv },
+      this.key,
+      data
+    );
+    const encryptedArray = Array.from(new Uint8Array(encryptedData));
+    const encryptedHex = encryptedArray.map(byte => byte.toString(16).padStart(2, '0')).join('');
+    const ivHex = Array.from(iv).map(byte => byte.toString(16).padStart(2, '0')).join('');
+    return ivHex + encryptedHex;
+  }
+
+  async decrypt(cipherText: string): Promise<string> {
+    const ivHex = cipherText.slice(0, 32);
+    const encryptedHex = cipherText.slice(32);
+    const iv = new Uint8Array(ivHex.match(/.{1,2}/g).map(byte => parseInt(byte, 16)));
+    const encryptedArray = new Uint8Array(encryptedHex.match(/.{1,2}/g).map(byte => parseInt(byte, 16)));
+    const decryptedData = await crypto.subtle.decrypt(
+      { name: 'AES-CBC', iv },
+      this.key,
+      encryptedArray
+    );
+    const decoder = new TextDecoder();
+    return decoder.decode(decryptedData);
   }
 }
 
