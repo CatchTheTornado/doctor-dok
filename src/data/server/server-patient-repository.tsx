@@ -26,6 +26,10 @@ export default class ServerPatientRepository extends BaseRepository<PatientDTO> 
         return Promise.resolve(existingPatient as PatientDTO)   
     }    
 
+    async delete(query: Record<string, string>): Promise<boolean> {
+        return db.delete(patients).where(eq(patients.id, parseInt(query.id))).run()
+    }
+
     async findAll(): Promise<PatientDTO[]> {
         return Promise.resolve(db.select({
             id: patients.id,

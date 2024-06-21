@@ -46,3 +46,27 @@ export async function genericGET<T extends { [key:string]: any }>(request: Reque
     const items: T[] = await repo.findAll()
     return items;
 }
+
+export async function genericDELETE<T extends { [key:string]: any }>(request: Request, repo: BaseRepository<T>, query: Record<string, string | number>): Promise<ApiResult>{
+    await setup()
+    try {
+        if(await repo.delete(query)) {
+            return {
+                message: 'Data deleted successfully!',
+                status: 200
+            }
+        } else {
+            return {
+                message: 'Data not found!',
+                status: 400
+            }
+        }
+    } catch (e) {
+        console.error(e);
+        return {
+            message: getErrorMessage(e),
+            error: e,
+            status: 500
+        }
+    }
+}
