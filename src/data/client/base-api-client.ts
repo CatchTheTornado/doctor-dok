@@ -45,9 +45,9 @@ export class ApiClient {
   
       if(this.encryptionFilter) {
         if(responseData instanceof Array) {
-          return responseData.map((data) => this.encryptionFilter.decrypt(data)) as T[]
+          return responseData.map(async (data) => await this.encryptionFilter.decrypt(data)) as T[]
         } else {
-          return this.encryptionFilter.decrypt(responseData)
+          return await this.encryptionFilter.decrypt(responseData)
         }
       } else {
         return responseData;

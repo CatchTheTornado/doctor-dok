@@ -29,6 +29,7 @@ import { Checkbox } from "@/components/ui/checkbox"
 import NoSSR from 'react-no-ssr';
 import { ConfigContext } from "@/contexts/config-context"
 import { PasswordInput } from "./ui/password-input"
+import { generateEncryptionKey } from "@/lib/crypto"
 
 export function SettingsPopup() {
   const config = useContext(ConfigContext);
@@ -44,10 +45,6 @@ export function SettingsPopup() {
       return navigator.credentials.store(c);
     } else return true;            
   }*/
-  function generateEncryptionKey() {
-    const key = crypto.getRandomValues(new Uint8Array(32))
-    return btoa(String.fromCharCode(...key))
-  }
   return (
     <NoSSR>
       <Dialog defaultOpen>

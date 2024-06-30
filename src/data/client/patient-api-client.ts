@@ -25,7 +25,7 @@ export class PatientApiClient extends ApiClient {
     }
   
     async get(): Promise<GetPatientsResponse> {
-      return this.request<GetPatientsResponse>('/api/patient', 'GET');
+      return this.request<GetPatientsResponse>('/api/patient', 'GET') as Promise<GetPatientsResponse>;
     }
   
     async put(patient: PutPatientRequest): Promise<PutPatientResponse> {

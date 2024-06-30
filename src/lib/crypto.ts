@@ -72,6 +72,11 @@ export class EncryptionUtils {
   }
 }
 
+export function generateEncryptionKey() {
+  const key = crypto.getRandomValues(new Uint8Array(32))
+  return btoa(String.fromCharCode(...key))
+}
+
 export class DTOEncryptionFilter<T> {
     private utils: EncryptionUtils;
   
@@ -109,3 +114,5 @@ export class DTOEncryptionFilter<T> {
       return result;
     }
   }
+
+  
