@@ -37,28 +37,7 @@ export default function PatientPad() {
       } catch (error) {
         console.error('Error fetching patients:', error);
       }
-    
-      const newPatient: PatientDTO = {
-        id: 123,
-        firstName: 'John',
-        lastName: 'Doe',
-        updatedAt: getCurrentTS()
-        // Populate other necessary fields
-      };
-    
-      try {
-        const response = await client.put(newPatient);
-        if (response.status === 200) {
-          console.log('Patient updated:', response.data);
-        } else {
-          console.error('Error updating patient:', response.message);
-          if (response.issues) {
-            console.error('Validation issues:', response.issues);
-          }
-        }
-      } catch (error) {
-        console.error('Error updating patient:', error);
-      }
+
     })();    
   });
 
