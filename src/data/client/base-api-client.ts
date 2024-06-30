@@ -42,12 +42,14 @@ export class ApiClient {
       }
   
       const responseData = await response.json();
-  
+      
       if(this.encryptionFilter) {
         if(responseData instanceof Array) {
-          return responseData.map(async (data) => await this.encryptionFilter.decrypt(data)) as T[]
+          const decryptedData = await Promise.all(responseData.map(async (data) => await this.encryptionFilter.decrypt(data)));
+          return decryptedData as T[];
         } else {
-          return await this.encryptionFilter.decrypt(responseData)
+          const decryptedData = await this.encryptionFilter.decrypt(responseData);
+          return decryptedData as T;
         }
       } else {
         return responseData;
