@@ -106,7 +106,7 @@ export class DTOEncryptionFilter<T> {
       const result = {} as T;
       for (const key in dto) {
         if (typeof dto[key] === 'string' || typeof dto[key] === 'object') {
-          result[key] = await processFn(dto[key] as unknown as string);
+          result[key] = await processFn(dto[key] as string);
         } else {
           result[key] = dto[key];
         }
