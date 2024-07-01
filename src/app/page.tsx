@@ -7,8 +7,7 @@ import { ConfigContext, ConfigContextProvider } from "@/contexts/config-context"
 import { useContext, useEffect } from "react";
 import { PatientApiClient } from "@/data/client/patient-api-client";
 import { ApiEncryptionConfig } from "@/data/client/base-api-client";
-import { PatientDTO } from "@/data/dto";
-import { getCurrentTS } from "@/lib/utils";
+import { useEffectOnce } from "react-use";
 
 export default function PatientPad() {
   const patients = [
@@ -23,7 +22,7 @@ export default function PatientPad() {
   ];
 
   const configContext = useContext(ConfigContext);
-  useEffect(() => {
+  useEffectOnce(() => {
     (async () => {
       const encryptionConfig: ApiEncryptionConfig = {
         secretKey: "SecretKeyTest", // TODO: for entities other than Config we should take the masterKey from server config

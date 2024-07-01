@@ -19,7 +19,7 @@ To read more about using these font, please visit the Next.js documentation:
 **/
 "use client"
 
-import { useContext } from "react"
+import { useContext, useState } from "react"
 import { Dialog, DialogClose, DialogTrigger, DialogContent, DialogHeader, DialogTitle, DialogBody, DialogFooter } from "@/components/ui/dialog"
 import { Button } from "@/components/ui/button"
 import { Label } from "@/components/ui/label"
@@ -39,6 +39,15 @@ export function SettingsPopup() {
     config?.setLocalConfig('encryptionKey', encryptionKey);
   }
 
+  let [newEncryptionKey, setEncryptionKey] = useState(encryptionKey);
+  let [newChatGptApiKey, setChatGptApiKey] = useState(config?.localConfig.chatGptApiKey || "");
+
+  function handleSubmit(e){
+    config?.setLocalConfig('encryptionKey', newEncryptionKey);
+    config?.setLocalConfig('chatGptApiKey', newChatGptApiKey);
+    //passwordManager(e);
+  }
+
 /*  function passwordManager(e) {
     if (window.PasswordCredential) {
       var c = new PasswordCredential({ id: "patient-pad", password: encryptionKey });
@@ -47,7 +56,7 @@ export function SettingsPopup() {
   }*/
   return (
     <NoSSR>
-      <Dialog>
+      <Dialog defaultOpen>
         <DialogTrigger asChild>
           <Button variant="outline" size="icon">
             <SettingsIcon className="w-6 h-6" />
@@ -57,46 +66,51 @@ export function SettingsPopup() {
           <DialogHeader>
             <DialogTitle>Settings</DialogTitle>
           </DialogHeader>
-          <div className="space-y-4">
-            <div className="grid gap-1">
-              <Label htmlFor="chatGptApiKey">ChatGPT API Key</Label>
-              <Input
-                type="text"
-                id="chatGptApiKey"
-                value={config?.localConfig.chatGptApiKey || ""}
-                onChange={(e) => config?.setLocalConfig("chatGptApiKey", e.target.value)}
-              />
-              <Link href="https://help.openai.com/en/articles/4936850-where-do-i-find-my-openai-api-key" target="_blank" className="text-sm text-blue-500 hover:underline" prefetch={false}>
-                How to obtain ChatGPT API Key
-              </Link>
-            </div>
-            <div className="grid gap-1">
-              <Label htmlFor="encryptionKey">Encryption Key</Label>
-              <PasswordInput  autoComplete="new-password" id="password" value={encryptionKey} 
-              onChange={(e) => config?.setLocalConfig("encryptionKey", e.target.value)} />
-              <p className="text-sm text-gray-500 dark:text-gray-400">
-                Please save or print this master key as after losing it your medical records won't be possible to recover.
-                We're using strong end-to-end encryption.
-              </p>
-            </div>
-          </div>
-          <DialogFooter>
-            <div className="flex items-center justify-between gap-4">
-              <div className="flex items-center gap-2">
-                <Checkbox
-                  id="saveToLocalStorage"
-                  checked={config?.localConfig.saveToLocalStorage}
-                  onCheckedChange={(checked) => config?.setSaveToLocalStorage(checked)}
-                />
-                <Label htmlFor="saveToLocalStorage">Save to localStorage</Label>
-              </div>
-              <div className="flex gap-2">
-                <DialogClose asChild>
-                  <Button type="submit">OK</Button>
-                </DialogClose>
+          <form onSubmit={(e) => {e.preventDefault(); handleSubmit(e);}}>
+            <div className="space-y-4">
+              <div className="grid gap-1">
+                  <Label htmlFor="chatGptApiKey">ChatGPT API Key</Label>
+                  <Input
+                    type="text"
+                    id="chatGptApiKey"
+                    value={newChatGptApiKey}
+                    onChange={(e) => setChatGptApiKey(e.target.value)}
+                  />
+                  <Link href="https://help.openai.com/en/articles/4936850-where-do-i-find-my-openai-api-key" target="_blank" className="text-sm text-blue-500 hover:underline" prefetch={false}>
+                    How to obtain ChatGPT API Key
+                  </Link>
                 </div>
-            </div>
-          </DialogFooter>
+                <div className="grid gap-1">
+                  <Label htmlFor="encryptionKey">Encryption Key</Label>
+                  <PasswordInput  autoComplete="new-password" id="password" value={newEncryptionKey} 
+                  onChange={(e) => setEncryptionKey(e.target.value)} />
+                  <p className="text-sm text-gray-500 dark:text-gray-400">
+                    Please save or print this master key as after losing it your medical records won't be possible to recover.
+                    We're using strong end-to-end encryption.
+                  </p>
+                </div>
+              </div>
+              <DialogFooter>
+                <div className="flex items-center justify-between gap-4">
+                  <div className="flex items-center gap-2">
+                    <Checkbox
+                      id="saveToLocalStorage"
+                      checked={config?.localConfig.saveToLocalStorage}
+                      onCheckedChange={(checked) => config?.setSaveToLocalStorage(checked)}
+                    />
+                    <Label htmlFor="saveToLocalStorage">Save to localStorage</Label>
+                  </div>
+                  <div className="flex gap-2">
+                    <DialogClose asChild>
+                      <Button type="button">Cancel</Button>
+                    </DialogClose>
+                    <DialogClose asChild>
+                      <Button type="submit">Save</Button>
+                    </DialogClose>
+                  </div>
+              </div>
+            </DialogFooter>
+          </form>
         </DialogContent>
       </Dialog>
     </NoSSR>

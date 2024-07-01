@@ -1,9 +1,10 @@
 
 export class EncryptionUtils {
   private key: CryptoKey = {} as CryptoKey;
+  private secretKey: string;
   
   constructor(secretKey: string) {
-    this.generateKey(secretKey);
+    this.secretKey = secretKey;
   }
 
   async generateKey(secretKey: string): Promise<void> {
@@ -43,6 +44,8 @@ export class EncryptionUtils {
   }
 
   async encrypt(text: string): Promise<string> {
+    await this.generateKey(this.secretKey);
+
     const encoder = new TextEncoder();
     const data = encoder.encode(text);
     const iv = crypto.getRandomValues(new Uint8Array(16));
@@ -59,6 +62,8 @@ export class EncryptionUtils {
 
   async decrypt(cipherText: string): Promise<string> {
     try {
+      await this.generateKey(this.secretKey);
+
       const ivHex = cipherText.slice(0, 32);
       const encryptedHex = cipherText.slice(32);
       const iv = new Uint8Array(ivHex.match(/.{1,2}/g).map(byte => parseInt(byte, 16)));
@@ -101,7 +106,7 @@ export class DTOEncryptionFilter<T> {
     
     async decrypt(dto: T): Promise<T> {
       return this.process(dto, async (value) => {
-        if (value.startsWith('json-')) {
+        if (typeof value === 'string' && value.startsWith('json-')) {
           return JSON.parse(await this.utils.decrypt(value.slice(5)));
         }
         return await this.utils.decrypt(value);
