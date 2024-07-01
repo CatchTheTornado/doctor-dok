@@ -30,6 +30,10 @@ import NoSSR from 'react-no-ssr';
 import { ConfigContext } from "@/contexts/config-context"
 import { PasswordInput } from "./ui/password-input"
 import { generateEncryptionKey } from "@/lib/crypto"
+import ReactToPrint from "react-to-print";
+import { KeyPrint } from "./key-print"
+import React from "react"
+
 
 export function SettingsPopup() {
   const config = useContext(ConfigContext);
@@ -38,6 +42,15 @@ export function SettingsPopup() {
     encryptionKey = generateEncryptionKey();
     config?.setLocalConfig('encryptionKey', encryptionKey);
   }
+
+  const componentRef = React.useRef(null);
+  const reactToPrintContent = React.useCallback(() => {
+    return componentRef.current;
+  }, [componentRef.current]);
+
+  const reactToPrintTrigger = React.useCallback(() => {
+    return <Button variant="link">Print encryption key</Button>;
+  }, []);
 
   let [newEncryptionKey, setEncryptionKey] = useState(encryptionKey);
   let [newChatGptApiKey, setChatGptApiKey] = useState(config?.localConfig.chatGptApiKey || "");
@@ -81,6 +94,9 @@ export function SettingsPopup() {
                   </Link>
                 </div>
                 <div className="grid gap-1">
+                <div class="hidden">
+                  <KeyPrint ref={componentRef} text={encryptionKey}/>
+                </div>
                   <Label htmlFor="encryptionKey">Encryption Key</Label>
                   <PasswordInput  autoComplete="new-password" id="password" value={newEncryptionKey} 
                   onChange={(e) => setEncryptionKey(e.target.value)} />
@@ -88,6 +104,12 @@ export function SettingsPopup() {
                     Please save or print this master key as after losing it your medical records won't be possible to recover.
                     We're using strong end-to-end encryption.
                   </p>
+                   <ReactToPrint
+                    content={reactToPrintContent}
+                    documentTitle="Patient Pad Encryption Key"
+                    removeAfterPrint
+                    trigger={reactToPrintTrigger}
+                  />                  
                 </div>
               </div>
               <DialogFooter>

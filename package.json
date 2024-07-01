@@ -29,6 +29,7 @@
     "react-dom": "^18",
     "react-dropzone": "^14.2.3",
     "react-no-ssr": "^1.1.0",
+    "react-to-print": "^2.15.1",
     "react-use": "^17.5.0",
     "sonner": "^1.5.0",
     "tailwind-merge": "^2.3.0",
