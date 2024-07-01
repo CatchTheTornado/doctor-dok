@@ -1,5 +1,5 @@
 import { Button } from "./ui/button";
-import { PatientAddPopup } from "@/components/patient-add-popup";
+import { PatientEditPopup } from "@/components/patient-edit-popup";
 import { SettingsPopup } from "@/components/settings-popup";
 
 export default function PatientsTopHeader() {
@@ -8,7 +8,7 @@ export default function PatientsTopHeader() {
         <div className="sticky top-0 flex items-center justify-between border-b border-gray-200 dark:border-gray-800 p-4">
             <div className="font-medium">Patient Pad</div>
             <div className="flex items-center gap-2">
-                <PatientAddPopup />
+                <PatientEditPopup />
                 <SettingsPopup />
                 <Button variant="ghost" size="icon">
                     <LogInIcon className="h-5 w-5" />

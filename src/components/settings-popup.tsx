@@ -94,14 +94,14 @@ export function SettingsPopup() {
                   </Link>
                 </div>
                 <div className="grid gap-1">
-                <div class="hidden">
+                <div className="hidden">
                   <KeyPrint ref={componentRef} text={encryptionKey}/>
                 </div>
                   <Label htmlFor="encryptionKey">Encryption Key</Label>
                   <PasswordInput  autoComplete="new-password" id="password" value={newEncryptionKey} 
                   onChange={(e) => setEncryptionKey(e.target.value)} />
                   <p className="text-sm text-gray-500 dark:text-gray-400">
-                    Please save or print this master key. <strong>It's like crypto wallet.</strong> After losing it your medical records <strong class="text-red-500">WILL BE LOST FOREVER</strong>.
+                    Please save or print this master key. <strong>It's like crypto wallet.</strong> After losing it your medical records <strong className="text-red-500">WILL BE LOST FOREVER</strong>.
                     We're using strong AES256 end-to-end encryption.
                   </p>
                    <ReactToPrint

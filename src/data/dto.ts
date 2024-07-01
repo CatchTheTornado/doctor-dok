@@ -9,10 +9,12 @@ export const patientDTOSchema = z.object({
   id: z.number().positive().optional(),
   firstName: z.string().min(1),
   lastName: z.string().min(1),
+  email: z.string().email().optional(),
+  dateOfBirth: z.string().optional(),
   updatedAt: z.string().default(() => getCurrentTS()),
 });
 
-export const PatientDTOEncSettings: DTOEncryptionSettings =  { ecnryptedFields: ['firstName', 'lastName'] }
+export const PatientDTOEncSettings: DTOEncryptionSettings =  { ecnryptedFields: ['firstName', 'lastName', 'dateOfBirth', 'email'] }
 export type PatientDTO = z.infer<typeof patientDTOSchema>;
 
 export const configDTOSchema = z.object({
