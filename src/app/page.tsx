@@ -8,6 +8,7 @@ import { useContext, useEffect } from "react";
 import { PatientApiClient } from "@/data/client/patient-api-client";
 import { ApiEncryptionConfig } from "@/data/client/base-api-client";
 import { useEffectOnce } from "react-use";
+import { PatientProvider } from "@/contexts/patient-context";
 
 export default function PatientPad() {
   const patients = [
@@ -24,38 +25,27 @@ export default function PatientPad() {
   const configContext = useContext(ConfigContext);
   useEffectOnce(() => {
     (async () => {
-      const encryptionConfig: ApiEncryptionConfig = {
-        secretKey: "SecretKeyTest", // TODO: for entities other than Config we should take the masterKey from server config
-        useEncryption: true
-      };
-      const client = new PatientApiClient('', encryptionConfig);
-    
-      try {
-        const patients = await client.get();
-        console.log('Patients:', patients);
-      } catch (error) {
-        console.error('Error fetching patients:', error);
-      }
-
     })();    
   });
 
   return (
     <ConfigContextProvider>
-      <div className="grid min-h-screen w-full lg:grid-cols-[300px_1fr] bg-gray-100 dark:bg-gray-950">
-        <div className="bg-white dark:bg-gray-900 border-r border-gray-200 dark:border-gray-800">
-          <PatientsTopHeader />
-          <PatientList />    
-        </div>
-        <div className="p-6 flex flex-col">
-          <NewPatientRecord patient={patients[0]} />
-          <div className="flex-1 overflow-auto">
-            <div className="grid gap-6">
-              <PatientRecords key={0} patient={patients[0]} />
+      <PatientProvider>
+        <div className="grid min-h-screen w-full lg:grid-cols-[300px_1fr] bg-gray-100 dark:bg-gray-950">
+          <div className="bg-white dark:bg-gray-900 border-r border-gray-200 dark:border-gray-800">
+            <PatientsTopHeader />
+            <PatientList />    
+          </div>
+          <div className="p-6 flex flex-col">
+            <NewPatientRecord patient={patients[0]} />
+            <div className="flex-1 overflow-auto">
+              <div className="grid gap-6">
+                <PatientRecords key={0} patient={patients[0]} />
+              </div>
             </div>
           </div>
         </div>
-      </div>
+      </PatientProvider>
     </ConfigContextProvider>
   );
 }

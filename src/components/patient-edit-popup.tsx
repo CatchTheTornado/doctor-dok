@@ -25,8 +25,12 @@ import { Input } from "@/components/ui/input"
 import { useForm } from "react-hook-form"
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from "zod"
+import { PatientContext, PatientProvider } from "@/contexts/patient-context"
+import { useContext } from "react"
 
 export function PatientEditPopup() {
+  const patientProvider = useContext(PatientContext);
+
   const {
     register,
     handleSubmit,
@@ -42,6 +46,7 @@ export function PatientEditPopup() {
     ),
   })
   const onSubmit = (data) => {
+    patientProvider.addPatient(data);
     console.log(data)
   }
   return (

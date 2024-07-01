@@ -9,7 +9,7 @@ export const patientDTOSchema = z.object({
   id: z.number().positive().optional(),
   firstName: z.string().min(1),
   lastName: z.string().min(1),
-  email: z.string().email().optional(),
+  email: z.string().optional(),
   dateOfBirth: z.string().optional(),
   updatedAt: z.string().default(() => getCurrentTS()),
 });
