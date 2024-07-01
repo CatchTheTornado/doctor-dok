@@ -1,6 +1,10 @@
 import { z } from 'zod';
 import { getCurrentTS } from "@/lib/utils";
 
+export type DTOEncryptionSettings = {
+  ecnryptedFields: string[]
+}
+
 export const patientDTOSchema = z.object({
   id: z.number().positive().optional(),
   firstName: z.string().min(1),
@@ -8,6 +12,7 @@ export const patientDTOSchema = z.object({
   updatedAt: z.string().default(() => getCurrentTS()),
 });
 
+export const PatientDTOEncSettings: DTOEncryptionSettings =  { ecnryptedFields: ['firstName', 'lastName'] }
 export type PatientDTO = z.infer<typeof patientDTOSchema>;
 
 export const configDTOSchema = z.object({
@@ -16,6 +21,7 @@ export const configDTOSchema = z.object({
   updatedAt: z.string().default(() => getCurrentTS()),
 });
 
+export const ConfigDTOEncSettings: DTOEncryptionSettings =  { ecnryptedFields: ['value'] }
 export type ConfigDTO = z.infer<typeof configDTOSchema>;
 
 export const patientRecordAttachmentDTOSchema = z.object({

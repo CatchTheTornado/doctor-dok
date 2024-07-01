@@ -1,3 +1,4 @@
+import { DTOEncryptionSettings } from "@/data/dto";
 
 export class EncryptionUtils {
   private key: CryptoKey = {} as CryptoKey;
@@ -95,8 +96,8 @@ export class DTOEncryptionFilter<T> {
       this.utils = new EncryptionUtils(secretKey);
     }
   
-    async encrypt(dto: T): Promise<T> {
-      return this.process(dto, async (value) => {
+    async encrypt(dto: T, encryptionSettings?: DTOEncryptionSettings): Promise<T> {
+      return this.process(dto, encryptionSettings, async (value) => {
         if (typeof value === 'object') {
           return 'json-' + await this.utils.encrypt(JSON.stringify(value));
         }
@@ -104,8 +105,8 @@ export class DTOEncryptionFilter<T> {
       });
     }
     
-    async decrypt(dto: T): Promise<T> {
-      return this.process(dto, async (value) => {
+    async decrypt(dto: T, encryptionSettings?: DTOEncryptionSettings): Promise<T> {
+      return this.process(dto, encryptionSettings, async (value) => {
         if (typeof value === 'string' && value.startsWith('json-')) {
           return JSON.parse(await this.utils.decrypt(value.slice(5)));
         }
@@ -113,10 +114,10 @@ export class DTOEncryptionFilter<T> {
       });
     }
   
-    private async process(dto: T, processFn: (value: string) => Promise<string>): T {
+    private async process(dto: T, encryptionSettings?: DTOEncryptionSettings, processFn: (value: string) => Promise<string>): T {
       const result = {} as T;
       for (const key in dto) {
-        if (typeof dto[key] === 'string' || typeof dto[key] === 'object') {
+        if ((encryptionSettings && encryptionSettings.ecnryptedFields.indexOf(key) >=0) || (!encryptionSettings && (typeof dto[key] === 'string' || typeof dto[key] === 'object'))) {
           result[key] = await processFn(dto[key] as string);
         } else {
           result[key] = dto[key];

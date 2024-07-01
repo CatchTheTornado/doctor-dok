@@ -1,4 +1,5 @@
 import { DTOEncryptionFilter } from "@/lib/crypto";
+import { DTOEncryptionSettings } from "../dto";
 
 export type ApiEncryptionConfig = {
     secretKey: string;
@@ -20,6 +21,7 @@ export class ApiClient {
     protected async request<T>(
       endpoint: string,
       method: 'GET' | 'POST' | 'PUT' | 'DELETE',
+      encryptionSettings: DTOEncryptionSettings,
       body?: any
     ): Promise<T | T[]> {
       const headers = new Headers({
@@ -27,7 +29,7 @@ export class ApiClient {
       });
   
       if (body && this.encryptionFilter) {
-        body = await this.encryptionFilter.encrypt(body);
+        body = await this.encryptionFilter.encrypt(body, encryptionSettings);
       }
   
       const response = await fetch(`${this.baseUrl}${endpoint}`, {
@@ -45,10 +47,10 @@ export class ApiClient {
       
       if(this.encryptionFilter) {
         if(responseData instanceof Array) {
-          const decryptedData = await Promise.all(responseData.map(async (data) => await this.encryptionFilter.decrypt(data)));
+          const decryptedData = await Promise.all(responseData.map(async (data) => await this.encryptionFilter.decrypt(data, encryptionSettings)));
           return decryptedData as T[];
         } else {
-          const decryptedData = await this.encryptionFilter.decrypt(responseData);
+          const decryptedData = await this.encryptionFilter.decrypt(responseData, encryptionSettings);
           return decryptedData as T;
         }
       } else {
