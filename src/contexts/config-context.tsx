@@ -74,6 +74,7 @@ function configReducer(state: ConfigContextType, action: Action): ConfigContextT
 
 export const ConfigContext = React.createContext<ConfigContextType | null>(null);
 export const ConfigContextProvider: React.FC<PropsWithChildren> = ({ children }) => {
+  initialState.localConfig.encryptionKey = (typeof localStorage !== 'undefined') && localStorage.getItem("encryptionKey") || ""; // it's important to load it here as it's used by settings popup
   const [state, dispatch] = useReducer(configReducer, initialState);
 
   useEffect(() => {

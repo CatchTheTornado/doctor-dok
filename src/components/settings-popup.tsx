@@ -19,7 +19,7 @@ To read more about using these font, please visit the Next.js documentation:
 **/
 "use client"
 
-import { useState, useEffect, useContext } from "react"
+import { useContext } from "react"
 import { Dialog, DialogClose, DialogTrigger, DialogContent, DialogHeader, DialogTitle, DialogBody, DialogFooter } from "@/components/ui/dialog"
 import { Button } from "@/components/ui/button"
 import { Label } from "@/components/ui/label"
@@ -47,7 +47,7 @@ export function SettingsPopup() {
   }*/
   return (
     <NoSSR>
-      <Dialog defaultOpen>
+      <Dialog>
         <DialogTrigger asChild>
           <Button variant="outline" size="icon">
             <SettingsIcon className="w-6 h-6" />

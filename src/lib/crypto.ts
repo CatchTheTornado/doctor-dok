@@ -58,17 +58,23 @@ export class EncryptionUtils {
   }
 
   async decrypt(cipherText: string): Promise<string> {
-    const ivHex = cipherText.slice(0, 32);
-    const encryptedHex = cipherText.slice(32);
-    const iv = new Uint8Array(ivHex.match(/.{1,2}/g).map(byte => parseInt(byte, 16)));
-    const encryptedArray = new Uint8Array(encryptedHex.match(/.{1,2}/g).map(byte => parseInt(byte, 16)));
-    const decryptedData = await crypto.subtle.decrypt(
-      { name: 'AES-CBC', iv },
-      this.key,
-      encryptedArray
-    );
-    const decoder = new TextDecoder();
-    return decoder.decode(decryptedData);
+    try {
+      const ivHex = cipherText.slice(0, 32);
+      const encryptedHex = cipherText.slice(32);
+      const iv = new Uint8Array(ivHex.match(/.{1,2}/g).map(byte => parseInt(byte, 16)));
+      const encryptedArray = new Uint8Array(encryptedHex.match(/.{1,2}/g).map(byte => parseInt(byte, 16)));
+
+      const decryptedData = await crypto.subtle.decrypt(
+        { name: 'AES-CBC', iv },
+        this.key,
+        encryptedArray
+      );
+      const decoder = new TextDecoder();
+      return decoder.decode(decryptedData);
+    } catch (e) {
+      console.error('Error decoding: ' + cipherText, e);
+      return cipherText; // probably the text was not encrypted on in bat ivHex/encryptedHex format
+    }
   }
 }
 
