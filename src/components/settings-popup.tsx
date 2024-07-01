@@ -49,7 +49,7 @@ export function SettingsPopup() {
   }, [componentRef.current]);
 
   const reactToPrintTrigger = React.useCallback(() => {
-    return <Button variant="link">Print encryption key</Button>;
+    return <Button variant="ghost">Print encryption key</Button>;
   }, []);
 
   let [newEncryptionKey, setEncryptionKey] = useState(encryptionKey);
@@ -101,8 +101,8 @@ export function SettingsPopup() {
                   <PasswordInput  autoComplete="new-password" id="password" value={newEncryptionKey} 
                   onChange={(e) => setEncryptionKey(e.target.value)} />
                   <p className="text-sm text-gray-500 dark:text-gray-400">
-                    Please save or print this master key as after losing it your medical records won't be possible to recover.
-                    We're using strong end-to-end encryption.
+                    Please save or print this master key. <strong>It's like crypto wallet.</strong> After losing it your medical records <strong class="text-red-500">WILL BE LOST FOREVER</strong>.
+                    We're using strong AES256 end-to-end encryption.
                   </p>
                    <ReactToPrint
                     content={reactToPrintContent}
@@ -113,7 +113,7 @@ export function SettingsPopup() {
                 </div>
               </div>
               <DialogFooter>
-                <div className="flex items-center justify-between gap-4">
+                <div className="flex items-center justify-between gap-4 mt-4">
                   <div className="flex items-center gap-2">
                     <Checkbox
                       id="saveToLocalStorage"
