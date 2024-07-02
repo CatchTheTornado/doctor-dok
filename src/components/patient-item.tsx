@@ -1,8 +1,6 @@
 import Link from "next/link";
-import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Patient } from "@/data/client/models";
-import { PatientContext } from "@/contexts/patient-context";
-import { useContext } from "react";
 
 export default function PatientItem({ patient, selected, onClick }: { patient: Patient, selected: boolean, onClick: (e: any) => void}) {
 
