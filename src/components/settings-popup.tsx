@@ -40,6 +40,8 @@ import { Toaster, toast } from "sonner";
 
 export function SettingsPopup() {
   const config = useContext(ConfigContext);
+  const [open, setOpen] = useState(config?.dbStatus.status !== DBStatus.Authorized)
+
   let encryptionKey = config?.getLocalConfig('encryptionKey')
   if (!encryptionKey) {
     encryptionKey = generateEncryptionKey();
@@ -73,7 +75,7 @@ export function SettingsPopup() {
     config?.setLocalConfig('chatGptApiKey', newChatGptApiKey);
 
     const authorizationToken = await config?.authorizeDB(newEncryptionKey as string); // try to authorize the DB or check if new DB is required
-    const dbStatus = authorizationToken?.status
+    const dbStatus = authorizationToken?.status;
 
     if (dbStatus?.status == DBStatus.AuthorizationError) {
       toast("Authorization error", { description: "Invalid encryption key. Please try again with different key or create a new database",  duration: 5000, action: { label: 'Create new DB', onClick: () => askBeforeCreateNewDB() }});
@@ -98,7 +100,7 @@ export function SettingsPopup() {
   }*/
   return (
     <NoSSR>
-      <Sheet open={config?.dbStatus.status !== DBStatus.Authorized}>
+      <Sheet open={open}  onOpenChange={(value) =>{ if(!value && config?.dbStatus.status !== DBStatus.Authorized) setOpen(true); else setOpen(value); } }>
         <SheetTrigger asChild>
           <Button variant="outline" size="icon">
             <SettingsIcon className="w-6 h-6" />
