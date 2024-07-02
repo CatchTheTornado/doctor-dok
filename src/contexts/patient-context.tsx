@@ -2,24 +2,29 @@ import React, { createContext, useState, useEffect, useContext } from 'react';
 import { PatientDTO } from '@/data/dto';
 import { PatientApiClient } from '@/data/client/patient-api-client';
 import { ApiEncryptionConfig } from '@/data/client/base-api-client';
+
+
 import { DataLoadingStatus, Patient } from '@/data/client/models';
 import { ConfigContext, ConfigContextType } from './config-context';
 
 
 export type PatientContextType = {
     patients: Patient[];
+    currentPatient: Patient | null; 
     addPatient: (patient: Patient) => Promise<Patient>;
     editPatient: (patient: PatientDTO) => Promise<Patient>;
     deletePatient: (id: number) => Promise<boolean>;
     listPatients: () => Promise<Patient[]>;
+    setCurrentPatient: (patient: Patient | null) => void; // new method
     loaderStatus: DataLoadingStatus;
 }
 
 export const PatientContext = createContext<PatientContextType | null>(null);
 
-export const PatientProvider: React.FC = ({ children }) => {
+export const PatientContextProvider: React.FC = ({ children }) => {
     const [patients, setPatients] = useState<Patient[]>([]);
     const [loaderStatus, setLoaderStatus] = useState<DataLoadingStatus>(DataLoadingStatus.Loading);
+    const [currentPatient, setCurrentPatient] = useState<Patient | null>(null); // new state
 
     useEffect(() => {
         listPatients();
@@ -94,7 +99,7 @@ export const PatientProvider: React.FC = ({ children }) => {
 
     return (
         <PatientContext.Provider
-            value={{ patients, addPatient, editPatient, deletePatient, listPatients, loaderStatus }}
+            value={{ patients, addPatient, editPatient, deletePatient, listPatients, loaderStatus, setCurrentPatient, currentPatient }}
         >
             {children}
         </PatientContext.Provider>

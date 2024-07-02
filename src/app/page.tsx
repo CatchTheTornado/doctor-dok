@@ -4,11 +4,9 @@ import PatientRecords from "@/components/patient-records";
 import NewPatientRecord from "@/components/patient-record-form";
 import PatientsTopHeader from "@/components/patient-pane-header";
 import { ConfigContext, ConfigContextProvider } from "@/contexts/config-context";
-import { useContext, useEffect } from "react";
-import { PatientApiClient } from "@/data/client/patient-api-client";
-import { ApiEncryptionConfig } from "@/data/client/base-api-client";
+import { useContext } from "react";
 import { useEffectOnce } from "react-use";
-import { PatientProvider } from "@/contexts/patient-context";
+import { PatientContextProvider } from "@/contexts/patient-context";
 
 export default function PatientPad() {
   const patients = [
@@ -30,7 +28,7 @@ export default function PatientPad() {
 
   return (
     <ConfigContextProvider>
-      <PatientProvider>
+      <PatientContextProvider>
         <div className="grid min-h-screen w-full lg:grid-cols-[300px_1fr] bg-gray-100 dark:bg-gray-950">
           <div className="bg-white dark:bg-gray-900 border-r border-gray-200 dark:border-gray-800">
             <PatientsTopHeader />
@@ -45,7 +43,7 @@ export default function PatientPad() {
             </div>
           </div>
         </div>
-      </PatientProvider>
+      </PatientContextProvider>
     </ConfigContextProvider>
   );
 }
