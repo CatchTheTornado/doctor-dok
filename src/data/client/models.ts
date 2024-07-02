@@ -1,4 +1,4 @@
-import { PatientDTO } from "../dto";
+import { PatientDTO, PatientRecordDTO } from "../dto";
 
 
 export enum DataLoadingStatus {
@@ -7,7 +7,6 @@ export enum DataLoadingStatus {
     Success = 'success',
     Error = 'error',
 }
-
 
 export class Patient {
     id?: number;
@@ -51,3 +50,43 @@ export class Patient {
         return (this.firstName[0] + this.lastName[0]).toUpperCase();
     }    
 }
+
+
+export class PatientRecord {
+    id?: number;
+    patientId: number;
+    description?: string;
+    type: string;
+    json?: string;
+    extra?: string;
+    createdAt: string;
+    updatedAt: string;
+  
+    constructor(patientRecordDTO: PatientRecordDTO) {
+      this.id = patientRecordDTO.id;
+      this.patientId = patientRecordDTO.patientId;
+      this.description = patientRecordDTO.description;
+      this.type = patientRecordDTO.type;
+      this.json = patientRecordDTO.json;
+      this.extra = patientRecordDTO.extra;
+      this.createdAt = patientRecordDTO.createdAt;
+      this.updatedAt = patientRecordDTO.updatedAt;
+    }
+  
+    static fromDTO(patientRecordDTO: PatientRecordDTO): PatientRecord {
+      return new PatientRecord(patientRecordDTO);
+    }
+  
+    toDTO(): PatientRecordDTO {
+      return {
+        id: this.id,
+        patientId: this.patientId,
+        description: this.description,
+        type: this.type,
+        json: this.json,
+        extra: this.extra,
+        createdAt: this.createdAt,
+        updatedAt: this.updatedAt,
+      };
+    }  
+  }

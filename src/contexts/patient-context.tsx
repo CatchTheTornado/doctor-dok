@@ -82,6 +82,7 @@ export const PatientContextProvider: React.FC = ({ children }) => {
             const fetchedPatients = response.map((patientDTO: PatientDTO) => Patient.fromDTO(patientDTO));
             setPatients(fetchedPatients);
             setLoaderStatus(DataLoadingStatus.Success);
+            setCurrentPatient(fetchedPatients.length > 0 ? fetchedPatients[0] : null)
             return Promise.resolve(fetchedPatients);
         }).catch((error) => {   
             setLoaderStatus(DataLoadingStatus.Error);

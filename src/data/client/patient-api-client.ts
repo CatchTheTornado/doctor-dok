@@ -29,6 +29,6 @@ export class PatientApiClient extends ApiClient {
     }
   
     async put(patient: PutPatientRequest): Promise<PutPatientResponse> {
-      return this.request<PutPatientResponse>('/api/patient', 'PUT', PatientDTOEncSettings, patient);
+      return this.request<PutPatientResponse>('/api/patient', 'PUT', PatientDTOEncSettings, patient) as Promise<PutPatientResponse>;
     }
   }

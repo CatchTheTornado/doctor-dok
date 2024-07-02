@@ -64,3 +64,5 @@ export const patientRecordDTOSchema = z.object({
 export type PatientRecordDTO = z.infer<typeof patientRecordDTOSchema> & {
   attachments?: PatientRecordAttachmentDTO[];
 };
+
+export const PatientRecordDTOEncSettings = { ecnryptedFields: ['description', 'type', 'json', 'extra'] }

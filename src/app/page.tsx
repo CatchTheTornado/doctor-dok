@@ -6,7 +6,7 @@ import PatientsTopHeader from "@/components/patient-pane-header";
 import { ConfigContext, ConfigContextProvider } from "@/contexts/config-context";
 import { useContext } from "react";
 import { useEffectOnce } from "react-use";
-import { PatientContextProvider } from "@/contexts/patient-context";
+import { PatientContext, PatientContextProvider } from "@/contexts/patient-context";
 
 export default function PatientPad() {
   const patients = [
@@ -21,10 +21,7 @@ export default function PatientPad() {
   ];
 
   const configContext = useContext(ConfigContext);
-  useEffectOnce(() => {
-    (async () => {
-    })();    
-  });
+  const patientContext = useContext(PatientContext)
 
   return (
     <ConfigContextProvider>
@@ -35,7 +32,7 @@ export default function PatientPad() {
             <PatientList />    
           </div>
           <div className="p-6 flex flex-col">
-            <NewPatientRecord patient={patients[0]} />
+            <NewPatientRecord patient={patientContext?.currentPatient} />
             <div className="flex-1 overflow-auto">
               <div className="grid gap-6">
                 <PatientRecords key={0} patient={patients[0]} />
