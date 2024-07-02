@@ -43,6 +43,7 @@ export const PatientProvider: React.FC = ({ children }) => {
     };
     
 
+    // TODO: Implement the editPatient and deletePatient functions
     const editPatient = async (patient: PatientDTO) => {
         // // Call the API to edit the patient
         // PatientApiClient.editPatient(patient)
