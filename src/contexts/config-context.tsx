@@ -5,11 +5,17 @@ import { generateEncryptionKey } from '@/lib/crypto';
 import { getCurrentTS } from '@/lib/utils';
 import { useEffectOnce } from 'react-use';
 import React, { PropsWithChildren, useReducer } from 'react';
+import { DBStatus, ServerDBStatus } from '@/data/client/models';
 type ConfigSupportedValueType = string | number | boolean | null | undefined;
 
+export type AuthorizationTokenType = { status: ServerDBStatus, serverConfig: Record<string, ConfigSupportedValueType>};
 export type ConfigContextType = {
     localConfig: Record<string, ConfigSupportedValueType>;
     serverConfig: Record<string, ConfigSupportedValueType>;
+    dbStatus: ServerDBStatus;
+
+    authorizeDB: (tryOutEncryptionKey: string) => Promise<AuthorizationTokenType>;
+    createNewDB: (serverConfigData: Record<string, ConfigSupportedValueType>) => Promise<Record<string, ConfigSupportedValueType>>;
 
     setLocalConfig(key: string, value: ConfigSupportedValueType): void;
     getLocalConfig(key: string): ConfigSupportedValueType;
@@ -26,6 +32,9 @@ type Action =
   | { type: 'LOAD_SERVER_CONFIG'; config: Record<string, ConfigSupportedValueType> };
 
 const initialState: ConfigContextType = {
+  dbStatus: new ServerDBStatus(DBStatus.AuthorizationError, 'Database not authorized'),
+  authorizeDB: async (tryOutEncryptionKey: string) => ({ status: new ServerDBStatus(DBStatus.AuthorizationError, 'Database not authorized'), serverConfig: {} }),
+  createNewDB: async (serverConfigData: Record<string, ConfigSupportedValueType>) => serverConfigData,
   localConfig: {},
   serverConfig: {},
   setLocalConfig: () => {},
@@ -93,11 +102,12 @@ export const ConfigContextProvider: React.FC<PropsWithChildren> = ({ children })
   initialState.localConfig.saveToLocalStorage = (typeof localStorage !== 'undefined') && localStorage.getItem("saveToLocalStorage") === "true";
   const [state, dispatch] = useReducer(configReducer, initialState);
   const [serverConfigLoaded, setServerConfigLoaded] = React.useState(false);
+  const [dbStatus, setDbStatus] = React.useState(new ServerDBStatus(DBStatus.AuthorizationError, 'Database not authorized'));
 
 
-  const loadServerConfigOnce = async (): Promise<Record<string, ConfigSupportedValueType>>  => { 
-    if(!serverConfigLoaded) {
-      const client = getConfigApiClient((typeof localStorage !== 'undefined') && localStorage.getItem("encryptionKey") || "");
+  const loadServerConfig = async (forceReload: boolean = false, tryOutEncryptionKey: string = (typeof localStorage !== 'undefined') && localStorage.getItem("encryptionKey") || ""): Promise<Record<string, ConfigSupportedValueType>>  => { 
+    if(!serverConfigLoaded || forceReload) {
+      const client = getConfigApiClient(tryOutEncryptionKey);
       let serverConfigData: Record<string, ConfigSupportedValueType> = {};
 
       const configs = await client.get();
@@ -106,31 +116,66 @@ export const ConfigContextProvider: React.FC<PropsWithChildren> = ({ children })
       }
       dispatch({ type: 'LOAD_SERVER_CONFIG', config: serverConfigData });
       setServerConfigLoaded(true);
-
-      if(!serverConfigData['dataEncryptionMasterKey']) { // no master key set - generate one
-        const key = generateEncryptionKey()
-        dispatch({ type: 'SET_SERVER_CONFIG', key: 'dataEncryptionMasterKey', value: key });
-        serverConfigData['dataEncryptionMasterKey'] = key;
-      }
-    
+  
       return serverConfigData
     } else {
       return state.serverConfig;       // already loaded
     }
   }
 
+  const createNewDB = async (serverConfigData: Record<string, ConfigSupportedValueType>): Promise<Record<string, ConfigSupportedValueType>> => {
+//    if(!serverConfigData['dataEncryptionMasterKey']) { // no master key set - generate one
+    const key = generateEncryptionKey()
+    const dataCheck = 'PatientPad' + key;
+    dispatch({ type: 'SET_SERVER_CONFIG', key: 'dataEncryptionMasterKey', value: key });
+    dispatch({ type: 'SET_SERVER_CONFIG', key: 'dataEncryptionCheckKey', value: dataCheck });
+
+    serverConfigData['dataEncryptionMasterKey'] = key;
+    serverConfigData['dataEncryptionCheckKey'] = dataCheck;
+  //  }    
+
+    return serverConfigData;
+  }
+
+  const authorizeDB = async (tryOutEncryptionKey: string = (typeof localStorage !== 'undefined') && localStorage.getItem("encryptionKey") || ""): Promise<AuthorizationTokenType> => {
+    const status = new ServerDBStatus(DBStatus.InProgress, 'Authorization in progress ...');
+    setDbStatus(status)
+
+    setServerConfigLoaded(false);
+    const serverConfig = await loadServerConfig(true, tryOutEncryptionKey);
+    if (serverConfig.length === 0) {
+      const status = new ServerDBStatus(DBStatus.Empty, 'New and empty database on server');
+      setDbStatus(status)
+      return { serverConfig, status };
+    } else {
+      if (serverConfig.dataEncryptionCheckKey && (serverConfig.dataEncryptionCheckKey as string).startsWith('PatientPad')) {
+        const status = new ServerDBStatus(DBStatus.Authorized, 'Database authorized');
+        setDbStatus(status);
+        return { serverConfig, status };
+      } else {
+        const status = new ServerDBStatus(DBStatus.AuthorizationError, 'Authorization error: invalid data encryption key');
+        setDbStatus(status)
+        return { serverConfig, status };
+      }
+    }
+  };
+
   useEffectOnce(() => {
   }, []);
   
     const value = {
       ...state,
+      authorizeDB,
+      createNewDB,
+      dbStatus,
+      setDbStatus,
       setLocalConfig: (key: string, value: ConfigSupportedValueType) =>
         dispatch({ type: 'SET_LOCAL_CONFIG', key, value }),
       getLocalConfig: (key: string) => state.localConfig[key],
       setServerConfig: (key: string, value: ConfigSupportedValueType) =>
         dispatch({ type: 'SET_SERVER_CONFIG', key, value }),
       getServerConfig: async (key: string) => {
-        const serverConfig =await loadServerConfigOnce();
+        const { serverConfig } = await authorizeDB();
         return serverConfig[key];
       },
       setSaveToLocalStorage: (value: boolean) => { 
@@ -141,7 +186,7 @@ export const ConfigContextProvider: React.FC<PropsWithChildren> = ({ children })
           }    
         } else {
           for (const k in state.localConfig) {
-            localStorage.setItem(k, state.localConfig[k]);
+            localStorage.setItem(k, state.localConfig[k] as string);
           }           
         }
       },

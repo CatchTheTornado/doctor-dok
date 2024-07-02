@@ -8,6 +8,23 @@ export enum DataLoadingStatus {
     Error = 'error',
 }
 
+export enum DBStatus {
+    Empty = 'Empty',
+    AuthorizationError = 'AuthorizationError',
+    Authorized = 'Success',
+    InProgress = 'InProgress'
+}
+
+export class ServerDBStatus {
+    status: DBStatus;
+    message: string;
+    constructor(status: DBStatus, message: string) {
+        this.status = status;
+        this.message = message;
+    }
+
+}
+
 export class Patient {
     id?: number;
     firstName: string;

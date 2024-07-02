@@ -20,7 +20,8 @@ To read more about using these font, please visit the Next.js documentation:
 "use client"
 
 import { useContext, useState } from "react"
-import { Dialog, DialogClose, DialogTrigger, DialogContent, DialogHeader, DialogTitle, DialogBody, DialogFooter } from "@/components/ui/dialog"
+import { Sheet, SheetClose, SheetTrigger, SheetContent, SheetHeader, SheetTitle, SheetFooter } from "@/components/ui/sheet"
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Button } from "@/components/ui/button"
 import { Label } from "@/components/ui/label"
 import { Input } from "@/components/ui/input"
@@ -33,7 +34,9 @@ import { generateEncryptionKey } from "@/lib/crypto"
 import ReactToPrint from "react-to-print";
 import { KeyPrint } from "./key-print"
 import React from "react"
-
+import { DBStatus } from "@/data/client/models"
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "./ui/card";
+import { Toaster, toast } from "sonner";
 
 export function SettingsPopup() {
   const config = useContext(ConfigContext);
@@ -42,7 +45,6 @@ export function SettingsPopup() {
     encryptionKey = generateEncryptionKey();
     config?.setLocalConfig('encryptionKey', encryptionKey);
   }
-
   const componentRef = React.useRef(null);
   const reactToPrintContent = React.useCallback(() => {
     return componentRef.current;
@@ -55,9 +57,36 @@ export function SettingsPopup() {
   let [newEncryptionKey, setEncryptionKey] = useState(encryptionKey);
   let [newChatGptApiKey, setChatGptApiKey] = useState(config?.localConfig.chatGptApiKey || "");
 
-  function handleSubmit(e){
-    config?.setLocalConfig('encryptionKey', newEncryptionKey);
+  async function createNewDB() {
+    await config?.createNewDB({});
+    await config?.authorizeDB(newEncryptionKey as string); // authorize once ogain
+    toast.info('New database created. Please save or print your encryption key.');    
+  }
+
+  function askBeforeCreateNewDB() {
+    toast("Create empty Database?", { description: "Are you sure you want to ERASE and CREATE NEW database? All existing records will be lost",  duration: 5000, action: { label: 'YES', onClick: () => createNewDB() }});
+  }
+
+  async function handleSubmit(e){
+
+    // TODO: add button for creating new database
     config?.setLocalConfig('chatGptApiKey', newChatGptApiKey);
+
+    const authorizationToken = await config?.authorizeDB(newEncryptionKey as string); // try to authorize the DB or check if new DB is required
+    const dbStatus = authorizationToken?.status
+
+    if (dbStatus?.status == DBStatus.AuthorizationError) {
+      toast("Authorization error", { description: "Invalid encryption key. Please try again with different key or create a new database",  duration: 5000, action: { label: 'Create new DB', onClick: () => askBeforeCreateNewDB() }});
+      return;
+    }  else if (dbStatus?.status == DBStatus.Empty) {
+      await createNewDB();
+      toast.info('New database created. Please save or print your encryption key.');
+      config?.setLocalConfig('encryptionKey', newEncryptionKey);
+    } else if (dbStatus?.status === DBStatus.Authorized) {
+      config?.setLocalConfig('encryptionKey', newEncryptionKey);
+      toast.success('Database authorized!');
+    }
+
     //passwordManager(e);
   }
 
@@ -69,50 +98,71 @@ export function SettingsPopup() {
   }*/
   return (
     <NoSSR>
-      <Dialog defaultOpen>
-        <DialogTrigger asChild>
+      <Sheet open={config?.dbStatus.status !== DBStatus.Authorized}>
+        <SheetTrigger asChild>
           <Button variant="outline" size="icon">
             <SettingsIcon className="w-6 h-6" />
           </Button>
-        </DialogTrigger>
-        <DialogContent className="sm:max-w-[425px]">
-          <DialogHeader>
-            <DialogTitle>Settings</DialogTitle>
-          </DialogHeader>
+        </SheetTrigger>
+        <SheetContent className="sm:max-w-[425px]">
           <form onSubmit={(e) => {e.preventDefault(); handleSubmit(e);}}>
-            <div className="space-y-4">
-              <div className="grid gap-1">
-                  <Label htmlFor="chatGptApiKey">ChatGPT API Key</Label>
-                  <Input
-                    type="text"
-                    id="chatGptApiKey"
-                    value={newChatGptApiKey}
-                    onChange={(e) => setChatGptApiKey(e.target.value)}
-                  />
-                  <Link href="https://help.openai.com/en/articles/4936850-where-do-i-find-my-openai-api-key" target="_blank" className="text-sm text-blue-500 hover:underline" prefetch={false}>
-                    How to obtain ChatGPT API Key
-                  </Link>
-                </div>
-                <div className="grid gap-1">
-                <div className="hidden">
-                  <KeyPrint ref={componentRef} text={encryptionKey}/>
-                </div>
-                  <Label htmlFor="encryptionKey">Encryption Key</Label>
-                  <PasswordInput  autoComplete="new-password" id="password" value={newEncryptionKey} 
-                  onChange={(e) => setEncryptionKey(e.target.value)} />
-                  <p className="text-sm text-gray-500 dark:text-gray-400">
-                    Please save or print this master key. <strong>It's like crypto wallet.</strong> After losing it your medical records <strong className="text-red-500">WILL BE LOST FOREVER</strong>.
-                    We're using strong AES256 end-to-end encryption.
-                  </p>
-                   <ReactToPrint
-                    content={reactToPrintContent}
-                    documentTitle="Patient Pad Encryption Key"
-                    removeAfterPrint
-                    trigger={reactToPrintTrigger}
-                  />                  
-                </div>
-              </div>
-              <DialogFooter>
+              <Tabs defaultValue="auth">
+                <TabsList className="grid w-full grid-cols-2">
+                  <TabsTrigger value="auth">Authorization</TabsTrigger>
+                  <TabsTrigger value="settings">Settings</TabsTrigger>
+                </TabsList>
+                <TabsContent value="auth">
+                <Card>
+                  <CardHeader>
+                    <CardTitle>Encryption</CardTitle>
+                    <CardDescription>
+                      Setup encryption key for your medical records
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent className="space-y-2">                  
+                      <div className="hidden">
+                        <KeyPrint ref={componentRef} text={encryptionKey}/>
+                      </div>
+                        <Label htmlFor="encryptionKey">Encryption Key</Label>
+                        <PasswordInput  autoComplete="new-password" id="password" value={newEncryptionKey} 
+                        onChange={(e) => setEncryptionKey(e.target.value)} />
+                        <p className="text-sm text-gray-500 dark:text-gray-400">
+                          Please save or print this master key. <strong>It's like crypto wallet.</strong> After losing it your medical records <strong className="text-red-500">WILL BE LOST FOREVER</strong>.
+                          We're using strong AES256 end-to-end encryption.
+                        </p>
+                        <ReactToPrint
+                          content={reactToPrintContent}
+                          documentTitle="Patient Pad Encryption Key"
+                          removeAfterPrint
+                          trigger={reactToPrintTrigger}
+                        />       
+                    </CardContent>
+                  </Card>           
+                </TabsContent>               
+                <TabsContent value="settings">
+                <Card>
+                  <CardHeader>
+                    <CardTitle>Settings</CardTitle>
+                    <CardDescription>
+                      Setup application settings here
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent className="space-y-2">      
+                        <Label htmlFor="chatGptApiKey">ChatGPT API Key</Label>
+                        <Input
+                          type="text"
+                          id="chatGptApiKey"
+                          value={newChatGptApiKey}
+                          onChange={(e) => setChatGptApiKey(e.target.value)}
+                        />
+                        <Link href="https://help.openai.com/en/articles/4936850-where-do-i-find-my-openai-api-key" target="_blank" className="text-sm text-blue-500 hover:underline" prefetch={false}>
+                          How to obtain ChatGPT API Key
+                        </Link>
+                    </CardContent>
+                  </Card>          
+                </TabsContent>
+              </Tabs>       
+              <SheetFooter>
                 <div className="flex items-center justify-between gap-4 mt-4">
                   <div className="flex items-center gap-2">
                     <Checkbox
@@ -123,18 +173,19 @@ export function SettingsPopup() {
                     <Label htmlFor="saveToLocalStorage">Save to localStorage</Label>
                   </div>
                   <div className="flex gap-2">
-                    <DialogClose asChild>
+                    <SheetClose asChild>
                       <Button type="button">Cancel</Button>
-                    </DialogClose>
-                    <DialogClose asChild>
-                      <Button type="submit">Save</Button>
-                    </DialogClose>
+                    </SheetClose>
+                    <SheetClose asChild>
+                      <Button type="submit">Go!</Button>
+                    </SheetClose>
                   </div>
               </div>
-            </DialogFooter>
+              <Toaster position="bottom-right" />
+            </SheetFooter>
           </form>
-        </DialogContent>
-      </Dialog>
+        </SheetContent>
+      </Sheet>
     </NoSSR>
   )
 }
@@ -158,3 +209,5 @@ function SettingsIcon(props) {
     </svg>
   )
 }
+
+
