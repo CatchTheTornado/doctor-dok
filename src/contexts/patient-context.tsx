@@ -1,21 +1,25 @@
 import React, { createContext, useState, useEffect, useContext } from 'react';
-import { PatientDTO } from '@/data/dto/patient-dto';
+import { PatientDTO } from '@/data/dto';
 import { PatientApiClient } from '@/data/client/patient-api-client';
 import { ApiEncryptionConfig } from '@/data/client/base-api-client';
-import { ConfigContext } from './config-context';
+import { DataLoadingStatus, Patient } from '@/data/client/models';
+import { ConfigContext, ConfigContextType } from './config-context';
+
 
 export type PatientContextType = {
-    patients: PatientDTO[];
-    addPatient: (patient: PatientDTO) => void;
-    editPatient: (patient: PatientDTO) => void;
-    deletePatient: (id: number) => void;
-    listPatients: () => void;
+    patients: Patient[];
+    addPatient: (patient: Patient) => Promise<Patient>;
+    editPatient: (patient: PatientDTO) => Promise<Patient>;
+    deletePatient: (id: number) => Promise<boolean>;
+    listPatients: () => Promise<Patient[]>;
+    loaderStatus: DataLoadingStatus;
 }
 
 export const PatientContext = createContext<PatientContextType | null>(null);
 
 export const PatientProvider: React.FC = ({ children }) => {
-    const [patients, setPatients] = useState<PatientDTO[]>([]);
+    const [patients, setPatients] = useState<Patient[]>([]);
+    const [loaderStatus, setLoaderStatus] = useState<DataLoadingStatus>(DataLoadingStatus.Loading);
 
     useEffect(() => {
         listPatients();
@@ -24,22 +28,22 @@ export const PatientProvider: React.FC = ({ children }) => {
     const config = useContext(ConfigContext);
 
 
-    const addPatient = (patient: PatientDTO) => {
-        const encryptionConfig: ApiEncryptionConfig = {
-            secretKey: config?.getServerConfig('dataEncryptionMasterKey') as string, // TODO: for entities other than Config we should take the masterKey from server config
-            useEncryption: true
-          };
-          const client = new PatientApiClient('', encryptionConfig);
-          client.put(patient).then((response) => {
-            if(response.status !== 200) {
+    const addPatient = async (patient: Patient) => {
+        const client = await setupApiClient(config);
+        const patientDTO = patient.toDTO(); // DTOs are common ground between client and server
+        client.put(patientDTO).then((response) => {
+            if (response.status !== 200) {
                 console.error('Error adding patient:', response.message);
             } else {
-                setPatients([...patients, Object.assign(patient, { id: response.data.id }) ]);
+                const updatedPatient = Object.assign(patient, { id: response.data.id });
+                setPatients([...patients, updatedPatient]);
+                return Promise.resolve(patient);
             }
-          });          
+        });
     };
+    
 
-    const editPatient = (patient: PatientDTO) => {
+    const editPatient = async (patient: PatientDTO) => {
         // // Call the API to edit the patient
         // PatientApiClient.editPatient(patient)
         //     .then((updatedPatient) => {
@@ -53,7 +57,7 @@ export const PatientProvider: React.FC = ({ children }) => {
         //     });
     };
 
-    const deletePatient = (id: number) => {
+    const deletePatient = async (id: number) => {
         // // Call the API to delete the patient
         // PatientApiClient.deletePatient(id)
         //     .then(() => {
@@ -65,7 +69,18 @@ export const PatientProvider: React.FC = ({ children }) => {
         //     });
     };
 
-    const listPatients = () => {
+    const listPatients = async () => {
+        const client = await setupApiClient(config);
+        setLoaderStatus(DataLoadingStatus.Loading);
+        client.get().then((response) => {
+            const fetchedPatients = response.map((patientDTO: PatientDTO) => Patient.fromDTO(patientDTO));
+            setPatients(fetchedPatients);
+            setLoaderStatus(DataLoadingStatus.Success);
+            return Promise.resolve(fetchedPatients);
+        }).catch((error) => {   
+            setLoaderStatus(DataLoadingStatus.Error);
+            return Promise.reject(error);
+        });
         // // Call the API to list all patients
         // PatientApiClient.listPatients()
         //     .then((fetchedPatients) => {
@@ -78,9 +93,19 @@ export const PatientProvider: React.FC = ({ children }) => {
 
     return (
         <PatientContext.Provider
-            value={{ patients, addPatient, editPatient, deletePatient, listPatients }}
+            value={{ patients, addPatient, editPatient, deletePatient, listPatients, loaderStatus }}
         >
             {children}
         </PatientContext.Provider>
     );
 };
+
+async function setupApiClient(config: ConfigContextType | null) {
+    const masterKey = await config?.getServerConfig('dataEncryptionMasterKey') as string
+    const encryptionConfig: ApiEncryptionConfig = {
+        secretKey: masterKey,
+        useEncryption: true
+    };
+    const client = new PatientApiClient('', encryptionConfig);
+    return client;
+}

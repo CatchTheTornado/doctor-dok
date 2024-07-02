@@ -26,14 +26,17 @@ import { useForm } from "react-hook-form"
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from "zod"
 import { PatientContext, PatientProvider } from "@/contexts/patient-context"
-import { useContext } from "react"
+import { useContext, useState } from "react"
+import { Patient } from "@/data/client/models"
 
 export function PatientEditPopup() {
-  const patientProvider = useContext(PatientContext);
+  const patientContext = useContext(PatientContext);
+  const [open, setOpen] = useState(false)
 
   const {
     register,
     handleSubmit,
+    reset,
     formState: { errors },
   } = useForm({
     resolver: zodResolver(
@@ -46,11 +49,12 @@ export function PatientEditPopup() {
     ),
   })
   const onSubmit = (data) => {
-    patientProvider.addPatient(data);
-    console.log(data)
+    patientContext.addPatient(new Patient(data));
+    setOpen(false);
+    reset();
   }
   return (
-    <Dialog>
+    <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
         <Button variant="outline" size="icon">
           <PlusIcon className="w-6 h-6" />
