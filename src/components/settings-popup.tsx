@@ -40,7 +40,8 @@ import { Toaster, toast } from "sonner";
 
 export function SettingsPopup() {
   const config = useContext(ConfigContext);
-  const [open, setOpen] = useState(config?.dbStatus.status !== DBStatus.Authorized)
+  const [dialogOpen, setDialogOpen] = useState(config?.dbStatus.status !== DBStatus.Authorized)
+  const [forceDialogOpen, setForceDialogOpen] = useState(config?.dbStatus.status !== DBStatus.Authorized)
 
   let encryptionKey = config?.getLocalConfig('encryptionKey')
   if (!encryptionKey) {
@@ -79,14 +80,18 @@ export function SettingsPopup() {
 
     if (dbStatus?.status == DBStatus.AuthorizationError) {
       toast("Authorization error", { description: "Invalid encryption key. Please try again with different key or create a new database",  duration: 5000, action: { label: 'Create new DB', onClick: () => askBeforeCreateNewDB() }});
+      setDialogOpen(true);
+      setForceDialogOpen(true);
       return;
     }  else if (dbStatus?.status == DBStatus.Empty) {
       await createNewDB();
       toast.info('New database created. Please save or print your encryption key.');
       config?.setLocalConfig('encryptionKey', newEncryptionKey);
+      setDialogOpen(false);
     } else if (dbStatus?.status === DBStatus.Authorized) {
       config?.setLocalConfig('encryptionKey', newEncryptionKey);
       toast.success('Database authorized!');
+      setDialogOpen(false);
     }
 
     //passwordManager(e);
@@ -100,7 +105,7 @@ export function SettingsPopup() {
   }*/
   return (
     <NoSSR>
-      <Sheet open={open}  onOpenChange={(value) =>{ if(!value && config?.dbStatus.status !== DBStatus.Authorized) setOpen(true); else setOpen(value); } }>
+      <Sheet open={dialogOpen}  onOpenChange={(value) =>{ if(!value && forceDialogOpen) setDialogOpen(true); else setDialogOpen(value); } }>
         <SheetTrigger asChild>
           <Button variant="outline" size="icon">
             <SettingsIcon className="w-6 h-6" />
@@ -175,12 +180,8 @@ export function SettingsPopup() {
                     <Label htmlFor="saveToLocalStorage">Save to localStorage</Label>
                   </div>
                   <div className="flex gap-2">
-                    <SheetClose asChild>
-                      <Button type="button">Cancel</Button>
-                    </SheetClose>
-                    <SheetClose asChild>
-                      <Button type="submit">Go!</Button>
-                    </SheetClose>
+                     <Button type="button" onClick={() => setDialogOpen(!forceDialogOpen ? false : true)}>Cancel</Button>
+                     <Button type="submit">Go!</Button>
                   </div>
               </div>
               <Toaster position="bottom-right" />
