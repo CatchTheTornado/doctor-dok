@@ -19,7 +19,7 @@ To read more about using these font, please visit the Next.js documentation:
 **/
 "use client"
 
-import { useContext, useState } from "react"
+import { useContext, useEffect, useState } from "react"
 import { Sheet, SheetClose, SheetTrigger, SheetContent, SheetHeader, SheetTitle, SheetFooter } from "@/components/ui/sheet"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Button } from "@/components/ui/button"
@@ -41,7 +41,7 @@ import { Toaster, toast } from "sonner";
 export function SettingsPopup() {
   const config = useContext(ConfigContext);
   const [dialogOpen, setDialogOpen] = useState(config?.dbStatus.status !== DBStatus.Authorized)
-  const [forceDialogOpen, setForceDialogOpen] = useState(config?.dbStatus.status !== DBStatus.Authorized)
+  const [forceDialogOpen, setForceDialogOpen] = useState(config?.dbStatus.status !== DBStatus.Authorized && config?.dbStatus.status !== DBStatus.InProgress)
 
   let encryptionKey = config?.getLocalConfig('encryptionKey')
   if (!encryptionKey) {
@@ -56,6 +56,13 @@ export function SettingsPopup() {
   const reactToPrintTrigger = React.useCallback(() => {
     return <Button variant="ghost">Print encryption key</Button>;
   }, []);
+
+  useEffect(() => {
+    setDialogOpen(config?.dbStatus.status !== DBStatus.Authorized) // TODO: refactor all business logic for showing the status messages based on dbStatus into here
+    if(config?.dbStatus.status === DBStatus.AuthorizationError) {
+      toast("Authorization error", { description: "Invalid encryption key. Please try again with different key or create a new database",  duration: 2000, action: { label: 'Create new DB', onClick: () => askBeforeCreateNewDB() }});
+    }
+  },[config?.dbStatus])   
 
   let [newEncryptionKey, setEncryptionKey] = useState(encryptionKey);
   let [newChatGptApiKey, setChatGptApiKey] = useState(config?.localConfig.chatGptApiKey || "");
@@ -79,7 +86,6 @@ export function SettingsPopup() {
     const dbStatus = authorizationToken?.status;
 
     if (dbStatus?.status == DBStatus.AuthorizationError) {
-      toast("Authorization error", { description: "Invalid encryption key. Please try again with different key or create a new database",  duration: 5000, action: { label: 'Create new DB', onClick: () => askBeforeCreateNewDB() }});
       setDialogOpen(true);
       setForceDialogOpen(true);
       return;
@@ -87,10 +93,12 @@ export function SettingsPopup() {
       await createNewDB();
       toast.info('New database created. Please save or print your encryption key.');
       config?.setLocalConfig('encryptionKey', newEncryptionKey);
+      setForceDialogOpen(false);
       setDialogOpen(false);
     } else if (dbStatus?.status === DBStatus.Authorized) {
       config?.setLocalConfig('encryptionKey', newEncryptionKey);
       toast.success('Database authorized!');
+      setForceDialogOpen(false);
       setDialogOpen(false);
     }
 
