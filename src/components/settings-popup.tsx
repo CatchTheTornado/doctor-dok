@@ -80,24 +80,13 @@ export function SettingsPopup() {
 
 
   async function validateEncryptionKey(value): Promise<boolean> {
-    if (value.length < 5) {
-      setError("encryptionKey", { type: "minLength", message: "Min length is 5 characters" });
-      return false;
-    }
-    if (value.length > 64) {
-      setError("encryptionKey", { type: "maxLength", message: "Max length is 64 characters" });
-      return false;
-    }
-
     // try to authorize db
     const authorizationResult = await config?.authorizeDataLink(value); // try to authorize the DB or check if new DB is required
     const dataLinkStatus = authorizationResult?.status;
 
     if (dataLinkStatus?.status === DataLinkStatus.AuthorizationError) {
-      setError("encryptionKey", { type: "unauthorized", message: "Invalid encryption key for existing database. Try different key or create Format Database" })
       return false;
     }  else if (dataLinkStatus?.status === DataLinkStatus.Empty) {
-      setError("encryptionKey", { type: "empty", message: "Database is empty. Please Format Database with new encryption key provided" })
       return false;
     } else if (dataLinkStatus?.status === DataLinkStatus.Authorized) {
       return true;
@@ -163,6 +152,8 @@ export function SettingsPopup() {
                       {...register("encryptionKey", { 
                         required: 'Encryption key is required', 
                         validate: {
+                          minLength: (value) => (value as string).length >= 5,
+                          maxLength: (value) => (value as string).length <= 64,
                           validEncryptionKey: async (value) => validateEncryptionKey(value)
                         }
                       })}
@@ -203,7 +194,18 @@ export function SettingsPopup() {
 
                   {errors.encryptionKey ? (
                     <div>
-                        <span className="text-red-500">{errors.encryptionKey.message}</span>
+                      <div>
+                      {errors.encryptionKey.type === 'validEncryptionKey' ? (
+                        <span className="text-red-500 text-sm">Provided encryption key is INVALID for existing database OR database is empty. You can ERASE and FORMAT a new database</span>
+                        ):""}
+                      {errors.encryptionKey.type === 'minLength' ? (
+                        <span className="text-red-500 text-sm">Min length for a key is 5</span>
+                        ):""}
+                      {errors.encryptionKey.type === 'validEncryptionKey' ? (
+                        <span className="text-red-500 text-sm">Max length for a key is 64</span>
+                        ):""}
+                      </div>
+
                         <AlertDialog>
                         <AlertDialogTrigger><Button variant="ghost">Format Datbase</Button></AlertDialogTrigger>
                         <AlertDialogContent>
@@ -248,9 +250,12 @@ export function SettingsPopup() {
                   <Input
                     type="text"
                     id="chatGptApiKey"
-                    {...register("chatGptApiKey", { required: 'Chat GPT API key is required' })}
+                    {...register("chatGptApiKey", { required: 'Chat GPT API key is required' , validate: {
+                      keyFormatValidation: (value) => (value as string).startsWith('sk')
+                    }} )}
                   />
-                  {errors.chatGptApiKey && <div><span className="text-red-500">{errors.chatGptApiKey.message}</span></div>}
+                  {errors.chatGptApiKey?.type === "keyFormatValidation" && <div><span className="text-red-500  text-sm">ChatGPT API key should start with "sk"</span></div>}
+                  {errors.chatGptApiKey && <div><span className="text-red-500  text-sm">{errors.chatGptApiKey.message}</span></div>}
                   <div>
                     <Link href="https://help.openai.com/en/articles/4936850-where-do-i-find-my-openai-api-key" target="_blank" className="text-sm text-blue-500 hover:underline" prefetch={false}>
                       How to obtain ChatGPT API Key
