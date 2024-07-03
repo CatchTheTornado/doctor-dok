@@ -8,19 +8,23 @@ export enum DataLoadingStatus {
     Error = 'error',
 }
 
-export enum DBStatus {
+export enum DataLinkStatus {
     Empty = 'Empty',
     AuthorizationError = 'AuthorizationError',
     Authorized = 'Success',
     InProgress = 'InProgress'
 }
 
-export class ServerDBStatus {
-    status: DBStatus;
+export class ServerDataLinkStatus {
+    status: DataLinkStatus;
     message: string;
-    constructor(status: DBStatus, message: string) {
+    constructor(status: DataLinkStatus, message: string) {
         this.status = status;
         this.message = message;
+    }
+
+    isReady(): boolean {
+        return this.status === DataLinkStatus.Authorized;
     }
 
 }

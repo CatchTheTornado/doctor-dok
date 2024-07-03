@@ -23,7 +23,7 @@ export const PatientContext = createContext<PatientContextType | null>(null);
 
 export const PatientContextProvider: React.FC = ({ children }) => {
     const [patients, setPatients] = useState<Patient[]>([]);
-    const [loaderStatus, setLoaderStatus] = useState<DataLoadingStatus>(DataLoadingStatus.Loading);
+    const [loaderStatus, setLoaderStatus] = useState<DataLoadingStatus>(DataLoadingStatus.Idle);
     const [currentPatient, setCurrentPatient] = useState<Patient | null>(null); // new state
 
     useEffect(() => {

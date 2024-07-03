@@ -25,7 +25,7 @@ import { Input } from "@/components/ui/input"
 import { useForm } from "react-hook-form"
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from "zod"
-import { PatientContext, PatientProvider } from "@/contexts/patient-context"
+import { PatientContext } from "@/contexts/patient-context"
 import { useContext, useState } from "react"
 import { Patient } from "@/data/client/models"
 

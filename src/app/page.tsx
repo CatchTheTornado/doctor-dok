@@ -5,10 +5,10 @@ import NewPatientRecord from "@/components/patient-record-form";
 import PatientsTopHeader from "@/components/patient-pane-header";
 import { ConfigContext, ConfigContextProvider } from "@/contexts/config-context";
 import { useContext } from "react";
-import { useEffectOnce } from "react-use";
 import { PatientContext, PatientContextProvider } from "@/contexts/patient-context";
-import { DBStatus } from "@/data/client/models";
-import { Toaster } from "sonner";
+import { DataLinkStatus } from "@/data/client/models";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { Terminal } from "lucide-react";
 
 export default function PatientPad() {
   const patients = [
@@ -22,7 +22,6 @@ export default function PatientPad() {
     }
   ];
 
-  const configContext = useContext(ConfigContext);
   const patientContext = useContext(PatientContext)
 
   return (
@@ -31,12 +30,8 @@ export default function PatientPad() {
         <div className="grid min-h-screen w-full lg:grid-cols-[300px_1fr] bg-gray-100 dark:bg-gray-950">
           <div className="bg-white dark:bg-gray-900 border-r border-gray-200 dark:border-gray-800">
             <PatientsTopHeader />
-            { configContext?.dbStatus?.status === DBStatus.Authorized ? (
-              <PatientList />    
-            ) : ""}
-
+            <PatientList />    
           </div>
-          {configContext?.dbStatus?.status === DBStatus.Authorized && patientContext?.currentPatient ? (
             <div className="p-6 flex flex-col">
               <NewPatientRecord patient={patientContext?.currentPatient} />
               <div className="flex-1 overflow-auto">
@@ -45,7 +40,6 @@ export default function PatientPad() {
                 </div>
               </div>
             </div>
-          ) : ""}
         </div>
       </PatientContextProvider>
     </ConfigContextProvider>
