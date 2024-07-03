@@ -11,6 +11,7 @@ import {
   UploadedFile,
 } from "@/components/extension/file-uploader";
 import { useState } from "react";
+import { Patient } from "@/data/client/models";
 
 const FileSvgDraw = () => {
   return (
@@ -41,7 +42,7 @@ const FileSvgDraw = () => {
   );
 };
 
-export default function NewPatientRecord({ patient }) {
+export default function NewPatientRecord({ patient }: { patient: Patient }) {
   const [files, setFiles] = useState<UploadedFile[] | null>(null);
  
   const dropZoneConfig = {
@@ -53,8 +54,8 @@ export default function NewPatientRecord({ patient }) {
   return (
     <div className="mb-6 bg-white dark:bg-gray-900 p-4 rounded-lg shadow-sm">
       <div className="flex items-center justify-between mb-4 pr-2">
-        <div className="text-lg font-medium">{patient?.name}</div>
-        <div className="text-sm text-gray-500 dark:text-gray-400">Last visit: {patient?.lastVisit}</div>
+        <div className="text-lg font-medium">{patient?.displayName()}</div>
+        <div className="text-sm text-gray-500 dark:text-gray-400">Last visit: {patient?.displatDateOfBirth()}</div>
       </div>      
       <div className="flex items-center gap-4 resize-x">
         <Textarea

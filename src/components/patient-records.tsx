@@ -1,13 +1,22 @@
-import PatientRecord from "./patient-record";
+import { useContext } from "react";
+import NewPatientRecord from "./patient-record-form";
+import PatientRecordList from "./patient-record-list";
+import { PatientContext } from "@/contexts/patient-context";
 
-export default function PatientRecords({ patient }) {
+export default function PatientRecords({}) {
+  const patientContext = useContext(PatientContext);
   return (
-    <div className="bg-white dark:bg-gray-900 p-6 rounded-lg shadow-sm">
-      <div className="space-y-4">
-        {patient.notes.map((note, index) => (
-          <PatientRecord key={index} {...note} />
-        ))}
-      </div>
+      <div className="p-6 flex flex-col">
+      { (patientContext?.currentPatient !== null) ? (
+        <div>
+          <NewPatientRecord patient={patientContext?.currentPatient} />
+          <div className="flex-1 overflow-auto">
+            <div className="grid gap-6">
+              <PatientRecordList key={0} patient={patientContext?.currentPatient} />
+            </div>
+          </div>
+        </div>
+      ) : ("") }
     </div>
-  );
+  )
 }
