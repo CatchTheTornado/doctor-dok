@@ -6,6 +6,7 @@ import { getCurrentTS } from '@/lib/utils';
 import { useEffectOnce } from 'react-use';
 import React, { PropsWithChildren, useReducer } from 'react';
 import { DataLinkStatus, ServerDataLinkStatus } from '@/data/client/models';
+import { DbApiClient } from '@/data/client/db-api-client';
 type ConfigSupportedValueType = string | number | boolean | null | undefined;
 
 export type AuthorizationTokenType = { status: ServerDataLinkStatus, serverConfig: Record<string, ConfigSupportedValueType>};
@@ -51,6 +52,14 @@ function getConfigApiClient(encryptionKey: string): ConfigApiClient {
     useEncryption: encryptionKey !== null
   };
   return new ConfigApiClient('', encryptionConfig);  
+}
+
+function getDbApiClient(encryptionKey: string): DbApiClient {
+  const encryptionConfig: ApiEncryptionConfig = {
+    secretKey: encryptionKey, // TODO: for entities other than Config we should take the masterKey from server config
+    useEncryption: encryptionKey !== null
+  };
+  return new DbApiClient('', encryptionConfig);  
 }
 
 function configReducer(state: ConfigContextType, action: Action): ConfigContextType {
@@ -126,16 +135,19 @@ export const ConfigContextProvider: React.FC<PropsWithChildren> = ({ children })
   const formatNewDataLink = async (newEncryptionKey: string, serverConfigData: Record<string, ConfigSupportedValueType>): Promise<Record<string, ConfigSupportedValueType>> => {
     state.setLocalConfig('encryptionKey', newEncryptionKey);
 
+    // clear and create new database
+    const dbApiClient = getDbApiClient(newEncryptionKey);
+    await dbApiClient.delete(); // clear the database
+
     const masterKey = generateEncryptionKey()
     const dataCheck = 'PatientPad-KTC-' + newEncryptionKey;
 
-    // TODO: as we're changing master key the data in the file is no longer readable; call API to erase the database
     serverConfigData['dataEncryptionMasterKey'] = masterKey; // set it for immediate use as dispatch will have an delay someties due to reducer mechanism
     serverConfigData['dataEncryptionCheckKey'] = dataCheck;
 
     const client = getConfigApiClient(newEncryptionKey);
     for(const key in serverConfigData) {  // TODO: move it to a single API call
-      client.put({ key: key, value: serverConfigData[key] as string, updatedAt: getCurrentTS() }); // update server config value
+      await client.put({ key: key, value: serverConfigData[key] as string, updatedAt: getCurrentTS() }); // update server config value
     }
     return serverConfigData;
   }

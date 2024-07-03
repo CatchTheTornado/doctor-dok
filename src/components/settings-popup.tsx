@@ -81,11 +81,11 @@ export function SettingsPopup() {
 
   async function validateEncryptionKey(value): Promise<boolean> {
     if (value.length < 5) {
-      setError("encryptionKey", { message: "Min length is 5 characters" });
+      setError("encryptionKey", { type: "minLength", message: "Min length is 5 characters" });
       return false;
     }
     if (value.length > 64) {
-      setError("encryptionKey", { message: "Max length is 64 characters" });
+      setError("encryptionKey", { type: "maxLength", message: "Max length is 64 characters" });
       return false;
     }
 
@@ -94,10 +94,10 @@ export function SettingsPopup() {
     const dataLinkStatus = authorizationResult?.status;
 
     if (dataLinkStatus?.status === DataLinkStatus.AuthorizationError) {
-      setError("encryptionKey", { message: "Invalid encryption key for existing database. Try different key or create Format Database" })
+      setError("encryptionKey", { type: "unauthorized", message: "Invalid encryption key for existing database. Try different key or create Format Database" })
       return false;
     }  else if (dataLinkStatus?.status === DataLinkStatus.Empty) {
-      setError("encryptionKey", { message: "Database is empty. Please Format Database with new encryption key provided" })
+      setError("encryptionKey", { type: "empty", message: "Database is empty. Please Format Database with new encryption key provided" })
       return false;
     } else if (dataLinkStatus?.status === DataLinkStatus.Authorized) {
       return true;
@@ -248,12 +248,14 @@ export function SettingsPopup() {
                   <Input
                     type="text"
                     id="chatGptApiKey"
-                    {...register("chatGptApiKey", { required: true })}
+                    {...register("chatGptApiKey", { required: 'Chat GPT API key is required' })}
                   />
-                  {errors.chatGptApiKey && <span className="text-red-500">{errors.chatGptApiKey.message}</span>}
-                  <Link href="https://help.openai.com/en/articles/4936850-where-do-i-find-my-openai-api-key" target="_blank" className="text-sm text-blue-500 hover:underline" prefetch={false}>
-                    How to obtain ChatGPT API Key
-                  </Link>
+                  {errors.chatGptApiKey && <div><span className="text-red-500">{errors.chatGptApiKey.message}</span></div>}
+                  <div>
+                    <Link href="https://help.openai.com/en/articles/4936850-where-do-i-find-my-openai-api-key" target="_blank" className="text-sm text-blue-500 hover:underline" prefetch={false}>
+                      How to obtain ChatGPT API Key
+                    </Link>
+                  </div>
                 </CardContent>
               </Card>
             </TabsContent>
