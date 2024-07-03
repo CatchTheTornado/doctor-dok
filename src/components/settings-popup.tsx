@@ -254,7 +254,7 @@ export function SettingsPopup() {
                       keyFormatValidation: (value) => (value as string).startsWith('sk')
                     }} )}
                   />
-                  {errors.chatGptApiKey?.type === "keyFormatValidation" && <div><span className="text-red-500  text-sm">ChatGPT API key should start with "sk"</span></div>}
+                  {(errors.chatGptApiKey?.type === "keyFormatValidation") && <div><span className="text-red-500  text-sm">ChatGPT API key should start with "sk"</span></div>}
                   {errors.chatGptApiKey && <div><span className="text-red-500  text-sm">{errors.chatGptApiKey.message}</span></div>}
                   <div>
                     <Link href="https://help.openai.com/en/articles/4936850-where-do-i-find-my-openai-api-key" target="_blank" className="text-sm text-blue-500 hover:underline" prefetch={false}>

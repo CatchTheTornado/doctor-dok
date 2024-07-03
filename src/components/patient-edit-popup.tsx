@@ -18,7 +18,6 @@ To read more about using these font, please visit the Next.js documentation:
 - App Directory: https://nextjs.org/docs/app/building-your-application/optimizing/fonts
 - Pages Directory: https://nextjs.org/docs/pages/building-your-application/optimizing/fonts
 **/
-import { Dialog, DialogTrigger, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter, DialogClose } from "@/components/ui/dialog"
 import { Button } from "@/components/ui/button"
 import { Label } from "@/components/ui/label"
 import { Input } from "@/components/ui/input"
@@ -28,6 +27,8 @@ import { z } from "zod"
 import { PatientContext } from "@/contexts/patient-context"
 import { useContext, useState } from "react"
 import { Patient } from "@/data/client/models"
+import { Sheet, SheetClose, SheetContent, SheetDescription, SheetFooter, SheetHeader, SheetTitle, SheetTrigger } from "./ui/sheet"
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "./ui/card"
 
 export function PatientEditPopup() {
   const patientContext = useContext(PatientContext);
@@ -54,51 +55,57 @@ export function PatientEditPopup() {
     reset();
   }
   return (
-    <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger asChild>
+    <Sheet open={open} onOpenChange={setOpen}>
+      <SheetTrigger asChild>
         <Button variant="outline" size="icon">
           <PlusIcon className="w-6 h-6" />
         </Button>
-      </DialogTrigger>
-      <DialogContent className="sm:max-w-[500px]">
-        <DialogHeader>
-          <DialogTitle>Add/Edit Patient</DialogTitle>
-          <DialogDescription>Enter the patient's information below.</DialogDescription>
-        </DialogHeader>
-        <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
-          <div className="grid grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <Label htmlFor="firstName">First Name</Label>
-              <Input id="firstName" error={errors.firstName?.message} {...register("firstName")} />
-              {errors.firstName && <p className="text-red-500">{errors.firstName.message}</p>}
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="lastName">Last Name</Label>
-              <Input id="lastName" error={errors.lastName?.message} {...register("lastName")}/>
-              {errors.lastName && <p className="text-red-500">{errors.lastName.message}</p>}
-            </div>
-          </div>
-          <div className="space-y-2">
-            <Label htmlFor="dateOfBirth">Date of Birth</Label>
-            <Input id="dateOfBirth" type="date" error={errors.dateOfBirth?.message} {...register("dateOfBirth", { valueAsDate: true })} />
-            {errors.dateOfBirth && <p className="text-red-500">{errors.dateOfBirth.message}</p>}
-          </div>
-          <div className="space-y-2">
-            <Label htmlFor="email">Email</Label>
-            <Input id="email" type="email" error={errors.email?.message} {...register("email")} />
-            {errors.email && <p className="text-red-500">{errors.email.message}</p>}
-          </div>
-          <DialogFooter>
-            <div className="flex gap-2 place-content-end">
-              <Button type="submit">Save</Button>
-              <DialogClose asChild>
-                <Button variant="outline">Cancel</Button>
-              </DialogClose>
-            </div>
-          </DialogFooter>
-        </form>
-      </DialogContent>
-    </Dialog>
+      </SheetTrigger>
+      <SheetContent className="sm:max-w-[500px]">
+        <Card>
+          <CardHeader>
+            <CardTitle>Add/Edit patient</CardTitle>
+            <CardDescription>
+              Modify patient details in the form below
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-2">
+            <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="firstName">First Name</Label>
+                  <Input id="firstName" error={errors.firstName?.message} {...register("firstName")} />
+                  {errors.firstName && <p className="text-red-500 text-sm">{errors.firstName.message}</p>}
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="lastName">Last Name</Label>
+                  <Input id="lastName" error={errors.lastName?.message} {...register("lastName")}/>
+                  {errors.lastName && <p className="text-red-500 text-sm">{errors.lastName.message}</p>}
+                </div>
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="dateOfBirth">Date of Birth</Label>
+                <Input id="dateOfBirth" type="date" error={errors.dateOfBirth?.message} {...register("dateOfBirth", { valueAsDate: true })} />
+                {errors.dateOfBirth && <p className="text-red-500 text-sm">{errors.dateOfBirth.message}</p>}
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="email">Email</Label>
+                <Input id="email" type="email" error={errors.email?.message} {...register("email")} />
+                {errors.email && <p className="text-red-500 text-sm">{errors.email.message}</p>}
+              </div>
+              <SheetFooter>
+                <div className="flex gap-2 place-content-end">
+                  <Button type="submit">Save</Button>
+                  <SheetClose asChild>
+                    <Button variant="outline">Cancel</Button>
+                  </SheetClose>
+                </div>
+              </SheetFooter>
+            </form>
+          </CardContent>
+        </Card>
+      </SheetContent>
+    </Sheet>
   )
 }
 
