@@ -27,7 +27,7 @@ import { z } from "zod"
 import { PatientContext } from "@/contexts/patient-context"
 import { useContext, useState } from "react"
 import { Patient } from "@/data/client/models"
-import { Sheet, SheetClose, SheetContent, SheetDescription, SheetFooter, SheetHeader, SheetTitle, SheetTrigger } from "./ui/sheet"
+import { Credenza, CredenzaClose, CredenzaContent, CredenzaDescription, CredenzaFooter, CredenzaHeader, CredenzaTitle, CredenzaTrigger } from "./credenza"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "./ui/card"
 
 export function PatientEditPopup() {
@@ -55,21 +55,20 @@ export function PatientEditPopup() {
     reset();
   }
   return (
-    <Sheet open={open} onOpenChange={setOpen}>
-      <SheetTrigger asChild>
+    <Credenza open={open} onOpenChange={setOpen}>
+      <CredenzaTrigger asChild>
         <Button variant="outline" size="icon">
           <PlusIcon className="w-6 h-6" />
         </Button>
-      </SheetTrigger>
-      <SheetContent className="sm:max-w-[500px] pt-10" side="top">
-        <Card>
-          <CardHeader>
-            <CardTitle>Add/Edit patient</CardTitle>
-            <CardDescription>
+      </CredenzaTrigger>
+      <CredenzaContent className="sm:max-w-[500px] bg-white dark:bg-zinc-950" side="top">
+          <CredenzaHeader>
+            <CredenzaTitle>Add/Edit patient</CredenzaTitle>
+            <CredenzaDescription>
               Modify patient details in the form below
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-2">
+            </CredenzaDescription>
+          </CredenzaHeader>
+          <div className="p-4">
             <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
@@ -93,19 +92,18 @@ export function PatientEditPopup() {
                 <Input id="email" type="email" error={errors.email?.message} {...register("email")} />
                 {errors.email && <p className="text-red-500 text-sm">{errors.email.message}</p>}
               </div>
-              <SheetFooter>
+              <CredenzaFooter>
                 <div className="flex gap-2 place-content-end">
                   <Button type="submit">Save</Button>
-                  <SheetClose asChild>
+                  <CredenzaClose asChild>
                     <Button variant="outline">Cancel</Button>
-                  </SheetClose>
+                  </CredenzaClose>
                 </div>
-              </SheetFooter>
+              </CredenzaFooter>
             </form>
-          </CardContent>
-        </Card>
-      </SheetContent>
-    </Sheet>
+          </div>
+      </CredenzaContent>
+    </Credenza>
   )
 }
 

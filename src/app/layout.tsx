@@ -11,6 +11,7 @@ export const metadata: Metadata = {
   description: "End 2 End encrypted vault for your health data",
 };
 
+
 export default function RootLayout({
   children,
 }: Readonly<{
@@ -25,7 +26,9 @@ export default function RootLayout({
             enableSystem
             disableTransitionOnChange
           >      
-        {children}
+        <div vaul-drawer-wrapper="" className="bg-background">
+          {children}
+        </div>
         <Toaster position="bottom-right" />
         </ThemeProvider>
       </body>

@@ -1,7 +1,7 @@
 "use client"
 
 import { useContext, useEffect, useState } from "react"
-import { Sheet, SheetClose, SheetTrigger, SheetContent, SheetHeader, SheetTitle, SheetFooter } from "@/components/ui/sheet"
+import { Credenza, CredenzaClose, CredenzaTrigger, CredenzaContent, CredenzaHeader, CredenzaTitle, CredenzaFooter } from "@/components/credenza"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Button } from "@/components/ui/button"
 import { Label } from "@/components/ui/label"
@@ -119,171 +119,173 @@ export function SettingsPopup() {
 
 
   return (
-    <Sheet open={dialogOpen} onOpenChange={setDialogOpen}>
-      <SheetTrigger asChild>
+    <Credenza open={dialogOpen} onOpenChange={setDialogOpen}>
+      <CredenzaTrigger asChild>
         <Button variant="outline" size="icon">
           <SettingsIcon className="w-6 h-6" />
         </Button>
-      </SheetTrigger>
-      <SheetContent className="sm:max-w-[425px]">
-        <form onSubmit={handleSubmit(onSubmit)}>
-          <Tabs defaultValue="auth">
-            <TabsList className="grid w-full grid-cols-2">
-              <TabsTrigger value="auth">Authorization</TabsTrigger>
-              <TabsTrigger value="settings">Settings</TabsTrigger>
-            </TabsList>
-            <TabsContent value="auth">
-              <Card>
-                <CardHeader>
-                  <CardTitle>Encryption</CardTitle>
-                  <CardDescription>
-                    Setup encryption key for your medical records
-                  </CardDescription>
-                </CardHeader>
-                <CardContent className="space-y-2">
-                  <div className="hidden">
-                    <KeyPrint ref={componentRef} text={encryptionKey} />
-                  </div>
-                  <Label htmlFor="encryptionKey">Encryption Key</Label>
-                  <div className="relative">
-
-                    <PasswordInput autoComplete="new-password" id="password"
-                      type={showPassword ? 'text' : 'password'}
-                      {...register("encryptionKey", { 
-                        required: 'Encryption key is required', 
-                        validate: {
-                          minLength: (value) => (value as string).length >= 5,
-                          maxLength: (value) => (value as string).length <= 64,
-                          validEncryptionKey: async (value) => validateEncryptionKey(value)
-                        }
-                      })}
-                      />
-                      <Button
-                        type="button"
-                        variant="ghost"
-                        size="sm"
-                        className="absolute right-0 top-0 h-full px-3 py-2 hover:bg-transparent z-0"
-                        onClick={() => setShowPassword((prev) => !prev)}
-                      >
-                        {showPassword ? (
-                          <EyeIcon
-                            className="h-4 w-4"
-                            aria-hidden="true"
-                          />
-                        ) : (
-                          <EyeOffIcon
-                            className="h-4 w-4"
-                            aria-hidden="true"
-                          />
-                        )}
-                        <span className="sr-only">
-                          {showPassword ? "Hide password" : "Show password"}
-                        </span>
-                      </Button>
-
-                      {/* hides browsers password toggles */}
-                      <style>{`
-                        .hide-password-toggle::-ms-reveal,
-                        .hide-password-toggle::-ms-clear {
-                          visibility: hidden;
-                          pointer-events: none;
-                          display: none;
-                        }
-                      `}</style>
+      </CredenzaTrigger>
+      <CredenzaContent className="sm:max-w-[425px] bg-white dark:bg-zinc-950">
+        <div class="p-4">
+          <form onSubmit={handleSubmit(onSubmit)}>
+            <Tabs defaultValue="auth">
+              <TabsList className="grid w-full grid-cols-2">
+                <TabsTrigger value="auth">Authorization</TabsTrigger>
+                <TabsTrigger value="settings">Settings</TabsTrigger>
+              </TabsList>
+              <TabsContent value="auth">
+                <Card>
+                  <CardHeader>
+                    <CardTitle>Encryption</CardTitle>
+                    <CardDescription>
+                      Setup encryption key for your medical records
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent className="space-y-2">
+                    <div className="hidden">
+                      <KeyPrint ref={componentRef} text={encryptionKey} />
                     </div>
+                    <Label htmlFor="encryptionKey">Encryption Key</Label>
+                    <div className="relative">
 
-                  {errors.encryptionKey ? (
-                    <div>
-                      <div>
-                      {errors.encryptionKey.type === 'validEncryptionKey' ? (
-                        <span className="text-red-500 text-sm">Provided encryption key is INVALID for existing database OR database is empty. You can ERASE and FORMAT a new database</span>
-                        ):""}
-                      {errors.encryptionKey.type === 'minLength' ? (
-                        <span className="text-red-500 text-sm">Min length for a key is 5</span>
-                        ):""}
-                      {errors.encryptionKey.type === 'validEncryptionKey' ? (
-                        <span className="text-red-500 text-sm">Max length for a key is 64</span>
-                        ):""}
+                      <PasswordInput autoComplete="new-password" id="password"
+                        type={showPassword ? 'text' : 'password'}
+                        {...register("encryptionKey", { 
+                          required: 'Encryption key is required', 
+                          validate: {
+                            minLength: (value) => (value as string).length >= 5,
+                            maxLength: (value) => (value as string).length <= 64,
+                            validEncryptionKey: async (value) => validateEncryptionKey(value)
+                          }
+                        })}
+                        />
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="sm"
+                          className="absolute right-0 top-0 h-full px-3 py-2 hover:bg-transparent z-0"
+                          onClick={() => setShowPassword((prev) => !prev)}
+                        >
+                          {showPassword ? (
+                            <EyeIcon
+                              className="h-4 w-4"
+                              aria-hidden="true"
+                            />
+                          ) : (
+                            <EyeOffIcon
+                              className="h-4 w-4"
+                              aria-hidden="true"
+                            />
+                          )}
+                          <span className="sr-only">
+                            {showPassword ? "Hide password" : "Show password"}
+                          </span>
+                        </Button>
+
+                        {/* hides browsers password toggles */}
+                        <style>{`
+                          .hide-password-toggle::-ms-reveal,
+                          .hide-password-toggle::-ms-clear {
+                            visibility: hidden;
+                            pointer-events: none;
+                            display: none;
+                          }
+                        `}</style>
                       </div>
 
-                        <AlertDialog>
-                        <AlertDialogTrigger><Button variant="ghost">Format Datbase</Button></AlertDialogTrigger>
-                        <AlertDialogContent>
-                          <AlertDialogHeader>
-                            <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
-                            <AlertDialogDescription>
-                              This action cannot be undone. This will permanently delete your data and create a new database with new encryption key.
-                            </AlertDialogDescription>
-                          </AlertDialogHeader>
-                          <AlertDialogFooter>
-                            <AlertDialogCancel>Cancel</AlertDialogCancel>
-                            <AlertDialogAction onClick={(e) => formatNewDataLink(getValues().encryptionKey as string)}>Erase ALL and continue</AlertDialogAction>
-                          </AlertDialogFooter>
-                        </AlertDialogContent>
-                      </AlertDialog>       
-                    </div>           
-                  ) : ""}
-                  <p className="text-sm text-gray-500 dark:text-gray-400">
-                    Please save or print this master key. <strong>It's like crypto wallet.</strong> After losing it your medical records <strong className="text-red-500">WILL BE LOST FOREVER</strong>.
-                    We're using strong AES256 end-to-end encryption.
-                  </p>
+                    {errors.encryptionKey ? (
+                      <div>
+                        <div>
+                        {errors.encryptionKey.type === 'validEncryptionKey' ? (
+                          <span className="text-red-500 text-sm">Provided encryption key is INVALID for existing database OR database is empty. You can ERASE and FORMAT a new database</span>
+                          ):""}
+                        {errors.encryptionKey.type === 'minLength' ? (
+                          <span className="text-red-500 text-sm">Min length for a key is 5</span>
+                          ):""}
+                        {errors.encryptionKey.type === 'validEncryptionKey' ? (
+                          <span className="text-red-500 text-sm">Max length for a key is 64</span>
+                          ):""}
+                        </div>
 
-                  <ReactToPrint
-                    content={reactToPrintContent}
-                    documentTitle="Patient Pad Encryption Key"
-                    removeAfterPrint
-                    trigger={reactToPrintTrigger}
+                          <AlertDialog>
+                          <AlertDialogTrigger><Button variant="ghost">Format Datbase</Button></AlertDialogTrigger>
+                          <AlertDialogContent>
+                            <AlertDialogHeader>
+                              <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
+                              <AlertDialogDescription>
+                                This action cannot be undone. This will permanently delete your data and create a new database with new encryption key.
+                              </AlertDialogDescription>
+                            </AlertDialogHeader>
+                            <AlertDialogFooter>
+                              <AlertDialogCancel>Cancel</AlertDialogCancel>
+                              <AlertDialogAction onClick={(e) => formatNewDataLink(getValues().encryptionKey as string)}>Erase ALL and continue</AlertDialogAction>
+                            </AlertDialogFooter>
+                          </AlertDialogContent>
+                        </AlertDialog>       
+                      </div>           
+                    ) : ""}
+                    <p className="text-sm text-gray-500 dark:text-gray-400">
+                      Please save or print this master key. <strong>It's like crypto wallet.</strong> After losing it your medical records <strong className="text-red-500">WILL BE LOST FOREVER</strong>.
+                      We're using strong AES256 end-to-end encryption.
+                    </p>
+
+                    <ReactToPrint
+                      content={reactToPrintContent}
+                      documentTitle="Patient Pad Encryption Key"
+                      removeAfterPrint
+                      trigger={reactToPrintTrigger}
+                    />
+                  </CardContent>
+                </Card>
+              </TabsContent>
+              <TabsContent value="settings">
+                <Card>
+                  <CardHeader>
+                    <CardTitle>Settings</CardTitle>
+                    <CardDescription>
+                      Setup application settings here
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent className="space-y-2">
+                    <Label htmlFor="chatGptApiKey">ChatGPT API Key</Label>
+                    <Input
+                      type="text"
+                      id="chatGptApiKey"
+                      {...register("chatGptApiKey", { required: 'Chat GPT API key is required' , validate: {
+                        keyFormatValidation: (value) => (value as string).startsWith('sk')
+                      }} )}
+                    />
+                    {(errors.chatGptApiKey?.type === "keyFormatValidation") && <div><span className="text-red-500  text-sm">ChatGPT API key should start with "sk"</span></div>}
+                    {errors.chatGptApiKey && <div><span className="text-red-500  text-sm">{errors.chatGptApiKey.message}</span></div>}
+                    <div>
+                      <Link href="https://help.openai.com/en/articles/4936850-where-do-i-find-my-openai-api-key" target="_blank" className="text-sm text-blue-500 hover:underline" prefetch={false}>
+                        How to obtain ChatGPT API Key
+                      </Link>
+                    </div>
+                  </CardContent>
+                </Card>
+              </TabsContent>
+            </Tabs>
+            <CredenzaFooter>
+              <div className="flex items-center justify-between gap-4 mt-4">
+                <div className="flex items-center gap-2">
+                  <Checkbox
+                    id="saveToLocalStorage"
+                    checked={config?.localConfig.saveToLocalStorage}
+                    onCheckedChange={(checked) => config?.setSaveToLocalStorage(checked)}
                   />
-                </CardContent>
-              </Card>
-            </TabsContent>
-            <TabsContent value="settings">
-              <Card>
-                <CardHeader>
-                  <CardTitle>Settings</CardTitle>
-                  <CardDescription>
-                    Setup application settings here
-                  </CardDescription>
-                </CardHeader>
-                <CardContent className="space-y-2">
-                  <Label htmlFor="chatGptApiKey">ChatGPT API Key</Label>
-                  <Input
-                    type="text"
-                    id="chatGptApiKey"
-                    {...register("chatGptApiKey", { required: 'Chat GPT API key is required' , validate: {
-                      keyFormatValidation: (value) => (value as string).startsWith('sk')
-                    }} )}
-                  />
-                  {(errors.chatGptApiKey?.type === "keyFormatValidation") && <div><span className="text-red-500  text-sm">ChatGPT API key should start with "sk"</span></div>}
-                  {errors.chatGptApiKey && <div><span className="text-red-500  text-sm">{errors.chatGptApiKey.message}</span></div>}
-                  <div>
-                    <Link href="https://help.openai.com/en/articles/4936850-where-do-i-find-my-openai-api-key" target="_blank" className="text-sm text-blue-500 hover:underline" prefetch={false}>
-                      How to obtain ChatGPT API Key
-                    </Link>
-                  </div>
-                </CardContent>
-              </Card>
-            </TabsContent>
-          </Tabs>
-          <SheetFooter>
-            <div className="flex items-center justify-between gap-4 mt-4">
-              <div className="flex items-center gap-2">
-                <Checkbox
-                  id="saveToLocalStorage"
-                  checked={config?.localConfig.saveToLocalStorage}
-                  onCheckedChange={(checked) => config?.setSaveToLocalStorage(checked)}
-                />
-                <Label htmlFor="saveToLocalStorage">Save to localStorage</Label>
+                  <Label htmlFor="saveToLocalStorage">Save to localStorage</Label>
+                </div>
+                <div className="flex gap-2">
+                  <Button type="button" onClick={() => setDialogOpen(false)}>Cancel</Button>
+                  <Button type="submit">Go!</Button>
+                </div>
               </div>
-              <div className="flex gap-2">
-                <Button type="button" onClick={() => setDialogOpen(false)}>Cancel</Button>
-                <Button type="submit">Go!</Button>
-              </div>
-            </div>
-          </SheetFooter>
-        </form>
-      </SheetContent>
-    </Sheet>
+            </CredenzaFooter>
+          </form>
+        </div>
+      </CredenzaContent>
+    </Credenza>
   )
 }
 
