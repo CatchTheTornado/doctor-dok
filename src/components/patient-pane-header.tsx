@@ -5,16 +5,16 @@ import { SettingsPopup } from "@/components/settings-popup";
 export default function PatientsTopHeader() {
 
     return (
-        <div className="sticky top-0 flex items-center justify-between border-b border-gray-200 dark:border-gray-800 p-4">
-            <div className="font-medium">Patient Pad</div>
-            <div className="flex items-center gap-2">
-                <PatientEditPopup />
-                <SettingsPopup />
-                <Button variant="ghost" size="icon">
-                    <LogInIcon className="h-5 w-5" />
-                </Button>
-            </div>
+      <div className="sticky top-0 flex items-center justify-between border-b border-gray-200 dark:border-gray-800 p-4 bg-inherit">
+        <div className="font-medium">Patient Pad</div>
+        <div className="flex items-center gap-2">
+          <PatientEditPopup />
+          <SettingsPopup />
+          <Button variant="ghost" size="icon">
+            <LogInIcon className="h-5 w-5" />
+          </Button>
         </div>
+      </div>
     );
 }
 

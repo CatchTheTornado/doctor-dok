@@ -61,7 +61,7 @@ export function PatientEditPopup() {
           <PlusIcon className="w-6 h-6" />
         </Button>
       </SheetTrigger>
-      <SheetContent className="sm:max-w-[500px]">
+      <SheetContent className="sm:max-w-[500px] pt-10" side="top">
         <Card>
           <CardHeader>
             <CardTitle>Add/Edit patient</CardTitle>

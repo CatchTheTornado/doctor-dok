@@ -11,7 +11,7 @@ export default function PatientList() {
   const configContext = useContext(ConfigContext);
   const patientsContext = useContext(PatientContext)
   return (
-        <div className="h-[calc(100vh-64px)] overflow-auto">
+        <div className="h-auto overflow-auto">
       { (configContext?.dataLinkStatus.isReady()) ? (
           <div className="p-4 space-y-4">
           {patientsContext?.loaderStatus === DataLoadingStatus.Loading ? (
@@ -25,7 +25,7 @@ export default function PatientList() {
             )}
           </div>
             ) : (
-              <div className="h-[calc(100vh-64px)] overflow-auto">
+              <div className="h-auto overflow-auto">
                 <div className="p-4 space-y-4">
                   <Alert>
                     <Terminal className="h-4 w-4" />

@@ -6,7 +6,7 @@ export default function PatientItem({ patient, selected, onClick }: { patient: P
 
   return (
     <Link
-      className={`flex items-center gap-3 p-3 rounded-md ${selected ? "bg-gray-800 text-primary-foreground" : "" } transition-colors over:bg-gray-100 dark:hover:bg-gray-800`}
+      className={`flex items-center gap-3 p-3 rounded-md ${selected ? " text-primary-foreground bg-gray-100 dark:bg-gray-800" : "" } transition-colors over:bg-gray-100 dark:hover:bg-gray-800`}
       href=""
       onClick={onClick}
     >
