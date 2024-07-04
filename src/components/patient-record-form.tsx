@@ -17,7 +17,7 @@ const FileSvgDraw = () => {
   return (
     <>
       <svg
-        className="w-8 h-8 mb-3 text-gray-500 dark:text-gray-400"
+        className="w-8 h-8 mb-3 text-zinc-500 dark:text-zinc-400"
         aria-hidden="true"
         xmlns="http://www.w3.org/2000/svg"
         fill="none"
@@ -31,11 +31,11 @@ const FileSvgDraw = () => {
           d="M13 13h3a3 3 0 0 0 0-6h-.025A5.56 5.56 0 0 0 16 6.5 5.5 5.5 0 0 0 5.207 5.021C5.137 5.017 5.071 5 5 5a4 4 0 0 0 0 8h2.167M10 15V6m0 0L8 8m2-2 2 2"
         />
       </svg>
-      <p className="mb-1 text-sm text-gray-500 dark:text-gray-400">
+      <p className="mb-1 text-sm text-zinc-500 dark:text-zinc-400">
         <span className="font-semibold">Click to upload</span>
         &nbsp; or drag and drop
       </p>
-      <p className="text-xs text-gray-500 dark:text-gray-400">
+      <p className="text-xs text-zinc-500 dark:text-zinc-400">
         PNG, JPG, PDF or GIF
       </p>
     </>
@@ -52,10 +52,10 @@ export default function NewPatientRecord({ patient }: { patient: Patient }) {
   };
   
   return (
-    <div className="mb-6 bg-white dark:bg-gray-900 p-4 rounded-lg shadow-sm">
+    <div className="mb-6 bg-white dark:bg-zinc-900 p-4 rounded-lg shadow-sm">
       <div className="flex items-center justify-between mb-4 pr-2">
         <div className="text-lg font-medium">{patient?.displayName()}</div>
-        <div className="text-sm text-gray-500 dark:text-gray-400">Last visit: {patient?.displatDateOfBirth()}</div>
+        <div className="text-sm text-zinc-500 dark:text-zinc-400">Last visit: {patient?.displatDateOfBirth()}</div>
       </div>      
       <div className="flex items-center gap-4 resize-x">
         <Textarea

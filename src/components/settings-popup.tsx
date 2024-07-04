@@ -209,7 +209,7 @@ export function SettingsPopup() {
 
                           <AlertDialog>
                           <AlertDialogTrigger><Button variant="ghost">Format Datbase</Button></AlertDialogTrigger>
-                          <AlertDialogContent>
+                          <AlertDialogContent className="bg-white dark:bg-zinc-950">
                             <AlertDialogHeader>
                               <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
                               <AlertDialogDescription>
@@ -224,7 +224,7 @@ export function SettingsPopup() {
                         </AlertDialog>       
                       </div>           
                     ) : ""}
-                    <p className="text-sm text-gray-500 dark:text-gray-400">
+                    <p className="text-sm text-zinc-500 dark:text-zinc-400">
                       Please save or print this master key. <strong>It's like crypto wallet.</strong> After losing it your medical records <strong className="text-red-500">WILL BE LOST FOREVER</strong>.
                       We're using strong AES256 end-to-end encryption.
                     </p>

@@ -57,7 +57,7 @@ export function PatientEditPopup() {
   return (
     <Credenza open={open} onOpenChange={setOpen}>
       <CredenzaTrigger asChild>
-        <Button variant="outline" size="icon">
+        <Button variant="outline" className="absolute right-10" size="icon">
           <PlusIcon className="w-6 h-6" />
         </Button>
       </CredenzaTrigger>

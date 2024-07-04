@@ -1,8 +1,8 @@
 'use client'
-import PatientList from "@/components/patient-list";
-import PatientRecords from "@/components/patient-records";
+import PatientList from "@/components/patient-list-popup";
+import PatientRecordsWrapper from "@/components/patient-records-wrapper";
 import NewPatientRecord from "@/components/patient-record-form";
-import PatientsTopHeader from "@/components/patient-pane-header";
+import TopHeader from "@/components/top-header";
 import { ConfigContext, ConfigContextProvider } from "@/contexts/config-context";
 import { useContext } from "react";
 import { PatientContext, PatientContextProvider } from "@/contexts/patient-context";
@@ -16,12 +16,9 @@ export default function PatientPad() {
   return (
     <ConfigContextProvider>
       <PatientContextProvider>
-        <div className="grid min-h-screen w-full lg:grid-cols-[300px_1fr] bg-gray-100 dark:bg-gray-950">
-          <div className="bg-white dark:bg-gray-900 border-r border-gray-200 dark:border-gray-800">
-            <PatientsTopHeader />
-            <PatientList />
-          </div>
-          <PatientRecords />
+        <div>
+          <TopHeader />
+          <PatientRecordsWrapper />
         </div>
       </PatientContextProvider>
     </ConfigContextProvider>

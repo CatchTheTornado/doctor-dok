@@ -6,7 +6,7 @@ export default function PatientItem({ patient, selected, onClick }: { patient: P
 
   return (
     <Link
-      className={`flex items-center gap-3 p-3 rounded-md ${selected ? " text-primary-foreground bg-gray-100 dark:bg-gray-800" : "" } transition-colors over:bg-gray-100 dark:hover:bg-gray-800`}
+      className={`flex items-center gap-3 p-3 rounded-md ${selected ? " text-primary-foreground bg-zinc-100 dark:bg-zinc-800" : "" } transition-colors over:bg-zinc-100 dark:hover:bg-zinc-800`}
       href=""
       onClick={onClick}
     >
@@ -15,7 +15,7 @@ export default function PatientItem({ patient, selected, onClick }: { patient: P
       </Avatar>
       <div className="flex-1">
         <div className="font-medium">{patient.displayName()}</div>
-        <div className="text-sm text-gray-500 dark:text-gray-400">Date of birth: {patient.displatDateOfBirth()}</div>
+        <div className="text-sm text-zinc-500 dark:text-zinc-400">Date of birth: {patient.displatDateOfBirth()}</div>
       </div>
     </Link>
   );

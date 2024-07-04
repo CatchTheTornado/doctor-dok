@@ -1,14 +1,15 @@
 import { Button } from "./ui/button";
 import { PatientEditPopup } from "@/components/patient-edit-popup";
 import { SettingsPopup } from "@/components/settings-popup";
+import PatientListPopup from "./patient-list-popup";
 
-export default function PatientsTopHeader() {
+export default function TopHeader() {
 
     return (
-      <div className="sticky top-0 flex items-center justify-between border-b border-gray-200 dark:border-gray-800 p-4 bg-inherit">
+      <div className="sticky top-0 z-1000 flex items-center justify-between border-b border-zinc-200 dark:border-zinc-800 p-4 bg-zinc-200 dark:bg-zinc-800">
         <div className="font-medium">Patient Pad</div>
         <div className="flex items-center gap-2">
-          <PatientEditPopup />
+          <PatientListPopup />
           <SettingsPopup />
           <Button variant="ghost" size="icon">
             <LogInIcon className="h-5 w-5" />
