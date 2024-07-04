@@ -25,13 +25,11 @@ export const PatientContextProvider: React.FC = ({ children }) => {
     const [patients, setPatients] = useState<Patient[]>([]);
     const [loaderStatus, setLoaderStatus] = useState<DataLoadingStatus>(DataLoadingStatus.Idle);
     const [currentPatient, setCurrentPatient] = useState<Patient | null>(null); // new state
+    const config = useContext(ConfigContext);
 
     useEffect(() => {
         listPatients();
     }, []);
-
-    const config = useContext(ConfigContext);
-
 
     const addPatient = async (patient: Patient) => {
         const client = await setupApiClient(config);

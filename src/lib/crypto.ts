@@ -99,6 +99,9 @@ export class DTOEncryptionFilter<T> {
     async encrypt(dto: T, encryptionSettings?: DTOEncryptionSettings): Promise<T> {
       return this.process(dto, encryptionSettings, async (value) => {
         if (typeof value === 'object') {
+          if(value instanceof Date) {
+            value = (value as Date).toISOString();
+          }
           return 'json-' + await this.utils.encrypt(JSON.stringify(value));
         }
         return await this.utils.encrypt(value);

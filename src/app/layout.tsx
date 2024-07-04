@@ -19,6 +19,9 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
+      <head>
+        <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover"></meta>
+      </head>>
       <body className={inter.className}>
           <ThemeProvider
             attribute="class"
@@ -26,7 +29,7 @@ export default function RootLayout({
             enableSystem
             disableTransitionOnChange
           >      
-        <div vaul-drawer-wrapper="" className="bg-background">
+        <div vaul-drawer-wrapper="" className="bg-background touch-none">
           {children}
         </div>
         <Toaster position="bottom-right" />

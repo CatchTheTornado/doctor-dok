@@ -133,8 +133,6 @@ export const ConfigContextProvider: React.FC<PropsWithChildren> = ({ children })
   }
 
   const formatNewDataLink = async (newEncryptionKey: string, serverConfigData: Record<string, ConfigSupportedValueType>): Promise<Record<string, ConfigSupportedValueType>> => {
-    state.setLocalConfig('encryptionKey', newEncryptionKey);
-
     // clear and create new database
     const dbApiClient = getDbApiClient(newEncryptionKey);
     await dbApiClient.delete(); // clear the database

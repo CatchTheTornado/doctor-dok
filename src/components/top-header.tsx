@@ -2,14 +2,21 @@ import { Button } from "./ui/button";
 import { PatientEditPopup } from "@/components/patient-edit-popup";
 import { SettingsPopup } from "@/components/settings-popup";
 import PatientListPopup from "./patient-list-popup";
+import NewPatientRecord from "./patient-record-form";
+import { PatientContext } from "@/contexts/patient-context";
+import { useContext } from "react";
 
 export default function TopHeader() {
+    const patientContext = useContext(PatientContext);
 
     return (
       <div className="sticky top-0 z-1000 flex items-center justify-between border-b border-zinc-200 dark:border-zinc-800 p-4 bg-zinc-200 dark:bg-zinc-800">
         <div className="font-medium">Patient Pad</div>
         <div className="flex items-center gap-2">
           <PatientListPopup />
+          {(patientContext?.currentPatient !== null) ? (
+            <NewPatientRecord patient={patientContext?.currentPatient} />
+          ) : ("")}
           <SettingsPopup />
           <Button variant="ghost" size="icon">
             <LogInIcon className="h-5 w-5" />

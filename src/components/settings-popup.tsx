@@ -76,6 +76,8 @@ export function SettingsPopup() {
     await config?.formatNewDataLink(newEncryptionKey, {});
     await config?.authorizeDataLink(newEncryptionKey); // authorize once ogain
     toast.info('New database created. Please save or print your encryption key.');
+    config?.setLocalConfig('encryptionKey', newEncryptionKey); // TODO: force data reload everywhere in the app
+
   }
 
 
@@ -153,6 +155,7 @@ export function SettingsPopup() {
                         {...register("encryptionKey", { 
                           required: 'Encryption key is required', 
                           validate: {
+                            required: (value) => (value as string).length > 0,
                             minLength: (value) => (value as string).length >= 5,
                             maxLength: (value) => (value as string).length <= 64,
                             validEncryptionKey: async (value) => validateEncryptionKey(value)
@@ -205,6 +208,9 @@ export function SettingsPopup() {
                         {errors.encryptionKey.type === 'validEncryptionKey' ? (
                           <span className="text-red-500 text-sm">Max length for a key is 64</span>
                           ):""}
+                        {errors.encryptionKey.type === 'required' ? (
+                          <span className="text-red-500 text-sm">Encryption key is required</span>
+                          ):""}                          
                         </div>
 
                           <AlertDialog>
