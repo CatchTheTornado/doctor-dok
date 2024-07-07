@@ -1,7 +1,7 @@
 "use client"
 
 import { useContext, useEffect, useState } from "react"
-import { Credenza, CredenzaClose, CredenzaTrigger, CredenzaContent, CredenzaHeader, CredenzaTitle, CredenzaFooter } from "@/components/credenza"
+import { Credenza, CredenzaTrigger, CredenzaContent, CredenzaFooter } from "@/components/credenza"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Button } from "@/components/ui/button"
 import { Label } from "@/components/ui/label"
@@ -16,7 +16,7 @@ import { KeyPrint } from "./key-print"
 import React from "react"
 import { DataLinkStatus } from "@/data/client/models"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "./ui/card";
-import { Toaster, toast } from "sonner";
+import { toast } from "sonner";
 import { useForm } from "react-hook-form";
 import {
   AlertDialog,
@@ -128,7 +128,7 @@ export function SettingsPopup() {
         </Button>
       </CredenzaTrigger>
       <CredenzaContent className="sm:max-w-[425px] bg-white dark:bg-zinc-950">
-        <div class="p-4">
+        <div className="p-4">
           <form onSubmit={handleSubmit(onSubmit)}>
             <Tabs defaultValue="auth">
               <TabsList className="grid w-full grid-cols-2">

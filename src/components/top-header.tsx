@@ -11,7 +11,7 @@ export default function TopHeader() {
 
     return (
       <div className="sticky top-0 z-1000 flex items-center justify-between border-b border-zinc-200 dark:border-zinc-800 p-4 bg-zinc-200 dark:bg-zinc-800">
-        <div className="font-medium">Patient Pad</div>
+        <div className="font-medium">Patient Pad {patientContext?.currentPatient ? (' for ' + patientContext.currentPatient.displayName()) : (null)}</div>
         <div className="flex items-center gap-2">
           <PatientListPopup />
           {(patientContext?.currentPatient !== null) ? (

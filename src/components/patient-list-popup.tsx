@@ -27,7 +27,9 @@ export default function PatientListPopup() {
       <CredenzaContent className="sm:max-w-[500px] bg-white dark:bg-zinc-950" side="top">
         <CredenzaHeader>
           <CredenzaTitle>List patients
-            <PatientEditPopup />
+            {(configContext?.dataLinkStatus.isReady()) ? (
+              <PatientEditPopup />
+            ) : (null)}
           </CredenzaTitle>
           <CredenzaDescription>
             Select patient to work on
