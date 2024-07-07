@@ -4,6 +4,7 @@ import { PatientRecordApiClient } from '@/data/client/patient-record-api-client'
 import { ApiEncryptionConfig } from '@/data/client/base-api-client';
 import { DataLoadingStatus, Patient, PatientRecord } from '@/data/client/models';
 import { ConfigContext, ConfigContextType } from './config-context';
+import { toast } from 'sonner';
 
 export type PatientRecordContextType = {
     patientRecords: PatientRecord[];
@@ -28,18 +29,26 @@ export const PatientRecordContextProvider: React.FC = ({ children }) => {
 
     const config = useContext(ConfigContext);
 
-    const addPatientRecord = async (patientRecord: PatientRecord) => {
-        const client = await setupApiClient(config);
-        const patientRecordDTO = patientRecord.toDTO(); // DTOs are common ground between client and server
-        client.put(patientRecordDTO).then((response) => {
+    const addPatientRecord = async (patientRecord: PatientRecord): Promise<PatientRecord> => {
+        try {
+            const client = await setupApiClient(config);
+            const patientRecordDTO = patientRecord.toDTO(); // DTOs are common ground between client and server
+            const response = await client.put(patientRecordDTO);
             if (response.status !== 200) {
                 console.error('Error adding patient record:', response.message);
+                toast.error('Error adding patient record');
+
+                return patientRecord;
             } else {
                 const updatedPatientRecord = Object.assign(patientRecord, { id: response.data.id });
                 setPatientRecords([...patientRecords, updatedPatientRecord]);
-                return Promise.resolve(patientRecord);
+                return response.data as PatientRecord;
             }
-        });
+        } catch (error) {
+            console.error('Error adding patient record:', error);
+            toast.error('Error adding patient record');
+            return patientRecord;
+        }
     };
 
     const editPatientRecord = async (patientRecord: PatientRecordDTO) => {
@@ -69,18 +78,20 @@ export const PatientRecordContextProvider: React.FC = ({ children }) => {
     };
 
     const listPatientRecords = async (forPatient: Patient) => {
-        const client = await setupApiClient(config);
-        setLoaderStatus(DataLoadingStatus.Loading);
-        client.get().then((response) => {
+        try {
+            const client = await setupApiClient(config);
+            setLoaderStatus(DataLoadingStatus.Loading);
+            const response = await client.get(); // TODO: patient ID is missing
             const fetchedPatientRecords = response.map((patientRecordDTO: PatientRecordDTO) => PatientRecord.fromDTO(patientRecordDTO));
             setPatientRecords(fetchedPatientRecords);
             setLoaderStatus(DataLoadingStatus.Success);
             setCurrentPatientRecord(fetchedPatientRecords.length > 0 ? fetchedPatientRecords[0] : null)
-            return Promise.resolve(fetchedPatientRecords);
-        }).catch((error) => {   
+            return fetchedPatientRecords;
+        } catch (error) {
             setLoaderStatus(DataLoadingStatus.Error);
+            toast.error('Error listing patient records');            
             return Promise.reject(error);
-        });
+        }    
     };
 
     const setupApiClient = async (config: ConfigContextType | null) => {
@@ -95,7 +106,7 @@ export const PatientRecordContextProvider: React.FC = ({ children }) => {
 
     return (
         <PatientRecordContext.Provider
-            value={{ patientRecords, addPatientRecord, editPatientRecord, deletePatientRecord, listPatientRecords, loaderStatus, setCurrentPatientRecord, currentPatientRecord }}
+            value={{ patientRecords, addPatientRecord, loaderStatus, setCurrentPatientRecord, currentPatientRecord, listPatientRecords, editPatientRecord, deletePatientRecord }}
         >
             {children}
         </PatientRecordContext.Provider>

@@ -33,7 +33,7 @@ import { EyeIcon, EyeOffIcon } from "lucide-react";
 
 export function SettingsPopup() {
   const config = useContext(ConfigContext);
-  const [dialogOpen, setDialogOpen] = useState(!config?.dataLinkStatus.isReady());
+  const [dialogOpen, setDialogOpen] = useState(false);
   const [showPassword, setShowPassword] = useState(false)
 
   
@@ -63,7 +63,7 @@ export function SettingsPopup() {
  
 
   useEffect(() => {
-    setDialogOpen(config?.dataLinkStatus.isReady() === false);
+    setDialogOpen(config?.dataLinkStatus.isError() === true);
     if (config?.dataLinkStatus.status === DataLinkStatus.AuthorizationError) {
       toast("Authorization error", {
         description: "Invalid encryption key. Please try again with different key or create a new database",

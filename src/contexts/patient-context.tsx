@@ -12,7 +12,7 @@ export type PatientContextType = {
     patients: Patient[];
     currentPatient: Patient | null; 
     addPatient: (patient: Patient) => Promise<Patient>;
-    editPatient: (patient: PatientDTO) => Promise<Patient>;
+    editPatient: (patient: Patient) => Promise<Patient>;
     deletePatient: (id: number) => Promise<boolean>;
     listPatients: () => Promise<Patient[]>;
     setCurrentPatient: (patient: Patient | null) => void; // new method
@@ -47,7 +47,7 @@ export const PatientContextProvider: React.FC = ({ children }) => {
     
 
     // TODO: Implement the editPatient and deletePatient functions
-    const editPatient = async (patient: PatientDTO) => {
+    const editPatient = async (patient: Patient) => {
         // // Call the API to edit the patient
         // PatientApiClient.editPatient(patient)
         //     .then((updatedPatient) => {
