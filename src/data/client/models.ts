@@ -10,6 +10,7 @@ export enum DataLoadingStatus {
 
 export enum DataLinkStatus {
     Empty = 'Empty',
+    NotAuthorized = 'NotAuthorized',
     AuthorizationError = 'AuthorizationError',
     Authorized = 'Success',
     InProgress = 'InProgress'
@@ -25,6 +26,14 @@ export class ServerDataLinkStatus {
 
     isReady(): boolean {
         return this.status === DataLinkStatus.Authorized;
+    }
+
+    isInProgress(): boolean {
+        return this.status === DataLinkStatus.InProgress;
+    }
+
+    isError(): boolean {
+        return this.status === DataLinkStatus.AuthorizationError;
     }
 
 }

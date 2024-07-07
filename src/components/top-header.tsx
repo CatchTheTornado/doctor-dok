@@ -1,5 +1,4 @@
 import { Button } from "./ui/button";
-import { PatientEditPopup } from "@/components/patient-edit-popup";
 import { SettingsPopup } from "@/components/settings-popup";
 import PatientListPopup from "./patient-list-popup";
 import NewPatientRecord from "./patient-record-form";
