@@ -27,7 +27,7 @@ import { PatientRecordAttachmentDTO, PatientRecordAttachmentDTOEncSettings } fro
 import { v4 as uuidv4 } from 'uuid';
 import { PatientRecordAttachmentApiClient } from "@/data/client/patient-record-attachment-api-client";
 import { ConfigContext } from "@/contexts/config-context";
-import { DTOEncryptionFilter } from "@/lib/crypto";
+import { DTOEncryptionFilter, EncryptionUtils } from "@/lib/crypto";
 
 type DirectionOptions = "rtl" | "ltr" | undefined;
 
@@ -58,6 +58,7 @@ export type UploadedFile = {
     uploaded: boolean;
     status: string;
     index: number;
+    dto: PatientRecordAttachmentDTO | null;
 }
 
 type FileUploaderProps = {
@@ -171,6 +172,20 @@ export const PatientRecordUploader = forwardRef<
       },
       [value, activeIndex, removeFileFromSet]
     );
+    // TODO: move it to utils as it's pretty much reusable code
+    const encryptFile = async (fileObject: File, masterKey?: string): Promise<File> => {
+      const encUtils = masterKey ? new EncryptionUtils(masterKey as string) : null;
+      return new Promise((resolve, reject) => {
+        const fr = new FileReader();
+        fr.onload = async function() {
+          const encryptedBuffer = await encUtils?.encryptArrayBuffer(fr.result as ArrayBuffer) as ArrayBuffer;
+          const encryptedFile = new File([encryptedBuffer], fileObject.name, { type: fileObject.type });
+          resolve(encryptedFile);
+        }
+        fr.onerror = reject;
+        fr.readAsArrayBuffer(fileObject);
+      });
+    }
     const onInternalUpload = useCallback(async (fileToUpload:UploadedFile | null) => {
         if (fileToUpload){
           fileToUpload.status = 'Uploading ...';
@@ -178,8 +193,11 @@ export const PatientRecordUploader = forwardRef<
           const masterKey = await config?.getServerConfig('dataEncryptionMasterKey');
           if(fileToUpload && fileToUpload.file) 
           { 
-            const fileObject = fileToUpload.file;
-            formData.append("file", fileObject);
+            const encFilter = masterKey ? new DTOEncryptionFilter(masterKey as string) : null;
+
+            
+            let fileObject = masterKey ? await encryptFile(fileToUpload.file, masterKey as string) : fileToUpload.file;
+            formData.append("file", fileObject); // TODO: encrypt file here
 
             let attachmentDTO: PatientRecordAttachmentDTO = { // attachment meta data, TODO: if we refactor this to a callback the file uploader could be back re-usable one
               displayName: fileObject.name,
@@ -192,10 +210,8 @@ export const PatientRecordUploader = forwardRef<
               createdAt: getCurrentTS(),
               updatedAt: getCurrentTS(),            
             };
-            if (masterKey) {
-              const encFilter = new DTOEncryptionFilter(masterKey as string); // encrypt
-              attachmentDTO = await encFilter.encrypt(attachmentDTO, PatientRecordAttachmentDTOEncSettings);
-            }
+            attachmentDTO = encFilter ? await encFilter.encrypt(attachmentDTO, PatientRecordAttachmentDTOEncSettings) : attachmentDTO;
+
             formData.append("attachmentDTO", JSON.stringify(attachmentDTO));
             try {
               const apiClient = new PatientRecordAttachmentApiClient('', {
@@ -203,9 +219,11 @@ export const PatientRecordUploader = forwardRef<
               })
               const result = await apiClient.put(formData);
               if (result.status === 200) {
-                console.log(result.data);
+                const decryptedAttachmentDTO: PatientRecordAttachmentDTO = (encFilter ? await encFilter.decrypt(result.data) : result.data) as PatientRecordAttachmentDTO;
+                console.log(decryptedAttachmentDTO);
                 fileToUpload.status = 'Success';
                 fileToUpload.uploaded = true;
+                fileToUpload.dto = decryptedAttachmentDTO;
                 setQueueSize(uploadQueueSize+1)
                 setActiveIndex(fileToUpload.index)
                 if(onUploadSuccess)  onUploadSuccess(fileToUpload);

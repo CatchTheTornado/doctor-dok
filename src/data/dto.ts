@@ -45,7 +45,7 @@ export const patientRecordAttachmentDTOSchema = z.object({
   createdAt: z.string().default(() => getCurrentTS()),
   updatedAt: z.string().default(() => getCurrentTS()),
 });
-export const PatientRecordAttachmentDTOEncSettings = { ecnryptedFields: ['displayName', 'description', 'mimeType', 'type', 'json', 'extra', 'storageKey'] };
+export const PatientRecordAttachmentDTOEncSettings = { ecnryptedFields: ['displayName', 'description', 'mimeType', 'type', 'json', 'extra'] };
 export type PatientRecordAttachmentDTO = z.infer<typeof patientRecordAttachmentDTOSchema>;
 
 export const patientRecordDTOSchema = z.object({
