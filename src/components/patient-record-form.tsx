@@ -19,6 +19,7 @@ import { PatientContext } from "@/contexts/patient-context";
 import { PatientRecordContext } from "@/contexts/patient-record-context";
 import { getCurrentTS } from "@/lib/utils";
 import { toast } from "sonner";
+import { ConfigContext } from "@/contexts/config-context";
 
 
 const FileSvgDraw = () => {
@@ -79,7 +80,7 @@ export default function NewPatientRecord({ patient }: { patient: Patient }) {
         description: data.note,
         updatedAt: getCurrentTS(),
         createdAt: getCurrentTS()
-      }));
+      })); // TODO: add attachments processing
     } else {
       toast.error("Please select a patient first");
     }
@@ -132,7 +133,7 @@ export default function NewPatientRecord({ patient }: { patient: Patient }) {
                       </FileUploaderItem>
                     ))}
                 </FileUploaderContent>
-              </FileUploader>        
+              </PatientRecordUploader>        
               </div>
               <div className="pt-5 flex items-right">
               <Select {...register("noteType", { required: true })}>

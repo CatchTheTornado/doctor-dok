@@ -10,14 +10,13 @@ const storageService = new StorageService();
 
 export async function PUT(request: Request) {
     const formData = await request.formData();
-
     let apiResult = await genericPUT<PatientRecordAttachmentDTO>(
-        JSON.parse(formData.get("attachmentDTO") as string), // TODO: add validation
+        JSON.parse(formData.get("attachmentDTO") as string),
         patientRecordAttachmentDTOSchema,
         new ServerPatientRecordAttachmentRepository(),
         'id'
     );
-    if (apiResult.status === 200) {
+    if (apiResult.status === 200) { // validation went OK, now we can store the file
         try {
             const savedAttachment: PatientRecordAttachmentDTO = apiResult.data as PatientRecordAttachmentDTO;
             const file = formData.get("file") as File;

@@ -23,8 +23,11 @@ import { toast } from "sonner";
 import { Trash2 as RemoveIcon } from "lucide-react";
 import { buttonVariants } from "@/components/ui/button";
 import axios from "axios";
-import { PatientRecordAttachmentDTO } from "@/data/dto";
+import { PatientRecordAttachmentDTO, PatientRecordAttachmentDTOEncSettings } from "@/data/dto";
 import { v4 as uuidv4 } from 'uuid';
+import { PatientRecordAttachmentApiClient } from "@/data/client/patient-record-attachment-api-client";
+import { ConfigContext } from "@/contexts/config-context";
+import { DTOEncryptionFilter } from "@/lib/crypto";
 
 type DirectionOptions = "rtl" | "ltr" | undefined;
 
@@ -92,6 +95,7 @@ export const PatientRecordUploader = forwardRef<
     const [isLOF, setIsLOF] = useState(false);
     const [activeIndex, setActiveIndex] = useState(-1);
     const [uploadQueueSize, setQueueSize] = useState(0);
+    const config = useContext(ConfigContext);
     const {
       accept = {
         "image/*": [".jpg", ".jpeg", ".png", ".pdf"],
@@ -171,12 +175,13 @@ export const PatientRecordUploader = forwardRef<
         if (fileToUpload){
           fileToUpload.status = 'Uploading ...';
           const formData = new FormData();
+          const masterKey = await config?.getServerConfig('dataEncryptionMasterKey');
           if(fileToUpload && fileToUpload.file) 
           { 
             const fileObject = fileToUpload.file;
             formData.append("file", fileObject);
 
-            const attachmentDTO: PatientRecordAttachmentDTO = { // attachment meta data, TODO: if we refactor this to a callback the file uploader could be back re-usable one
+            let attachmentDTO: PatientRecordAttachmentDTO = { // attachment meta data, TODO: if we refactor this to a callback the file uploader could be back re-usable one
               displayName: fileObject.name,
               description: '',
             
@@ -187,15 +192,30 @@ export const PatientRecordUploader = forwardRef<
               createdAt: getCurrentTS(),
               updatedAt: getCurrentTS(),            
             };
+            if (masterKey) {
+              const encFilter = new DTOEncryptionFilter(masterKey as string); // encrypt
+              attachmentDTO = await encFilter.encrypt(attachmentDTO, PatientRecordAttachmentDTOEncSettings);
+            }
             formData.append("attachmentDTO", JSON.stringify(attachmentDTO));
             try {
-              const response = await axios.put("/api/patient-record-attachment", formData); // TODO: make the URL configurable
-              console.log(response.data);
-              fileToUpload.status = 'Success';
-              fileToUpload.uploaded = true;
-              setQueueSize(uploadQueueSize+1)
-              setActiveIndex(fileToUpload.index)
-              if(onUploadSuccess)  onUploadSuccess(fileToUpload);
+              const apiClient = new PatientRecordAttachmentApiClient('', {
+                useEncryption: false  // for FormData we're encrypting records by ourselves - above
+              })
+              const result = await apiClient.put(formData);
+              if (result.status === 200) {
+                console.log(result.data);
+                fileToUpload.status = 'Success';
+                fileToUpload.uploaded = true;
+                setQueueSize(uploadQueueSize+1)
+                setActiveIndex(fileToUpload.index)
+                if(onUploadSuccess)  onUploadSuccess(fileToUpload);
+              } else {
+                console.log("File upload error " + result.message);
+                fileToUpload.status = 'Error!';
+                setQueueSize(uploadQueueSize-1)
+                setActiveIndex(fileToUpload.index)
+                if(onUploadError) onUploadError(fileToUpload);
+              }
             } catch (error) {
               console.log("File upload error " + error);
               fileToUpload.status = 'Error!';
@@ -313,7 +333,7 @@ export const PatientRecordUploader = forwardRef<
   }
 );
 
-FileUploader.displayName = "FileUploader";
+PatientRecordUploader.displayName = "FileUploader";
 
 export const FileUploaderContent = forwardRef<
   HTMLDivElement,
