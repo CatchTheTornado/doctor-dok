@@ -4,12 +4,12 @@ import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "@
 import { Button } from "@/components/ui/button";
 import { PaperclipIcon } from "./icons";
 import {
-  FileUploader,
   FileUploaderContent,
   FileUploaderItem,
   FileInput,
   UploadedFile,
-} from "@/components/extension/file-uploader";
+  PatientRecordUploader,
+} from "@/components/patient-record-uploader";
 import { use, useContext, useState } from "react";
 import { Patient, PatientRecord } from "@/data/client/models";
 import { Credenza, CredenzaContent, CredenzaDescription, CredenzaHeader, CredenzaTitle, CredenzaTrigger } from "./credenza";
@@ -111,7 +111,7 @@ export default function NewPatientRecord({ patient }: { patient: Patient }) {
             </div>
             {errors.note && <div className="text-red-500 text-sm">Note is required</div>}
             <div className="flex w-full pv-5">
-              <FileUploader
+              <PatientRecordUploader
                 value={files}
                 onValueChange={setFiles}
                 dropzoneOptions={dropZoneConfig}

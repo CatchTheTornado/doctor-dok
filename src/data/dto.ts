@@ -28,8 +28,8 @@ export type ConfigDTO = z.infer<typeof configDTOSchema>;
 
 export const patientRecordAttachmentDTOSchema = z.object({
   id: z.number().positive().optional(),
-  patientId: z.number().positive().int(),
-  patientRecordId: z.number().positive().int(),
+  patientId: z.number().positive().int().optional(),
+  patientRecordId: z.number().positive().int().optional(),
 
   displayName: z.string().min(1),
   description: z.string().optional(),

@@ -1,7 +1,7 @@
 "use client";
 
 import { Input } from "@/components/ui/input";
-import { cn } from "@/lib/utils";
+import { cn, getCurrentTS } from "@/lib/utils";
 import {
   Dispatch,
   SetStateAction,
@@ -23,6 +23,8 @@ import { toast } from "sonner";
 import { Trash2 as RemoveIcon } from "lucide-react";
 import { buttonVariants } from "@/components/ui/button";
 import axios from "axios";
+import { PatientRecordAttachmentDTO } from "@/data/dto";
+import { v4 as uuidv4 } from 'uuid';
 
 type DirectionOptions = "rtl" | "ltr" | undefined;
 
@@ -66,7 +68,7 @@ type FileUploaderProps = {
   orientation?: "horizontal" | "vertical";
 };
 
-export const FileUploader = forwardRef<
+export const PatientRecordUploader = forwardRef<
   HTMLDivElement,
   FileUploaderProps & React.HTMLAttributes<HTMLDivElement>
 >(
@@ -169,21 +171,38 @@ export const FileUploader = forwardRef<
         if (fileToUpload){
           fileToUpload.status = 'Uploading ...';
           const formData = new FormData();
-          if(fileToUpload && fileToUpload.file) formData.append("file", fileToUpload.file);
-          try {
-            const response = await axios.post("/api/upload", formData);
-            console.log(response.data);
-            fileToUpload.status = 'Success';
-            fileToUpload.uploaded = true;
-            setQueueSize(uploadQueueSize+1)
-            setActiveIndex(fileToUpload.index)
-            if(onUploadSuccess)  onUploadSuccess(fileToUpload);
-          } catch (error) {
-            console.log("File upload error " + error);
-            fileToUpload.status = 'Error!';
-            setQueueSize(uploadQueueSize-1)
-            setActiveIndex(fileToUpload.index)
-            if(onUploadError) onUploadError(fileToUpload);
+          if(fileToUpload && fileToUpload.file) 
+          { 
+            const fileObject = fileToUpload.file;
+            formData.append("file", fileObject);
+
+            const attachmentDTO: PatientRecordAttachmentDTO = { // attachment meta data, TODO: if we refactor this to a callback the file uploader could be back re-usable one
+              displayName: fileObject.name,
+              description: '',
+            
+              mimeType: fileObject.type,
+              size: fileObject.size,
+              storageKey: uuidv4(),
+            
+              createdAt: getCurrentTS(),
+              updatedAt: getCurrentTS(),            
+            };
+            formData.append("attachmentDTO", JSON.stringify(attachmentDTO));
+            try {
+              const response = await axios.put("/api/patient-record-attachment", formData); // TODO: make the URL configurable
+              console.log(response.data);
+              fileToUpload.status = 'Success';
+              fileToUpload.uploaded = true;
+              setQueueSize(uploadQueueSize+1)
+              setActiveIndex(fileToUpload.index)
+              if(onUploadSuccess)  onUploadSuccess(fileToUpload);
+            } catch (error) {
+              console.log("File upload error " + error);
+              fileToUpload.status = 'Error!';
+              setQueueSize(uploadQueueSize-1)
+              setActiveIndex(fileToUpload.index)
+              if(onUploadError) onUploadError(fileToUpload);
+            }
           }
         }
     }, [value, uploadQueueSize]);
