@@ -26,7 +26,7 @@ export const configDTOSchema = z.object({
 export const ConfigDTOEncSettings: DTOEncryptionSettings =  { ecnryptedFields: ['value'] }
 export type ConfigDTO = z.infer<typeof configDTOSchema>;
 
-export const patientRecordAttachmentDTOSchema = z.object({
+export const EncryptedAttachmentDTOSchema = z.object({
   id: z.number().positive().optional(),
   patientId: z.number().positive().int().optional(),
   patientRecordId: z.number().positive().int().optional(),
@@ -45,8 +45,8 @@ export const patientRecordAttachmentDTOSchema = z.object({
   createdAt: z.string().default(() => getCurrentTS()),
   updatedAt: z.string().default(() => getCurrentTS()),
 });
-export const PatientRecordAttachmentDTOEncSettings = { ecnryptedFields: ['displayName', 'description', 'mimeType', 'type', 'json', 'extra'] };
-export type PatientRecordAttachmentDTO = z.infer<typeof patientRecordAttachmentDTOSchema>;
+export const EncryptedAttachmentDTOEncSettings = { ecnryptedFields: ['displayName', 'description', 'mimeType', 'type', 'json', 'extra'] };
+export type EncryptedAttachmentDTO = z.infer<typeof EncryptedAttachmentDTOSchema>;
 
 export const patientRecordDTOSchema = z.object({
   id: z.number().positive().optional(),
@@ -62,7 +62,7 @@ export const patientRecordDTOSchema = z.object({
 });
 
 export type PatientRecordDTO = z.infer<typeof patientRecordDTOSchema> & {
-  attachments?: PatientRecordAttachmentDTO[];
+  attachments?: EncryptedAttachmentDTO[];
 };
 
 export const PatientRecordDTOEncSettings = { ecnryptedFields: ['description', 'type', 'json', 'extra'] }

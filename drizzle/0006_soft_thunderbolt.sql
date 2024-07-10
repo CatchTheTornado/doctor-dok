@@ -1,0 +1,1 @@
+ALTER TABLE `patientrRecordAttachments` RENAME TO `encryptedAttachments`;

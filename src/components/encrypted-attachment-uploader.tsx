@@ -23,9 +23,9 @@ import { toast } from "sonner";
 import { Trash2 as RemoveIcon } from "lucide-react";
 import { buttonVariants } from "@/components/ui/button";
 import axios from "axios";
-import { PatientRecordAttachmentDTO, PatientRecordAttachmentDTOEncSettings } from "@/data/dto";
+import { EncryptedAttachmentDTO, EncryptedAttachmentDTOEncSettings } from "@/data/dto";
 import { v4 as uuidv4 } from 'uuid';
-import { PatientRecordAttachmentApiClient } from "@/data/client/patient-record-attachment-api-client";
+import { EncryptedAttachmentApiClient } from "@/data/client/encrypted-attachment-api-client";
 import { ConfigContext } from "@/contexts/config-context";
 import { DTOEncryptionFilter, EncryptionUtils } from "@/lib/crypto";
 
@@ -58,7 +58,7 @@ export type UploadedFile = {
     uploaded: boolean;
     status: string;
     index: number;
-    dto: PatientRecordAttachmentDTO | null;
+    dto: EncryptedAttachmentDTO | null;
 }
 
 type FileUploaderProps = {
@@ -72,7 +72,7 @@ type FileUploaderProps = {
   orientation?: "horizontal" | "vertical";
 };
 
-export const PatientRecordUploader = forwardRef<
+export const EncryptedAttachmentUploader = forwardRef<
   HTMLDivElement,
   FileUploaderProps & React.HTMLAttributes<HTMLDivElement>
 >(
@@ -199,7 +199,7 @@ export const PatientRecordUploader = forwardRef<
             let fileObject = masterKey ? await encryptFile(fileToUpload.file, masterKey as string) : fileToUpload.file;
             formData.append("file", fileObject); // TODO: encrypt file here
 
-            let attachmentDTO: PatientRecordAttachmentDTO = { // attachment meta data, TODO: if we refactor this to a callback the file uploader could be back re-usable one
+            let attachmentDTO: EncryptedAttachmentDTO = { // attachment meta data, TODO: if we refactor this to a callback the file uploader could be back re-usable one
               displayName: fileObject.name,
               description: '',
             
@@ -210,16 +210,16 @@ export const PatientRecordUploader = forwardRef<
               createdAt: getCurrentTS(),
               updatedAt: getCurrentTS(),            
             };
-            attachmentDTO = encFilter ? await encFilter.encrypt(attachmentDTO, PatientRecordAttachmentDTOEncSettings) : attachmentDTO;
+            attachmentDTO = encFilter ? await encFilter.encrypt(attachmentDTO, EncryptedAttachmentDTOEncSettings) : attachmentDTO;
 
             formData.append("attachmentDTO", JSON.stringify(attachmentDTO));
             try {
-              const apiClient = new PatientRecordAttachmentApiClient('', {
+              const apiClient = new EncryptedAttachmentApiClient('', {
                 useEncryption: false  // for FormData we're encrypting records by ourselves - above
               })
               const result = await apiClient.put(formData);
               if (result.status === 200) {
-                const decryptedAttachmentDTO: PatientRecordAttachmentDTO = (encFilter ? await encFilter.decrypt(result.data) : result.data) as PatientRecordAttachmentDTO;
+                const decryptedAttachmentDTO: EncryptedAttachmentDTO = (encFilter ? await encFilter.decrypt(result.data) : result.data) as EncryptedAttachmentDTO;
                 console.log(decryptedAttachmentDTO);
                 fileToUpload.status = 'Success';
                 fileToUpload.uploaded = true;
@@ -351,7 +351,7 @@ export const PatientRecordUploader = forwardRef<
   }
 );
 
-PatientRecordUploader.displayName = "FileUploader";
+EncryptedAttachmentUploader.displayName = "FileUploader";
 
 export const FileUploaderContent = forwardRef<
   HTMLDivElement,

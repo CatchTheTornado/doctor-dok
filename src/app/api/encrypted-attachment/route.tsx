@@ -1,5 +1,5 @@
-import { PatientRecordAttachmentDTO, patientRecordAttachmentDTOSchema } from "@/data/dto";
-import ServerPatientRecordAttachmentRepository from "@/data/server/server-patientrecordattachment-repository";
+import { EncryptedAttachmentDTO, EncryptedAttachmentDTOSchema } from "@/data/dto";
+import EncryptedAttachmentRepository from "@/data/server/server-encryptedattachment-repository";
 import { genericGET, genericPUT } from "@/lib/generic-api";
 import { StorageService } from "@/lib/storage-service";
 import { getErrorMessage } from "@/lib/utils";
@@ -10,15 +10,15 @@ const storageService = new StorageService();
 
 export async function PUT(request: Request) {
     const formData = await request.formData();
-    let apiResult = await genericPUT<PatientRecordAttachmentDTO>(
+    let apiResult = await genericPUT<EncryptedAttachmentDTO>(
         JSON.parse(formData.get("attachmentDTO") as string),
-        patientRecordAttachmentDTOSchema,
-        new ServerPatientRecordAttachmentRepository(),
+        EncryptedAttachmentDTOSchema,
+        new EncryptedAttachmentRepository(),
         'id'
     );
     if (apiResult.status === 200) { // validation went OK, now we can store the file
         try {
-            const savedAttachment: PatientRecordAttachmentDTO = apiResult.data as PatientRecordAttachmentDTO;
+            const savedAttachment: EncryptedAttachmentDTO = apiResult.data as EncryptedAttachmentDTO;
             const file = formData.get("file") as File;
             // TODO: move to a separate storage service
             storageService.saveAttachment(file, savedAttachment.storageKey);
@@ -33,5 +33,5 @@ export async function PUT(request: Request) {
 }
 
 export async function GET(request: Request) {
-    return Response.json(await genericGET<PatientRecordAttachmentDTO>(request, new ServerPatientRecordAttachmentRepository()));
+    return Response.json(await genericGET<EncryptedAttachmentDTO>(request, new EncryptedAttachmentRepository()));
 }

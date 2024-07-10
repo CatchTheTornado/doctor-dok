@@ -30,15 +30,15 @@ export const patientRecords = sqliteTable('patientRecords', {
 });
 
 
-export const patientRecordAttachments = sqliteTable('patientrRecordAttachments', {
+export const encryptedAttachments = sqliteTable('encryptedAttachments', {
     id: integer('id', { mode: 'number' }).primaryKey({ autoIncrement: true }),
-    patientId: integer('patientId', { mode: 'number' }).references(() => patients.id),
-    patientRecordId: integer('patientRecordId', { mode: 'number' }).references(() => patientRecords.id),
     
     displayName: text('displayName'),
     type: text('type'),
     url: text('url'),
     mimeType: text('url'),
+
+    assigned_to: text('json', { mode: 'json' }),
 
     json: text('json', { mode: 'json' }),
     extra: text('extra', { mode: 'json' }),

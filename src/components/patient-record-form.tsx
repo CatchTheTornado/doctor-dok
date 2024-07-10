@@ -8,8 +8,8 @@ import {
   FileUploaderItem,
   FileInput,
   UploadedFile,
-  PatientRecordUploader,
-} from "@/components/patient-record-uploader";
+  EncryptedAttachmentUploader,
+} from "@/components/encrypted-attachment-uploader";
 import { use, useContext, useState } from "react";
 import { Patient, PatientRecord } from "@/data/client/models";
 import { Credenza, CredenzaContent, CredenzaDescription, CredenzaHeader, CredenzaTitle, CredenzaTrigger } from "./credenza";
@@ -19,7 +19,6 @@ import { PatientContext } from "@/contexts/patient-context";
 import { PatientRecordContext } from "@/contexts/patient-record-context";
 import { getCurrentTS } from "@/lib/utils";
 import { toast } from "sonner";
-import { ConfigContext } from "@/contexts/config-context";
 
 
 const FileSvgDraw = () => {
@@ -112,7 +111,7 @@ export default function NewPatientRecord({ patient }: { patient: Patient }) {
             </div>
             {errors.note && <div className="text-red-500 text-sm">Note is required</div>}
             <div className="flex w-full pv-5">
-              <PatientRecordUploader
+              <EncryptedAttachmentUploader
                 value={files}
                 onValueChange={setFiles}
                 dropzoneOptions={dropZoneConfig}
@@ -133,7 +132,7 @@ export default function NewPatientRecord({ patient }: { patient: Patient }) {
                       </FileUploaderItem>
                     ))}
                 </FileUploaderContent>
-              </PatientRecordUploader>        
+              </EncryptedAttachmentUploader>        
               </div>
               <div className="pt-5 flex items-right">
               <Select {...register("noteType", { required: true })}>

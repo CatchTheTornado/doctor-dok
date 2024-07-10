@@ -36,6 +36,10 @@ export class ServerDataLinkStatus {
         return this.status === DataLinkStatus.AuthorizationError;
     }
 
+    isEmpty(): boolean {
+        return this.status === DataLinkStatus.Empty;
+    }    
+
 }
 
 export class Patient {
