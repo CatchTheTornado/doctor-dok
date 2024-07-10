@@ -40,3 +40,4 @@ data/db.sqlite
 
 *.sqlite
 *.bak
+uploads/*
