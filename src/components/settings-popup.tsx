@@ -63,7 +63,7 @@ export function SettingsPopup() {
  
 
   useEffect(() => {
-    setDialogOpen(config?.dataLinkStatus.isError() === true || config?.dataLinkStatus.isEmpty() === true);
+    if (config?.dataLinkStatus.isError() === true || config?.dataLinkStatus.isEmpty() === true) setDialogOpen(true);
     if (config?.dataLinkStatus.status === DataLinkStatus.AuthorizationError) {
       toast("Authorization error", {
         description: "Invalid encryption key. Please try again with different key or create a new database",
@@ -83,7 +83,7 @@ export function SettingsPopup() {
     await config?.authorizeDataLink(newEncryptionKey); // authorize once ogain
     toast.info('New database created. Please save or print your encryption key.');
     config?.setLocalConfig('encryptionKey', newEncryptionKey); // TODO: force data reload everywhere in the app
-
+    setDialogOpen(false);
   }
 
 
