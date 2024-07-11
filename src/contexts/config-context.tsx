@@ -111,7 +111,7 @@ export const ConfigContextProvider: React.FC<PropsWithChildren> = ({ children })
   initialState.localConfig.saveToLocalStorage = (typeof localStorage !== 'undefined') && localStorage.getItem("saveToLocalStorage") === "true";
   const [state, dispatch] = useReducer(configReducer, initialState);
   const [serverConfigLoaded, setServerConfigLoaded] = React.useState(false);
-  const [dataLinkStatus, setDataLinkStatus] = React.useState(new ServerDataLinkStatus(DataLinkStatus.AuthorizationError, 'Database not authorized'));
+  const [dataLinkStatus, setDataLinkStatus] = React.useState(new ServerDataLinkStatus(DataLinkStatus.NotAuthorized, 'Database not authorized'));
 
 
   const loadServerConfig = async (forceReload: boolean = false, tryOutEncryptionKey: string = (typeof localStorage !== 'undefined') && localStorage.getItem("encryptionKey") || ""): Promise<Record<string, ConfigSupportedValueType>>  => { 

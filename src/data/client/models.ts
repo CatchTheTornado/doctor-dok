@@ -1,4 +1,6 @@
-import { PatientDTO, PatientRecordDTO } from "../dto";
+import { EncryptedAttachmentDTO, PatientDTO, PatientRecordDTO } from "../dto";
+import { getCurrentTS } from "../utils";
+import { z } from "zod";
 
 
 export enum DataLoadingStatus {
@@ -35,6 +37,10 @@ export class ServerDataLinkStatus {
     isError(): boolean {
         return this.status === DataLinkStatus.AuthorizationError;
     }
+
+    isEmpty(): boolean {
+        return this.status === DataLinkStatus.Empty;
+    }    
 
 }
 
@@ -81,6 +87,61 @@ export class Patient {
     }    
 }
 
+export type AttachmentAssigment = {
+    id: number;
+    type: string;
+}
+
+export class EncryptedAttachment {
+    id?: number;
+    assignedTo?: AttachmentAssigment[];
+    displayName: string;
+    description?: string;
+    mimeType?: string;
+    type?: string;
+    json?: string;
+    extra?: string;
+    size: number;
+    storageKey: string;
+    createdAt: string;
+    updatedAt: string;
+
+    constructor(attachmentDTO: EncryptedAttachmentDTO) {
+        this.id = attachmentDTO.id;
+        this.assignedTo = attachmentDTO.assignedTo ? ( typeof attachmentDTO.assignedTo == 'string' ? JSON.parse(attachmentDTO.assignedTo) : attachmentDTO.assignedTo ): [];
+        this.displayName = attachmentDTO.displayName;
+        this.description = attachmentDTO.description;
+        this.mimeType = attachmentDTO.mimeType;
+        this.type = attachmentDTO.type;
+        this.json = attachmentDTO.json;
+        this.extra = attachmentDTO.extra;
+        this.size = attachmentDTO.size;
+        this.storageKey = attachmentDTO.storageKey;
+        this.createdAt = attachmentDTO.createdAt;
+        this.updatedAt = attachmentDTO.updatedAt;
+    }
+
+    static fromDTO(fileDTO: EncryptedAttachmentDTO): EncryptedAttachment {
+        return new EncryptedAttachment(fileDTO);
+    }
+
+    toDTO(): EncryptedAttachmentDTO {
+        return {
+            id: this.id,
+            assignedTo: this.assignedTo,
+            displayName: this.displayName,
+            description: this.description,
+            mimeType: this.mimeType,
+            type: this.type,
+            json: this.json,
+            extra: this.extra,
+            size: this.size,
+            storageKey: this.storageKey,
+            createdAt: this.createdAt,
+            updatedAt: this.updatedAt,
+        };
+    }
+}
 
 export class PatientRecord {
     id?: number;
@@ -91,6 +152,7 @@ export class PatientRecord {
     extra?: string;
     createdAt: string;
     updatedAt: string;
+    attachments: EncryptedAttachment[] = [];
   
     constructor(patientRecordDTO: PatientRecordDTO) {
       this.id = patientRecordDTO.id;
@@ -101,6 +163,7 @@ export class PatientRecord {
       this.extra = patientRecordDTO.extra;
       this.createdAt = patientRecordDTO.createdAt;
       this.updatedAt = patientRecordDTO.updatedAt;
+      this.attachments = patientRecordDTO.attachments ? JSON.parse(patientRecordDTO.attachments).map(EncryptedAttachment.fromDTO) : [];
     }
   
     static fromDTO(patientRecordDTO: PatientRecordDTO): PatientRecord {
@@ -117,6 +180,7 @@ export class PatientRecord {
         extra: this.extra,
         createdAt: this.createdAt,
         updatedAt: this.updatedAt,
+        attachments: JSON.stringify(this.attachments.map(attachment => attachment.toDTO()))
       };
     }  
   }

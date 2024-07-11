@@ -134,22 +134,32 @@ export class DTOEncryptionFilter<T> {
   
     async encrypt(dto: T, encryptionSettings?: DTOEncryptionSettings): Promise<T> {
       return this.process(dto, encryptionSettings, async (value) => {
-        if (typeof value === 'object') {
-          if(value instanceof Date) {
-            value = (value as Date).toISOString();
+        if (value) {
+          if (typeof value === 'object') {
+            if(value instanceof Date) {
+              value = (value as Date).toISOString();
+            }
+            return 'json-' + await this.utils.encrypt(JSON.stringify(value));
           }
-          return 'json-' + await this.utils.encrypt(JSON.stringify(value));
+          return await this.utils.encrypt(value);
+        } else 
+        {
+          return value;
         }
-        return await this.utils.encrypt(value);
       });
     }
     
     async decrypt(dto: T, encryptionSettings?: DTOEncryptionSettings): Promise<T> {
       return this.process(dto, encryptionSettings, async (value) => {
-        if (typeof value === 'string' && value.startsWith('json-')) {
-          return JSON.parse(await this.utils.decrypt(value.slice(5)));
+        if (value) {
+          if (typeof value === 'string' && value.startsWith('json-')) {
+            return JSON.parse(await this.utils.decrypt(value.slice(5)));
+          }
+          return await this.utils.decrypt(value);
+        } else 
+        {
+          return value;
         }
-        return await this.utils.decrypt(value);
       });
     }
   

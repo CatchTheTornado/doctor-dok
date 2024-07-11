@@ -8,10 +8,10 @@ import {
   FileUploaderItem,
   FileInput,
   UploadedFile,
-  PatientRecordUploader,
-} from "@/components/patient-record-uploader";
+  EncryptedAttachmentUploader,
+} from "@/components/encrypted-attachment-uploader";
 import { use, useContext, useState } from "react";
-import { Patient, PatientRecord } from "@/data/client/models";
+import { EncryptedAttachment, Patient, PatientRecord } from "@/data/client/models";
 import { Credenza, CredenzaContent, CredenzaDescription, CredenzaHeader, CredenzaTitle, CredenzaTrigger } from "./credenza";
 import { PlusIcon } from "lucide-react";
 import { useForm } from "react-hook-form";
@@ -19,6 +19,8 @@ import { PatientContext } from "@/contexts/patient-context";
 import { PatientRecordContext } from "@/contexts/patient-record-context";
 import { getCurrentTS } from "@/lib/utils";
 import { toast } from "sonner";
+import { EncryptedAttachmentDTO } from "@/data/dto";
+import { EncryptedAttachmentApiClient } from "@/data/client/encrypted-attachment-api-client";
 import { ConfigContext } from "@/contexts/config-context";
 
 
@@ -56,6 +58,7 @@ export default function NewPatientRecord({ patient }: { patient: Patient }) {
   const [dialogOpen, setDialogOpen] = useState(false);
 
   const patientContext = useContext(PatientContext);
+  const configContext = useContext(ConfigContext);
   const patientRecordContext = useContext(PatientRecordContext);
  
   const dropZoneConfig = {
@@ -64,23 +67,52 @@ export default function NewPatientRecord({ patient }: { patient: Patient }) {
     multiple: true,
   };
 
-  const { handleSubmit, register, setError, getValues, formState: { errors,  } } = useForm({
+  const { handleSubmit, register, reset, setError, getValues, formState: { errors,  } } = useForm({
     defaultValues: {
       note: "",
       noteType: "visit"
     }
 });  
   
-  const onSubmit = (data: any) => {
+  const onSubmit = async (data: any) => {
     // Handle form submission
     if (patientContext?.currentPatient && patientContext?.currentPatient?.id) {
-      patientRecordContext?.addPatientRecord(new PatientRecord({
+
+      const uploadedAttachments: EncryptedAttachmentDTO[] = [];
+
+      if (files) {
+        files.forEach((file) => {
+          if (file.dto) { // file is uploaded successfully
+            uploadedAttachments.push(file.dto);
+          }
+        });
+      }
+
+      const savedPatientRecord = await patientRecordContext?.addPatientRecord(new PatientRecord({
         patientId: patientContext?.currentPatient?.id as number,
         type: data.noteType,
         description: data.note,
         updatedAt: getCurrentTS(),
-        createdAt: getCurrentTS()
+        createdAt: getCurrentTS(),
+        attachments: JSON.stringify(uploadedAttachments)
       })); // TODO: add attachments processing
+
+      if(savedPatientRecord?.id) // if patient record is saved successfully
+      {
+         const eaac = new EncryptedAttachmentApiClient('', {
+          secretKey: await configContext?.getServerConfig('dataEncryptionMasterKey') as string,
+          useEncryption: true
+        });
+        uploadedAttachments?.forEach(async (attachmentToUpdate) => {
+          const formData = new FormData();
+          attachmentToUpdate.assignedTo = JSON.stringify([{ id: savedPatientRecord.id as number, type: "patient_record" }, { id: patientContext?.currentPatient?.id as number, type: "patient" }]);
+          await eaac.put(attachmentToUpdate);
+        }); 
+        setFiles([]); // clear form
+        reset(); 
+        toast.success("Patient record saved successfully");
+        setDialogOpen(false);
+      }
     } else {
       toast.error("Please select a patient first");
     }
@@ -112,7 +144,7 @@ export default function NewPatientRecord({ patient }: { patient: Patient }) {
             </div>
             {errors.note && <div className="text-red-500 text-sm">Note is required</div>}
             <div className="flex w-full pv-5">
-              <PatientRecordUploader
+              <EncryptedAttachmentUploader
                 value={files}
                 onValueChange={setFiles}
                 dropzoneOptions={dropZoneConfig}
@@ -133,7 +165,7 @@ export default function NewPatientRecord({ patient }: { patient: Patient }) {
                       </FileUploaderItem>
                     ))}
                 </FileUploaderContent>
-              </PatientRecordUploader>        
+              </EncryptedAttachmentUploader>        
               </div>
               <div className="pt-5 flex items-right">
               <Select {...register("noteType", { required: true })}>
