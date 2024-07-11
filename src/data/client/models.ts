@@ -166,7 +166,7 @@ export class PatientRecord {
       if(patientRecordSource instanceof PatientRecord) {
          this.attachments = patientRecordSource.attachments
       } else {
-         this.attachments = patientRecordSource.attachments ? JSON.parse(patientRecordSource.attachments).map(EncryptedAttachment.fromDTO) : [];
+         this.attachments = patientRecordSource.attachments ? (typeof patientRecordSource.attachments === 'string' ? JSON.parse(patientRecordSource.attachments) : patientRecordSource.attachments).map(EncryptedAttachment.fromDTO) : [];
       }
     }
   
