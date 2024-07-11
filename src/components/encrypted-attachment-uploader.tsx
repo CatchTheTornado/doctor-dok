@@ -226,6 +226,7 @@ export const EncryptedAttachmentUploader = forwardRef<
                 fileToUpload.dto = decryptedAttachmentDTO;
                 setQueueSize(uploadQueueSize+1)
                 setActiveIndex(fileToUpload.index)
+                // TODO: add file processing - like extracting preview from PDF etc.
                 if(onUploadSuccess)  onUploadSuccess(fileToUpload);
               } else {
                 console.log("File upload error " + result.message);

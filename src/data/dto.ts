@@ -28,8 +28,7 @@ export type ConfigDTO = z.infer<typeof configDTOSchema>;
 
 export const EncryptedAttachmentDTOSchema = z.object({
   id: z.number().positive().optional(),
-  patientId: z.number().positive().int().optional(),
-  patientRecordId: z.number().positive().int().optional(),
+  assigned_to: z.string().optional(),
 
   displayName: z.string().min(1),
   description: z.string().optional(),

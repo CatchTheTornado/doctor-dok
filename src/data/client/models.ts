@@ -1,4 +1,6 @@
-import { PatientDTO, PatientRecordDTO } from "../dto";
+import { EncryptedAttachmentDTO, PatientDTO, PatientRecordDTO } from "../dto";
+import { getCurrentTS } from "../utils";
+import { z } from "zod";
 
 
 export enum DataLoadingStatus {
@@ -85,6 +87,61 @@ export class Patient {
     }    
 }
 
+export type AttachmentAssigment = {
+    id: number;
+    type: string;
+}
+
+export class EncryptedAttachment {
+    id?: number;
+    assigned_to?: AttachmentAssigment[];
+    displayName: string;
+    description?: string;
+    mimeType?: string;
+    type?: string;
+    json?: string;
+    extra?: string;
+    size: number;
+    storageKey: string;
+    createdAt: string;
+    updatedAt: string;
+
+    constructor(attachmentDTO: EncryptedAttachmentDTO) {
+        this.id = attachmentDTO.id;
+        this.assigned_to =JSON.parse(attachmentDTO.assigned_to ||  "");
+        this.displayName = attachmentDTO.displayName;
+        this.description = attachmentDTO.description;
+        this.mimeType = attachmentDTO.mimeType;
+        this.type = attachmentDTO.type;
+        this.json = attachmentDTO.json;
+        this.extra = attachmentDTO.extra;
+        this.size = attachmentDTO.size;
+        this.storageKey = attachmentDTO.storageKey;
+        this.createdAt = attachmentDTO.createdAt;
+        this.updatedAt = attachmentDTO.updatedAt;
+    }
+
+    static fromDTO(fileDTO: EncryptedAttachmentDTO): EncryptedAttachment {
+        return new EncryptedAttachment(fileDTO);
+    }
+
+    toDTO(): EncryptedAttachmentDTO {
+        return {
+            id: this.id,
+            assigned_to: JSON.stringify(this.assigned_to),
+            displayName: this.displayName,
+            description: this.description,
+            mimeType: this.mimeType,
+            type: this.type,
+            json: this.json,
+            extra: this.extra,
+            size: this.size,
+            storageKey: this.storageKey,
+            createdAt: this.createdAt,
+            updatedAt: this.updatedAt,
+        };
+    }
+}
 
 export class PatientRecord {
     id?: number;
