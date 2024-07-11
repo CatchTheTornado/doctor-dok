@@ -47,6 +47,7 @@ export const EncryptedAttachmentDTOSchema = z.object({
   createdAt: z.string().default(() => getCurrentTS()),
   updatedAt: z.string().default(() => getCurrentTS()),
 
+  // bc. we're using end 2 end encryption on the database level even JSON fields must be represented as string
   assignedTo: z.string().optional().nullable()
 });
 export const EncryptedAttachmentDTOEncSettings = { ecnryptedFields: ['displayName', 'description', 'mimeType', 'type', 'json', 'extra'] };
@@ -64,6 +65,7 @@ export const patientRecordDTOSchema = z.object({
   createdAt: z.string().default(() => getCurrentTS()),
   updatedAt: z.string().default(() => getCurrentTS()),
 
+  // bc. we're using end 2 end encryption on the database level even JSON fields must be represented as string
   attachments: z.string().optional().nullable()
 });
 
