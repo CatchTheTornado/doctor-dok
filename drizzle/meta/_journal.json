@@ -43,6 +43,27 @@
       "when": 1719837123293,
       "tag": "0005_luxuriant_madelyne_pryor",
       "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "6",
+      "when": 1720647354492,
+      "tag": "0006_soft_thunderbolt",
+      "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "6",
+      "when": 1720674651191,
+      "tag": "0007_large_lucky_pierre",
+      "breakpoints": true
+    },
+    {
+      "idx": 8,
+      "version": "6",
+      "when": 1720676929256,
+      "tag": "0008_lazy_post",
+      "breakpoints": true
     }
   ]
 }

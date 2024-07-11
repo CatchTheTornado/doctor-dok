@@ -24,21 +24,22 @@ export const patientRecords = sqliteTable('patientRecords', {
     type: text('type'),
     json: text('json', { mode: 'json' }),
     extra: text('extra', { mode: 'json' }),
+    attachments: text('attachments', { mode: 'json' }),
     
     createdAt: text('updatedAt').notNull().default(sql`CURRENT_TIMESTAMP`),
     updatedAt: text('updatedAt').notNull().default(sql`CURRENT_TIMESTAMP`)
 });
 
 
-export const patientRecordAttachments = sqliteTable('patientrRecordAttachments', {
+export const encryptedAttachments = sqliteTable('encryptedAttachments', {
     id: integer('id', { mode: 'number' }).primaryKey({ autoIncrement: true }),
-    patientId: integer('patientId', { mode: 'number' }).references(() => patients.id),
-    patientRecordId: integer('patientRecordId', { mode: 'number' }).references(() => patientRecords.id),
     
     displayName: text('displayName'),
     type: text('type'),
     url: text('url'),
-    mimeType: text('url'),
+    mimeType: text('mimeType'),
+
+    assignedTo: text('json', { mode: 'json' }),
 
     json: text('json', { mode: 'json' }),
     extra: text('extra', { mode: 'json' }),

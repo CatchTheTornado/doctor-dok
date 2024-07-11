@@ -1,0 +1,1 @@
+ALTER TABLE `encryptedAttachments` ADD `mimeType` text;
