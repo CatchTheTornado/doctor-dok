@@ -42,7 +42,7 @@ export const PatientRecordContextProvider: React.FC = ({ children }) => {
             } else {
                 const updatedPatientRecord = Object.assign(patientRecord, { id: response.data.id });
                 setPatientRecords([...patientRecords, updatedPatientRecord]);
-                return response.data as PatientRecord;
+                return updatedPatientRecord;
             }
         } catch (error) {
             console.error('Error adding patient record:', error);

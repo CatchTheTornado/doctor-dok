@@ -11,7 +11,7 @@ import {
   EncryptedAttachmentUploader,
 } from "@/components/encrypted-attachment-uploader";
 import { use, useContext, useState } from "react";
-import { Patient, PatientRecord } from "@/data/client/models";
+import { EncryptedAttachment, Patient, PatientRecord } from "@/data/client/models";
 import { Credenza, CredenzaContent, CredenzaDescription, CredenzaHeader, CredenzaTitle, CredenzaTrigger } from "./credenza";
 import { PlusIcon } from "lucide-react";
 import { useForm } from "react-hook-form";
@@ -19,6 +19,9 @@ import { PatientContext } from "@/contexts/patient-context";
 import { PatientRecordContext } from "@/contexts/patient-record-context";
 import { getCurrentTS } from "@/lib/utils";
 import { toast } from "sonner";
+import { EncryptedAttachmentDTO } from "@/data/dto";
+import { EncryptedAttachmentApiClient } from "@/data/client/encrypted-attachment-api-client";
+import { ConfigContext } from "@/contexts/config-context";
 
 
 const FileSvgDraw = () => {
@@ -55,6 +58,7 @@ export default function NewPatientRecord({ patient }: { patient: Patient }) {
   const [dialogOpen, setDialogOpen] = useState(false);
 
   const patientContext = useContext(PatientContext);
+  const configContext = useContext(ConfigContext);
   const patientRecordContext = useContext(PatientRecordContext);
  
   const dropZoneConfig = {
@@ -70,16 +74,44 @@ export default function NewPatientRecord({ patient }: { patient: Patient }) {
     }
 });  
   
-  const onSubmit = (data: any) => {
+  const onSubmit = async (data: any) => {
     // Handle form submission
     if (patientContext?.currentPatient && patientContext?.currentPatient?.id) {
-      patientRecordContext?.addPatientRecord(new PatientRecord({
+
+      const uploadedAttachments: EncryptedAttachmentDTO[] = [];
+
+      if (files) {
+        files.forEach((file) => {
+          if (file.status === "success" && file.dto) { // file is uploaded successfully
+            uploadedAttachments.push(file.dto);
+          }
+        });
+      }
+
+      const savedPatientRecord = await patientRecordContext?.addPatientRecord(new PatientRecord({
         patientId: patientContext?.currentPatient?.id as number,
         type: data.noteType,
         description: data.note,
         updatedAt: getCurrentTS(),
-        createdAt: getCurrentTS()
+        createdAt: getCurrentTS(),
+        attachments: uploadedAttachments
       })); // TODO: add attachments processing
+
+      if(savedPatientRecord?.id) // if patient record is saved successfully
+      {
+         const eaac = new EncryptedAttachmentApiClient('', {
+          secretKey: await configContext?.getServerConfig('dataEncryptionMasterKey') as string,
+          useEncryption: true
+        });
+        uploadedAttachments?.forEach(async (attachmentToUpdate) => {
+          const formData = new FormData();
+          attachmentToUpdate.assigned_to = JSON.stringify([{ id: savedPatientRecord.id, type: "patient_record" }, { id: patientContext?.currentPatient?.id, type: "patient" }]);
+          formData.append("attachmentDTO", JSON.stringify(attachmentToUpdate));
+          await eaac.put(formData);
+        }); 
+        toast.success("Patient record saved successfully");
+        setDialogOpen(false);
+      }
     } else {
       toast.error("Please select a patient first");
     }

@@ -108,7 +108,7 @@ export class EncryptedAttachment {
 
     constructor(attachmentDTO: EncryptedAttachmentDTO) {
         this.id = attachmentDTO.id;
-        this.assigned_to =JSON.parse(attachmentDTO.assigned_to ||  "");
+        this.assigned_to = JSON.parse(attachmentDTO.assigned_to ||  "");
         this.displayName = attachmentDTO.displayName;
         this.description = attachmentDTO.description;
         this.mimeType = attachmentDTO.mimeType;
@@ -152,6 +152,7 @@ export class PatientRecord {
     extra?: string;
     createdAt: string;
     updatedAt: string;
+    attachments: EncryptedAttachment[] = [];
   
     constructor(patientRecordDTO: PatientRecordDTO) {
       this.id = patientRecordDTO.id;
@@ -162,6 +163,7 @@ export class PatientRecord {
       this.extra = patientRecordDTO.extra;
       this.createdAt = patientRecordDTO.createdAt;
       this.updatedAt = patientRecordDTO.updatedAt;
+      this.attachments = patientRecordDTO.attachments ? patientRecordDTO.attachments.map(EncryptedAttachment.fromDTO) : [];
     }
   
     static fromDTO(patientRecordDTO: PatientRecordDTO): PatientRecord {
@@ -178,6 +180,7 @@ export class PatientRecord {
         extra: this.extra,
         createdAt: this.createdAt,
         updatedAt: this.updatedAt,
+        attachments: this.attachments.map(attachment => attachment.toDTO())
       };
     }  
   }

@@ -6,7 +6,7 @@ import { encryptedAttachments } from "./db-schema";
 import { eq } from "drizzle-orm";
 import { create } from "./generic-repository";
 
-export default class EncryptedAttachmentRepository extends BaseRepository<EncryptedAttachmentDTO> {
+export default class ServerEncryptedAttachmentRepository extends BaseRepository<EncryptedAttachmentDTO> {
     
     
     async create(item: EncryptedAttachmentDTO): Promise<EncryptedAttachmentDTO> {
