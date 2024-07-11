@@ -19,6 +19,7 @@ export default class ServerEncryptedAttachmentRepository extends BaseRepository<
         if (!existingRecord) {
             existingRecord = await this.create(item);
        } else {
+            console.log(existingRecord);
             existingRecord = item
             existingRecord.updatedAt = getCurrentTS() // TODO: load attachments
             db.update(encryptedAttachments).set(existingRecord).where(eq(encryptedAttachments.id, query.id)).run();
@@ -27,6 +28,7 @@ export default class ServerEncryptedAttachmentRepository extends BaseRepository<
     }    
 
     findAll(): Promise<EncryptedAttachmentDTO[]> {
+        console.log(db.select().from(encryptedAttachments).all());
         return Promise.resolve(db.select().from(encryptedAttachments).all() as EncryptedAttachmentDTO[])
     }
 

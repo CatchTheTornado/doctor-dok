@@ -94,7 +94,7 @@ export default function NewPatientRecord({ patient }: { patient: Patient }) {
         description: data.note,
         updatedAt: getCurrentTS(),
         createdAt: getCurrentTS(),
-        attachments: uploadedAttachments
+        attachments: JSON.stringify(uploadedAttachments)
       })); // TODO: add attachments processing
 
       if(savedPatientRecord?.id) // if patient record is saved successfully
@@ -105,7 +105,7 @@ export default function NewPatientRecord({ patient }: { patient: Patient }) {
         });
         uploadedAttachments?.forEach(async (attachmentToUpdate) => {
           const formData = new FormData();
-          attachmentToUpdate.assignedTo = [{ id: savedPatientRecord.id as number, type: "patient_record" }, { id: patientContext?.currentPatient?.id as number, type: "patient" }];
+          attachmentToUpdate.assignedTo = JSON.stringify([{ id: savedPatientRecord.id as number, type: "patient_record" }, { id: patientContext?.currentPatient?.id as number, type: "patient" }]);
           await eaac.put(attachmentToUpdate);
         }); 
         setFiles([]); // clear form

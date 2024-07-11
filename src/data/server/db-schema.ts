@@ -39,7 +39,7 @@ export const encryptedAttachments = sqliteTable('encryptedAttachments', {
     url: text('url'),
     mimeType: text('mimeType'),
 
-    assignedTo: text('json', { mode: 'json' }),
+    assigned_to: text('json', { mode: 'json' }),
 
     json: text('json', { mode: 'json' }),
     extra: text('extra', { mode: 'json' }),
