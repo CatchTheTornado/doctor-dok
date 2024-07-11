@@ -117,13 +117,13 @@ export class EncryptionUtils {
       } else {
         return cipherText;
       }
-      } catch (e) {
-        console.error('Error decoding: ' + cipherText, e);
-        return cipherText; // probably the text was not encrypted on in bat ivHex/encryptedHex format
-      }
-    } 
-  }
+    } catch (e) {
+      console.error('Error decoding: ' + cipherText, e);
+      return cipherText; // probably the text was not encrypted on in bat ivHex/encryptedHex format
+    }
+  } 
 }
+
 
 export function generateEncryptionKey() {
   const key = crypto.getRandomValues(new Uint8Array(32))
