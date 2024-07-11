@@ -128,7 +128,7 @@ export class EncryptedAttachment {
     toDTO(): EncryptedAttachmentDTO {
         return {
             id: this.id,
-            assignedTo: this.assignedTo,
+            assignedTo: JSON.stringify(this.assignedTo),
             displayName: this.displayName,
             description: this.description,
             mimeType: this.mimeType,
@@ -154,16 +154,20 @@ export class PatientRecord {
     updatedAt: string;
     attachments: EncryptedAttachment[] = [];
   
-    constructor(patientRecordDTO: PatientRecordDTO) {
-      this.id = patientRecordDTO.id;
-      this.patientId = patientRecordDTO.patientId;
-      this.description = patientRecordDTO.description;
-      this.type = patientRecordDTO.type;
-      this.json = patientRecordDTO.json;
-      this.extra = patientRecordDTO.extra;
-      this.createdAt = patientRecordDTO.createdAt;
-      this.updatedAt = patientRecordDTO.updatedAt;
-      this.attachments = patientRecordDTO.attachments ? JSON.parse(patientRecordDTO.attachments).map(EncryptedAttachment.fromDTO) : [];
+    constructor(patientRecordSource: PatientRecordDTO | PatientRecord) {
+      this.id = patientRecordSource.id;
+      this.patientId = patientRecordSource.patientId;
+      this.description = patientRecordSource.description;
+      this.type = patientRecordSource.type;
+      this.json = patientRecordSource.json;
+      this.extra = patientRecordSource.extra;
+      this.createdAt = patientRecordSource.createdAt;
+      this.updatedAt = patientRecordSource.updatedAt;
+      if(patientRecordSource instanceof PatientRecord) {
+         this.attachments = patientRecordSource.attachments
+      } else {
+         this.attachments = patientRecordSource.attachments ? JSON.parse(patientRecordSource.attachments).map(EncryptedAttachment.fromDTO) : [];
+      }
     }
   
     static fromDTO(patientRecordDTO: PatientRecordDTO): PatientRecord {

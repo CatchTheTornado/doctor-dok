@@ -78,24 +78,25 @@ export default function NewPatientRecord({ patient }: { patient: Patient }) {
     // Handle form submission
     if (patientContext?.currentPatient && patientContext?.currentPatient?.id) {
 
-      const uploadedAttachments: EncryptedAttachmentDTO[] = [];
+      const uploadedAttachments: EncryptedAttachment[] = [];
 
       if (files) {
         files.forEach((file) => {
           if (file.dto) { // file is uploaded successfully
-            uploadedAttachments.push(file.dto);
+            uploadedAttachments.push(new EncryptedAttachment(file.dto));
           }
         });
       }
-
-      const savedPatientRecord = await patientRecordContext?.addPatientRecord(new PatientRecord({
+      const newPR = new PatientRecord({
         patientId: patientContext?.currentPatient?.id as number,
         type: data.noteType,
         description: data.note,
         updatedAt: getCurrentTS(),
         createdAt: getCurrentTS(),
-        attachments: JSON.stringify(uploadedAttachments)
-      })); // TODO: add attachments processing
+        attachments: uploadedAttachments
+      } as PatientRecord)
+
+      const savedPatientRecord = await patientRecordContext?.addPatientRecord(newPR); // TODO: add attachments processing
 
       if(savedPatientRecord?.id) // if patient record is saved successfully
       {
@@ -105,8 +106,8 @@ export default function NewPatientRecord({ patient }: { patient: Patient }) {
         });
         uploadedAttachments?.forEach(async (attachmentToUpdate) => {
           const formData = new FormData();
-          attachmentToUpdate.assignedTo = JSON.stringify([{ id: savedPatientRecord.id as number, type: "patient_record" }, { id: patientContext?.currentPatient?.id as number, type: "patient" }]);
-          await eaac.put(attachmentToUpdate);
+          attachmentToUpdate.assignedTo = [{ id: savedPatientRecord.id as number, type: "patient_record" }, { id: patientContext?.currentPatient?.id as number, type: "patient" }];
+          await eaac.put(attachmentToUpdate.toDTO());
         }); 
         setFiles([]); // clear form
         reset(); 
