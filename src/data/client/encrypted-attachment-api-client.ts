@@ -1,7 +1,7 @@
 import { EncryptedAttachmentDTO } from "../dto";
 import { ApiClient, ApiEncryptionConfig } from "./base-api-client";
 
-export type PutEncryptedAttachmentRequest = FormData;
+export type PutEncryptedAttachmentRequest = FormData | EncryptedAttachmentDTO;
 
 export type PutEncryptedAttachmentResponseSuccess = {
   message: string;
@@ -26,7 +26,12 @@ export class EncryptedAttachmentApiClient extends ApiClient {
     //   return this.request<GetPatientsResponse>('/api/patient', 'GET', PatientDTOEncSettings) as Promise<GetPatientsResponse>;
     // }
   
-    async put(formData:PutEncryptedAttachmentRequest): Promise<PutEncryptedAttachmentResponse> {
-      return this.request<PutEncryptedAttachmentResponse>('/api/encrypted-attachment', 'PUT', null, null, formData) as Promise<PutEncryptedAttachmentResponse>;
+    async put(inputObject:PutEncryptedAttachmentRequest): Promise<PutEncryptedAttachmentResponse> {
+      if (inputObject instanceof FormData) {
+        return this.request<PutEncryptedAttachmentResponse>('/api/encrypted-attachment', 'PUT', null, null, inputObject as FormData) as Promise<PutEncryptedAttachmentResponse>;
+      } else {
+        return this.request<PutEncryptedAttachmentResponse>('/api/encrypted-attachment', 'PUT', null, inputObject as EncryptedAttachmentDTO) as Promise<PutEncryptedAttachmentResponse>;
+      }
     }
+    
   }

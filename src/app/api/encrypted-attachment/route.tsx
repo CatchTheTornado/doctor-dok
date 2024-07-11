@@ -9,18 +9,26 @@ const storageService = new StorageService();
 // Rest of the code
 
 export async function PUT(request: Request) {
-    const formData = await request.formData();
+    if (request.headers.get("Content-Type") === "application/json") {
+        const inputJson = await request.json();
+        return await handlePUTRequest(inputJson, request);
+    } else {
+        const formData = await request.formData();
+        return await handlePUTRequest(JSON.parse(formData.get("attachmentDTO") as string), request, formData.get("file") as File);
+    }
+}
+
+async function handlePUTRequest(inputJson: any, request: Request, file?: File) {
     let apiResult = await genericPUT<EncryptedAttachmentDTO>(
-        JSON.parse(formData.get("attachmentDTO") as string),
+        inputJson,
         EncryptedAttachmentDTOSchema,
         new ServerEncryptedAttachmentRepository(),
         'id'
     );
     if (apiResult.status === 200) { // validation went OK, now we can store the file
-        if (formData.get("file")) { // file could be not uploaded in case of metadata update
+        if (file) { // file could be not uploaded in case of metadata update
             try {
                 const savedAttachment: EncryptedAttachmentDTO = apiResult.data as EncryptedAttachmentDTO;
-                const file = formData.get("file") as File;
                 storageService.saveAttachment(file, savedAttachment.storageKey);
             } catch (e) {
                 console.error("Error saving attachment", e);

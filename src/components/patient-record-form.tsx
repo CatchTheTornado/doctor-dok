@@ -105,9 +105,8 @@ export default function NewPatientRecord({ patient }: { patient: Patient }) {
         });
         uploadedAttachments?.forEach(async (attachmentToUpdate) => {
           const formData = new FormData();
-          attachmentToUpdate.assigned_to = JSON.stringify([{ id: savedPatientRecord.id, type: "patient_record" }, { id: patientContext?.currentPatient?.id, type: "patient" }]);
-          formData.append("attachmentDTO", JSON.stringify(attachmentToUpdate));
-          await eaac.put(formData);
+          attachmentToUpdate.assignedTo = [{ id: savedPatientRecord.id as number, type: "patient_record" }, { id: patientContext?.currentPatient?.id as number, type: "patient" }];
+          await eaac.put(attachmentToUpdate);
         }); 
         setFiles([]); // clear form
         reset(); 

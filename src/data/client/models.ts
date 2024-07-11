@@ -94,7 +94,7 @@ export type AttachmentAssigment = {
 
 export class EncryptedAttachment {
     id?: number;
-    assigned_to?: AttachmentAssigment[];
+    assignedTo?: AttachmentAssigment[];
     displayName: string;
     description?: string;
     mimeType?: string;
@@ -108,7 +108,7 @@ export class EncryptedAttachment {
 
     constructor(attachmentDTO: EncryptedAttachmentDTO) {
         this.id = attachmentDTO.id;
-        this.assigned_to = attachmentDTO.assigned_to ? JSON.parse(attachmentDTO.assigned_to) : [];
+        this.assignedTo = attachmentDTO.assignedTo ? JSON.parse(attachmentDTO.assignedTo) : [];
         this.displayName = attachmentDTO.displayName;
         this.description = attachmentDTO.description;
         this.mimeType = attachmentDTO.mimeType;
@@ -128,7 +128,7 @@ export class EncryptedAttachment {
     toDTO(): EncryptedAttachmentDTO {
         return {
             id: this.id,
-            assigned_to: JSON.stringify(this.assigned_to),
+            assignedTo: this.assignedTo,
             displayName: this.displayName,
             description: this.description,
             mimeType: this.mimeType,
