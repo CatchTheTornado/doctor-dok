@@ -24,6 +24,7 @@ export const patientRecords = sqliteTable('patientRecords', {
     type: text('type'),
     json: text('json', { mode: 'json' }),
     extra: text('extra', { mode: 'json' }),
+    attachments: text('attachments', { mode: 'json' }),
     
     createdAt: text('updatedAt').notNull().default(sql`CURRENT_TIMESTAMP`),
     updatedAt: text('updatedAt').notNull().default(sql`CURRENT_TIMESTAMP`)

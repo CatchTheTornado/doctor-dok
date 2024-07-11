@@ -14,6 +14,7 @@ export type ApiResult = {
 export async function genericPUT<T extends { [key:string]: any }>(inputObject: any, schema: { safeParse: (a0:any) => { success: true; data: T; } | { success: false; error: ZodError; } }, repo: BaseRepository<T>, identityKey: string): Promise<ApiResult> {
     try {
         await setup();
+        console.log(inputObject);
         const validationResult = schema.safeParse(inputObject); // validation
         if (validationResult.success === true) {
             const updatedValues:T = validationResult.data as T;

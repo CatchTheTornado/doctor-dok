@@ -67,7 +67,7 @@ export default function NewPatientRecord({ patient }: { patient: Patient }) {
     multiple: true,
   };
 
-  const { handleSubmit, register, setError, getValues, formState: { errors,  } } = useForm({
+  const { handleSubmit, register, reset, setError, getValues, formState: { errors,  } } = useForm({
     defaultValues: {
       note: "",
       noteType: "visit"
@@ -82,7 +82,7 @@ export default function NewPatientRecord({ patient }: { patient: Patient }) {
 
       if (files) {
         files.forEach((file) => {
-          if (file.status === "success" && file.dto) { // file is uploaded successfully
+          if (file.dto) { // file is uploaded successfully
             uploadedAttachments.push(file.dto);
           }
         });
@@ -109,6 +109,8 @@ export default function NewPatientRecord({ patient }: { patient: Patient }) {
           formData.append("attachmentDTO", JSON.stringify(attachmentToUpdate));
           await eaac.put(formData);
         }); 
+        setFiles([]); // clear form
+        reset(); 
         toast.success("Patient record saved successfully");
         setDialogOpen(false);
       }

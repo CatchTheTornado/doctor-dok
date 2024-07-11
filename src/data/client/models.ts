@@ -108,7 +108,7 @@ export class EncryptedAttachment {
 
     constructor(attachmentDTO: EncryptedAttachmentDTO) {
         this.id = attachmentDTO.id;
-        this.assigned_to = JSON.parse(attachmentDTO.assigned_to ||  "");
+        this.assigned_to = attachmentDTO.assigned_to ? JSON.parse(attachmentDTO.assigned_to) : [];
         this.displayName = attachmentDTO.displayName;
         this.description = attachmentDTO.description;
         this.mimeType = attachmentDTO.mimeType;

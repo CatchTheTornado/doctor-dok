@@ -58,10 +58,8 @@ export const patientRecordDTOSchema = z.object({
 
   createdAt: z.string().default(() => getCurrentTS()),
   updatedAt: z.string().default(() => getCurrentTS()),
+
+  attachments: z.string().optional()
 });
 
-export type PatientRecordDTO = z.infer<typeof patientRecordDTOSchema> & {
-  attachments?: EncryptedAttachmentDTO[];
-};
-
-export const PatientRecordDTOEncSettings = { ecnryptedFields: ['description', 'type', 'json', 'extra'] }
+export const PatientRecordDTOEncSettings = { ecnryptedFields: ['description', 'type', 'json', 'extra', 'attachments'] }
