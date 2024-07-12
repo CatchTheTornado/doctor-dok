@@ -64,7 +64,7 @@ export class EncryptionUtils {
     return encryptedData;
   }
 
-  async decryptArrayBuffer(encryptedData: ArrayBuffer): Promise<ArrayBuffer> {
+ async decryptArrayBuffer(encryptedData: ArrayBuffer): Promise<ArrayBuffer> {
     try {
       await this.generateKey(this.secretKey);
 

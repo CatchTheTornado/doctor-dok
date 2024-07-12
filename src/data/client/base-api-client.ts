@@ -1,4 +1,4 @@
-import { DTOEncryptionFilter } from "@/lib/crypto";
+import { DTOEncryptionFilter, EncryptionUtils } from "@/lib/crypto";
 import { DTOEncryptionSettings } from "../dto";
 import axios, { AxiosRequestConfig, AxiosResponse } from 'axios';
 
@@ -11,11 +11,40 @@ export type ApiEncryptionConfig = {
 export class ApiClient {
   private baseUrl: string;
   private encryptionFilter: DTOEncryptionFilter<any> | null = null;
+  private encryptionConfig?: ApiEncryptionConfig = null;
+  private encryptionUtils: EncryptionUtils = null;
 
   constructor(baseUrl: string, encryptionConfig?: ApiEncryptionConfig) {
     this.baseUrl = baseUrl;
     if (encryptionConfig?.useEncryption) {
       this.encryptionFilter = new DTOEncryptionFilter(encryptionConfig.secretKey as string);
+    }
+    this.encryptionUtils = new EncryptionUtils(encryptionConfig?.secretKey as string);
+    this.encryptionConfig = encryptionConfig;
+  }
+
+  protected async getArrayBuffer(
+    endpoint: string
+  ): Promise<ArrayBuffer> {
+    const headers: Record<string, string> = {};
+
+    const config: AxiosRequestConfig = {
+      method: 'GET',
+      url: `${this.baseUrl}${endpoint}`,
+      headers,
+      responseType: 'blob',
+    };
+
+    try {
+      const response: AxiosResponse<ArrayBuffer> = await axios(config);
+
+      if (response.status >= 400) {
+        throw new Error(response.statusText || 'Request failed');
+      }
+      return (this.encryptionConfig?.useEncryption) ? this.encryptionUtils.decryptArrayBuffer(response.data) : response.data;
+      
+    } catch (error) {
+      throw new Error('Request failed');
     }
   }
 

@@ -26,6 +26,7 @@
     "crypto-js": "^4.2.0",
     "drizzle-kit": "^0.22.7",
     "drizzle-orm": "^0.31.2",
+    "fast-sort": "^3.4.0",
     "lucide-react": "^0.400.0",
     "next": "14.2.4",
     "next-themes": "^0.3.0",

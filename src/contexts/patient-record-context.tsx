@@ -5,6 +5,7 @@ import { ApiEncryptionConfig } from '@/data/client/base-api-client';
 import { DataLoadingStatus, Patient, PatientRecord } from '@/data/client/models';
 import { ConfigContext, ConfigContextType } from './config-context';
 import { toast } from 'sonner';
+import { sort } from 'fast-sort';
 
 export type PatientRecordContextType = {
     patientRecords: PatientRecord[];

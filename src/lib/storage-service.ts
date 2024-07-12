@@ -15,4 +15,10 @@ export class StorageService {
         const buffer = new Uint8Array(arrayBuffer);
         fs.writeFileSync(path.resolve(this.uploadPath, storageKey), buffer);
     }
+
+    public readAttachment(storageKey: string): ArrayBuffer {
+        const filePath = path.resolve(this.uploadPath, storageKey);
+        const buffer = fs.readFileSync(filePath);
+        return buffer.buffer;
+    }
 }

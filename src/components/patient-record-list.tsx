@@ -1,14 +1,16 @@
-import { useContext, useEffect } from "react";
+import { useContext, useEffect, useState } from "react";
 import PatientRecordItem from "./patient-record-item";
 import { NoRecordsAlert } from "./shared/no-records-alert";
 import { PatientRecordContext } from "@/contexts/patient-record-context";
 import { PatientContext } from "@/contexts/patient-context";
 import DataLoader from "./data-loader";
 import { Alert, AlertDescription, AlertTitle } from "./ui/alert";
+import { sort } from "fast-sort";
 
 export default function PatientRecordList({ patient }) {
   const patientRecordContext = useContext(PatientRecordContext);
   const patientContext = useContext(PatientContext);
+  const [sortBy, setSortBy] = useState([ { desc: a => a.createdAt } ]);
 
   return (
     <div className="bg-white dark:bg-zinc-900 p-6 rounded-lg shadow-sm">
@@ -33,7 +35,7 @@ export default function PatientRecordList({ patient }) {
         ) : (null) }
         { (patientRecordContext?.loaderStatus === "success" && patientRecordContext?.patientRecords.length > 0) ? (
           <div className="space-y-4">
-            {patientRecordContext?.patientRecords.map((record, index) => (
+            {sort(patientRecordContext?.patientRecords).by(sortBy).map((record, index) => (
               <PatientRecordItem key={index} {...record} />
             ))}
           </div>

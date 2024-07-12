@@ -33,5 +33,9 @@ export class EncryptedAttachmentApiClient extends ApiClient {
         return this.request<PutEncryptedAttachmentResponse>('/api/encrypted-attachment', 'PUT', null, inputObject as EncryptedAttachmentDTO) as Promise<PutEncryptedAttachmentResponse>;
       }
     }
+
+    async get(attachment: EncryptedAttachmentDTO): Promise<ArrayBuffer> {
+      return this.getArrayBuffer('/api/encrypted-attachment/' + attachment.storageKey);
+    }
     
   }
