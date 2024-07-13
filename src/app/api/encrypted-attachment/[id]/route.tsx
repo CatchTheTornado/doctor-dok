@@ -1,7 +1,9 @@
 import ServerEncryptedAttachmentRepository from "@/data/server/server-encryptedattachment-repository";
 import { genericDELETE } from "@/lib/generic-api";
 import { StorageService } from "@/lib/storage-service";
+import { NextResponse } from "next/server";
 const storageService = new StorageService();
+export const dynamic = 'force-dynamic' // defaults to auto
 
 
 export async function DELETE(request: Request, { params }: { params: { id: number }} ) {
@@ -13,6 +15,9 @@ export async function DELETE(request: Request, { params }: { params: { id: numbe
     }
 }
 
-export async function GET(request: Request, { params }: { params: { id: string }} ) {
-    return new Response(storageService.readAttachment(params.id), { status: 200 });
+export async function GET(request: Request, { params }: { params: { id: string }}) {
+    const headers = new Headers();
+    headers.append('Content-Type', 'application/octet-stream');
+    const fileContent = await storageService.readAttachment(params.id) // TODO: add streaming
+    return new Response(fileContent, { headers });
 }
