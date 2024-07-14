@@ -79,7 +79,7 @@ export default function PatientRecordForm({ patient }: { patient: Patient }) {
 
   useEffect(() => {
     setValue("note", patientRecordContext?.currentPatientRecord?.description as string);
-    setValue("noteType", patientRecordContext?.currentPatientRecord?.type as string);
+    setValue("noteType", patientRecordContext?.currentPatientRecord?.type as string || 'visit');
 
     let existingFiles:UploadedFile[] = []
     if (patientRecordContext?.currentPatientRecord) {

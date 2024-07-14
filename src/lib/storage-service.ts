@@ -21,4 +21,9 @@ export class StorageService {
         const buffer = fs.readFileSync(filePath);
         return new Uint8Array(buffer).buffer;
     }
+
+
+    public deleteAttachment(storageKey: string) {
+        return fs.rmSync(path.resolve(this.uploadPath, storageKey));
+    }
 }

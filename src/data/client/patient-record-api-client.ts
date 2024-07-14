@@ -10,6 +10,11 @@ export type PutPatientRecordResponseSuccess = {
   status: 200;
 };
 
+export type DeletePatientRecordResponse = {
+  message: string;
+  status: 200;
+};
+
 export type PutPatientRecordResponseError = {
   message: string;
   status: 400;
@@ -31,4 +36,8 @@ export class PatientRecordApiClient extends ApiClient {
     async put(patientRecord: PutPatientRecordRequest): Promise<PutPatientRecordResponse> {
       return this.request<PutPatientRecordResponse>('/api/patient-record', 'PUT', PatientRecordDTOEncSettings, patientRecord) as Promise<PutPatientRecordResponse>;
     }
+
+    async delete(patientRecord: PatientRecordDTO): Promise<DeletePatientRecordResponse> {
+      return this.request<DeletePatientRecordResponse>('/api/patient-record/' + patientRecord.id, 'DELETE') as Promise<DeletePatientRecordResponse>;
+    }    
 }

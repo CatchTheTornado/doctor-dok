@@ -11,7 +11,11 @@ export async function DELETE(request: Request, { params }: { params: { id: numbe
     if(!recordLocator){
         return Response.json({ message: "Invalid request, no id provided within request url", status: 400 }, {status: 400});
     } else { 
-        return Response.json(await genericDELETE(request, new ServerEncryptedAttachmentRepository(), { id: recordLocator}));
+        const apiResponse = await genericDELETE(request, new ServerEncryptedAttachmentRepository(), { id: recordLocator});
+        if(apiResponse.status === 200){
+            storageService.deleteAttachment(recordLocator);
+        }
+        return Response.json(apiResponse);
     }
 }
 
