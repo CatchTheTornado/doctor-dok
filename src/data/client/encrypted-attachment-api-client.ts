@@ -21,10 +21,7 @@ export class EncryptedAttachmentApiClient extends ApiClient {
     constructor(baseUrl: string, encryptionConfig?: ApiEncryptionConfig) {
       super(baseUrl, encryptionConfig);
     }
-  
-    // async get(): Promise<GetPatientsResponse> {
-    //   return this.request<GetPatientsResponse>('/api/patient', 'GET', PatientDTOEncSettings) as Promise<GetPatientsResponse>;
-    // }
+
   
     async put(inputObject:PutEncryptedAttachmentRequest): Promise<PutEncryptedAttachmentResponse> {
       if (inputObject instanceof FormData) {

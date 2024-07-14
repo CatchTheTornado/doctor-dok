@@ -55,26 +55,49 @@ export class EncryptionUtils {
   async encryptArrayBuffer(data: ArrayBuffer): Promise<ArrayBuffer> {
     await this.generateKey(this.secretKey);
 
-    const iv = crypto.getRandomValues(new Uint8Array(16));
+    const iv = crypto.getRandomValues(new Uint8Array(16)); // Initialization vector
     const encryptedData = await crypto.subtle.encrypt(
-      { name: 'AES-CBC', iv },
-      this.key,
-      data
+        {
+            name: 'AES-CBC',
+            iv: iv,
+        },
+        this.key,
+        data
     );
-    return encryptedData;
+    return new Blob([iv, new Uint8Array(encryptedData)]).arrayBuffer(); // Prepend IV to the ciphertext
   }
 
- async decryptArrayBuffer(encryptedData: ArrayBuffer): Promise<ArrayBuffer> {
+async blobToArrayBuffer (blob: Blob): Promise<ArrayBuffer> {
+    return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = () => resolve(reader.result as ArrayBuffer);
+        reader.onerror = reject;
+        reader.readAsArrayBuffer(blob);
+    });
+};
+
+ async decryptArrayBuffer(encryptedData: ArrayBuffer | Blob): Promise<ArrayBuffer> {
     try {
       await this.generateKey(this.secretKey);
 
-      const iv = new Uint8Array(16);
-      const decryptedData = await crypto.subtle.decrypt(
-        { name: 'AES-CBC', iv },
-        this.key,
-        encryptedData
+      let encryptedArrayBuffer: ArrayBuffer;
+      if (encryptedData instanceof Blob) {
+        encryptedArrayBuffer = await this.blobToArrayBuffer(encryptedData);
+      } else {
+        encryptedArrayBuffer = encryptedData;
+      }
+
+      const iv = new Uint8Array(encryptedArrayBuffer.slice(0, 16)); // Extract the IV
+      const cipherText = encryptedArrayBuffer.slice(16);
+  
+      return await crypto.subtle.decrypt(
+          {
+              name: 'AES-CBC',
+              iv: iv,
+          },
+          this.key,
+          cipherText
       );
-      return decryptedData;
     } catch (e) {
       console.error('Error decrypting ArrayBuffer', e);
       return encryptedData;
