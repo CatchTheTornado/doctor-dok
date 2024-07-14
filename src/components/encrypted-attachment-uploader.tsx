@@ -218,7 +218,7 @@ export const EncryptedAttachmentUploader = forwardRef<
               createdAt: getCurrentTS(),
               updatedAt: getCurrentTS(),            
             };
-            fileToUpload.status = 'Encryptiong ...';
+            fileToUpload.status = 'encrypting ...';
             attachmentDTO = encFilter ? await encFilter.encrypt(attachmentDTO, EncryptedAttachmentDTOEncSettings) : attachmentDTO;
 
             formData.append("attachmentDTO", JSON.stringify(attachmentDTO));
@@ -230,7 +230,7 @@ export const EncryptedAttachmentUploader = forwardRef<
               if (result.status === 200) {
                 const decryptedAttachmentDTO: EncryptedAttachmentDTO = (encFilter ? await encFilter.decrypt(result.data) : result.data) as EncryptedAttachmentDTO;
                 console.log(decryptedAttachmentDTO);
-                fileToUpload.status = 'Success';
+                fileToUpload.status = 'success';
                 fileToUpload.uploaded = true;
                 fileToUpload.dto = decryptedAttachmentDTO;
                 setQueueSize(uploadQueueSize+1)
@@ -239,14 +239,15 @@ export const EncryptedAttachmentUploader = forwardRef<
                 if(onUploadSuccess)  onUploadSuccess(fileToUpload);
               } else {
                 console.log("File upload error " + result.message);
-                fileToUpload.status = 'Error!';
+                fileToUpload.status = 'error!';
                 setQueueSize(uploadQueueSize-1)
                 setActiveIndex(fileToUpload.index)
                 if(onUploadError) onUploadError(fileToUpload);
               }
             } catch (error) {
               console.log("File upload error " + error);
-              fileToUpload.status = 'Error!';
+              toast('File upload error ' + error);
+              fileToUpload.status = 'error!';
               setQueueSize(uploadQueueSize-1)
               setActiveIndex(fileToUpload.index)
               if(onUploadError) onUploadError(fileToUpload);

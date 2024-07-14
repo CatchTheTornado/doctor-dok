@@ -23,6 +23,7 @@ import { EncryptedAttachmentDTO } from "@/data/dto";
 import { EncryptedAttachmentApiClient } from "@/data/client/encrypted-attachment-api-client";
 import { ConfigContext } from "@/contexts/config-context";
 import { set } from "zod";
+import DataLoader from "./data-loader";
 
 
 const FileSvgDraw = () => {
@@ -100,13 +101,24 @@ export default function PatientRecordForm({ patient }: { patient: Patient }) {
     // Handle form submission
     if (patientContext?.currentPatient && patientContext?.currentPatient?.id) {
 
+      let isStillUploading = false;
       const uploadedAttachments: EncryptedAttachment[] = [];
       if (files) {
         files.forEach((file) => {
           if (file.dto) { // file is uploaded successfully
             uploadedAttachments.push(new EncryptedAttachment(file.dto));
+          } else {
+            isStillUploading = true;
+          }
+
+          if (file.status === 'error') {
+            toast('Please check upload error for file ' + file.dto?.displayName);
           }
         });
+      }
+      if(isStillUploading) {
+        toast('Please wait until all files are uploaded');
+        return;
       }
       let pr: PatientRecord;
       if (patientRecordContext?.currentPatientRecord && patientRecordContext?.patientRecordEditMode) { // edit mode
@@ -135,7 +147,6 @@ export default function PatientRecordForm({ patient }: { patient: Patient }) {
           useEncryption: true
         });
         uploadedAttachments?.forEach(async (attachmentToUpdate) => {
-          const formData = new FormData();
           attachmentToUpdate.assignedTo = [{ id: savedPatientRecord.id as number, type: "patient_record" }, { id: patientContext?.currentPatient?.id as number, type: "patient" }];
           await eaac.put(attachmentToUpdate.toDTO());
         }); 
@@ -179,6 +190,8 @@ export default function PatientRecordForm({ patient }: { patient: Patient }) {
               <EncryptedAttachmentUploader
                 value={files}
                 onValueChange={setFiles}
+                onUploadSuccess={() => { setDialogOpen(true)}}
+                onUploadError={() => { setDialogOpen(true)}}
                 dropzoneOptions={dropZoneConfig}
                 className="relative bg-background rounded-lg p-2 w-full h-max"
               >
@@ -193,7 +206,7 @@ export default function PatientRecordForm({ patient }: { patient: Patient }) {
                     files.map((file, i) => (
                       <FileUploaderItem key={i} index={i}>
                         <PaperclipIcon className="h-4 w-4 stroke-current" />
-                        <span>{file.file.name} - {file.status}</span>
+                        <div className="flex">{file.file.name} - {file.status}{file.status !== 'uploaded' && file.status !== 'success'  ? ( <div className="ml-2 h-4 w-4 animate-spin rounded-full border-4 border-primary border-t-transparent" />) : null}</div>
                       </FileUploaderItem>
                     ))}
                 </FileUploaderContent>
