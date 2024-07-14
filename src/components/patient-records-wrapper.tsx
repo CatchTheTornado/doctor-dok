@@ -1,5 +1,5 @@
 import { useContext, useEffect } from "react";
-import NewPatientRecord from "./patient-record-form";
+import PatientRecordForm from "./patient-record-form";
 import PatientRecordList from "./patient-record-list";
 import { PatientContext } from "@/contexts/patient-context";
 import DatabaseLinkAlert from "./shared/database-link-alert";

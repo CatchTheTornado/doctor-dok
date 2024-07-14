@@ -59,8 +59,8 @@ export const patientRecordDTOSchema = z.object({
 
   description: z.string().optional(),
   type: z.string().min(1),
-  json: z.string().optional(),
-  extra: z.string().optional(),
+  json: z.string().optional().nullable(),
+  extra: z.string().optional().nullable(),
 
   createdAt: z.string().default(() => getCurrentTS()),
   updatedAt: z.string().default(() => getCurrentTS()),

@@ -10,7 +10,7 @@ import {
   UploadedFile,
   EncryptedAttachmentUploader,
 } from "@/components/encrypted-attachment-uploader";
-import { use, useContext, useState } from "react";
+import { use, useContext, useEffect, useState } from "react";
 import { EncryptedAttachment, Patient, PatientRecord } from "@/data/client/models";
 import { Credenza, CredenzaContent, CredenzaDescription, CredenzaHeader, CredenzaTitle, CredenzaTrigger } from "./credenza";
 import { PlusIcon } from "lucide-react";
@@ -22,6 +22,7 @@ import { toast } from "sonner";
 import { EncryptedAttachmentDTO } from "@/data/dto";
 import { EncryptedAttachmentApiClient } from "@/data/client/encrypted-attachment-api-client";
 import { ConfigContext } from "@/contexts/config-context";
+import { set } from "zod";
 
 
 const FileSvgDraw = () => {
@@ -53,33 +54,53 @@ const FileSvgDraw = () => {
   );
 };
 
-export default function NewPatientRecord({ patient }: { patient: Patient }) {
-  const [files, setFiles] = useState<UploadedFile[] | null>(null);
-  const [dialogOpen, setDialogOpen] = useState(false);
-
+export default function PatientRecordForm({ patient }: { patient: Patient }) {
   const patientContext = useContext(PatientContext);
   const configContext = useContext(ConfigContext);
   const patientRecordContext = useContext(PatientRecordContext);
- 
+  const [files, setFiles] = useState<UploadedFile[] | null>(null);
+  const [dialogOpen, setDialogOpen] = useState(false);
+
   const dropZoneConfig = {
     maxFiles: 10,
     maxSize: 1024 * 1024 * 50,
     multiple: true,
   };
 
-  const { handleSubmit, register, reset, setError, getValues, formState: { errors,  } } = useForm({
-    defaultValues: {
-      note: "",
-      noteType: "visit"
+  
+
+    const { handleSubmit, register, reset, setError, getValues, setValue, formState: { errors } } = useForm({
+      defaultValues: {
+        note: "",
+        noteType: "visit"
+      }
+  });  
+
+  useEffect(() => {
+    setValue("note", patientRecordContext?.currentPatientRecord?.description as string);
+    setValue("noteType", patientRecordContext?.currentPatientRecord?.type as string);
+
+    let existingFiles:UploadedFile[] = []
+    if (patientRecordContext?.currentPatientRecord) {
+      existingFiles = patientRecordContext?.currentPatientRecord?.attachments.map((attachment) => {
+        return {
+          id: attachment.id, 
+          status: "uploaded",
+          uploaded: true,
+          index: attachment.id,
+          file: new File([], attachment.displayName),
+          dto: attachment
+        }
+      }) as UploadedFile[];
     }
-});  
+    setFiles(existingFiles);    
+  }, [patientRecordContext?.currentPatientRecord]);
   
   const onSubmit = async (data: any) => {
     // Handle form submission
     if (patientContext?.currentPatient && patientContext?.currentPatient?.id) {
 
       const uploadedAttachments: EncryptedAttachment[] = [];
-
       if (files) {
         files.forEach((file) => {
           if (file.dto) { // file is uploaded successfully
@@ -87,16 +108,25 @@ export default function NewPatientRecord({ patient }: { patient: Patient }) {
           }
         });
       }
-      const newPR = new PatientRecord({
-        patientId: patientContext?.currentPatient?.id as number,
-        type: data.noteType,
-        description: data.note,
-        updatedAt: getCurrentTS(),
-        createdAt: getCurrentTS(),
-        attachments: uploadedAttachments
-      } as PatientRecord)
+      let pr: PatientRecord;
+      if (patientRecordContext?.currentPatientRecord && patientRecordContext?.patientRecordEditMode) { // edit mode
+        pr = new PatientRecord(patientRecordContext?.currentPatientRecord);
+        pr.description = data.note;
+        pr.type = data.noteType;
+        pr.attachments = uploadedAttachments;
+        pr.updatedAt = getCurrentTS();
+      } else {  // add mode
+        pr = new PatientRecord({
+          patientId: patientContext?.currentPatient?.id as number,
+          type: data.noteType,
+          description: data.note,
+          updatedAt: getCurrentTS(),
+          createdAt: getCurrentTS(),
+          attachments: uploadedAttachments
+        } as PatientRecord)
+      }
 
-      const savedPatientRecord = await patientRecordContext?.addPatientRecord(newPR); // TODO: add attachments processing
+      const savedPatientRecord = await patientRecordContext?.updatePatientRecord(pr); // TODO: add attachments processing
 
       if(savedPatientRecord?.id) // if patient record is saved successfully
       {
@@ -113,6 +143,7 @@ export default function NewPatientRecord({ patient }: { patient: Patient }) {
         reset(); 
         toast.success("Patient record saved successfully");
         setDialogOpen(false);
+        patientRecordContext?.setPatientRecordEditMode(false);
       }
     } else {
       toast.error("Please select a patient first");
@@ -120,7 +151,7 @@ export default function NewPatientRecord({ patient }: { patient: Patient }) {
   };
 
   return (
-    <Credenza open={dialogOpen} onOpenChange={setDialogOpen}>
+    <Credenza open={dialogOpen || patientRecordContext?.patientRecordEditMode} onOpenChange={(value) => { setDialogOpen(value); if(!value) patientRecordContext?.setPatientRecordEditMode(false); }}>
       <CredenzaTrigger asChild>
         <Button variant="outline" size="icon">
           <PlusIcon className="w-6 h-6" />

@@ -1,7 +1,7 @@
 import { Button } from "./ui/button";
 import { SettingsPopup } from "@/components/settings-popup";
 import PatientListPopup from "./patient-list-popup";
-import NewPatientRecord from "./patient-record-form";
+import PatientRecordForm from "./patient-record-form";
 import { PatientContext } from "@/contexts/patient-context";
 import { useContext } from "react";
 import { Chat } from "./chat";
@@ -15,7 +15,7 @@ export default function TopHeader() {
         <div className="flex items-center gap-2">
           <PatientListPopup />
           {(patientContext?.currentPatient !== null) ? (
-            <NewPatientRecord patient={patientContext?.currentPatient} />
+            <PatientRecordForm patient={patientContext?.currentPatient} />
           ) : ("")}
           {(patientContext?.currentPatient !== null) ? (
             <Chat />

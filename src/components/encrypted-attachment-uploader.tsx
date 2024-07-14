@@ -53,7 +53,7 @@ export const useFileUpload = () => {
 };
 
 export type UploadedFile = {
-    id: string;
+    id: number | string;
     file: File;
     uploaded: boolean;
     status: string;
@@ -112,6 +112,14 @@ export const EncryptedAttachmentUploader = forwardRef<
     const removeFileFromSet = useCallback(
       (i: number) => {
         if (!value) return;
+        const fileToRemove = value.find((_, index) => index === i);
+        if (fileToRemove) {
+          const apiClient = new EncryptedAttachmentApiClient('', {
+            useEncryption: false  // for FormData we're encrypting records by ourselves - above
+          })
+          if(fileToRemove.dto) apiClient.delete(fileToRemove.dto); // remove file from storage
+
+        }
         const newFiles = value.filter((_, index) => index !== i);
         onValueChange(newFiles);
       },
@@ -188,7 +196,7 @@ export const EncryptedAttachmentUploader = forwardRef<
     }
     const onInternalUpload = useCallback(async (fileToUpload:UploadedFile | null) => {
         if (fileToUpload){
-          fileToUpload.status = 'Uploading ...';
+          fileToUpload.status = 'uploading ...';
           const formData = new FormData();
           const masterKey = await config?.getServerConfig('dataEncryptionMasterKey');
           if(fileToUpload && fileToUpload.file) 
@@ -210,6 +218,7 @@ export const EncryptedAttachmentUploader = forwardRef<
               createdAt: getCurrentTS(),
               updatedAt: getCurrentTS(),            
             };
+            fileToUpload.status = 'Encryptiong ...';
             attachmentDTO = encFilter ? await encFilter.encrypt(attachmentDTO, EncryptedAttachmentDTOEncSettings) : attachmentDTO;
 
             formData.append("attachmentDTO", JSON.stringify(attachmentDTO));
@@ -269,7 +278,7 @@ export const EncryptedAttachmentUploader = forwardRef<
                 id: '',
                 file: file,
                 uploaded: false,
-                status: 'Preparing ...',
+                status: 'preparing ...',
                 index: newValues.length
             }
             newValues.push(uploadedFile);

@@ -4,10 +4,13 @@ import { PatientRecord } from "@/data/client/models";
 import { EncryptedAttachmentApiClient } from "@/data/client/encrypted-attachment-api-client";
 import { ConfigContext } from "@/contexts/config-context";
 import { useContext } from "react";
+import { PencilIcon } from "lucide-react";
+import { PatientRecordContext } from "@/contexts/patient-record-context";
 
 export default function PatientRecordItem(record: PatientRecord) {
 
   const config = useContext(ConfigContext);
+  const patientRecordContext = useContext(PatientRecordContext)
 
   const getApiClient = async () => {
     const secretKey = await config?.getServerConfig('dataEncryptionMasterKey') as string;
@@ -43,8 +46,11 @@ export default function PatientRecordItem(record: PatientRecord) {
         ))}
       </div>
       <div className="mt-2 flex items-center gap-2">
+      <Button size="icon" variant="ghost">
+          <PencilIcon className="w-4 h-4" onClick={() => { patientRecordContext?.setCurrentPatientRecord(record);  patientRecordContext?.setPatientRecordEditMode(true); }} />
+        </Button>        
         <Button size="icon" variant="ghost">
-          <PaperclipIcon className="w-4 h-4" />
+          <PaperclipIcon className="w-4 h-4"  onClick={() => { patientRecordContext?.setCurrentPatientRecord(record);  patientRecordContext?.setPatientRecordEditMode(true); }} />
         </Button>
         <Button size="icon" variant="ghost">
           <Trash2Icon className="w-4 h-4" />

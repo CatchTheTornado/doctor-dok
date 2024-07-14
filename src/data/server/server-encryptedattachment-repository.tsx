@@ -13,6 +13,10 @@ export default class ServerEncryptedAttachmentRepository extends BaseRepository<
         return create(item, encryptedAttachments, db); // generic implementation
     }
 
+    async delete(query:Record<string, any>): Promise<boolean> {
+        return db.delete(encryptedAttachments).where(eq(encryptedAttachments.storageKey, query.storageKey)).run()  
+    }
+
     // update patient
     async upsert(query:Record<string, any>, item: EncryptedAttachmentDTO): Promise<EncryptedAttachmentDTO> {        
         let existingRecord:EncryptedAttachmentDTO | null = query.id ? db.select().from(encryptedAttachments).where(eq(encryptedAttachments.id, query.id)).get() as EncryptedAttachmentDTO : null

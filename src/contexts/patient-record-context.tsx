@@ -9,9 +9,10 @@ import { sort } from 'fast-sort';
 
 export type PatientRecordContextType = {
     patientRecords: PatientRecord[];
+    patientRecordEditMode: boolean;
+    setPatientRecordEditMode: (editMode: boolean) => void;
     currentPatientRecord: PatientRecord | null; 
-    addPatientRecord: (patientRecord: PatientRecord) => Promise<PatientRecord>;
-    editPatientRecord: (patientRecord: PatientRecordDTO) => Promise<PatientRecord>;
+    updatePatientRecord: (patientRecord: PatientRecord) => Promise<PatientRecord>;
     deletePatientRecord: (id: number) => Promise<boolean>;
     listPatientRecords: (forPatient: Patient) => Promise<PatientRecord[]>;
     setCurrentPatientRecord: (patientRecord: PatientRecord | null) => void; // new method
@@ -21,6 +22,7 @@ export type PatientRecordContextType = {
 export const PatientRecordContext = createContext<PatientRecordContextType | null>(null);
 
 export const PatientRecordContextProvider: React.FC = ({ children }) => {
+    const [patientRecordEditMode, setPatientRecordEditMode] = useState<boolean>(false);
     const [patientRecords, setPatientRecords] = useState<PatientRecord[]>([]);
     const [loaderStatus, setLoaderStatus] = useState<DataLoadingStatus>(DataLoadingStatus.Loading);
     const [currentPatientRecord, setCurrentPatientRecord] = useState<PatientRecord | null>(null); // new state
@@ -30,7 +32,7 @@ export const PatientRecordContextProvider: React.FC = ({ children }) => {
 
     const config = useContext(ConfigContext);
 
-    const addPatientRecord = async (patientRecord: PatientRecord): Promise<PatientRecord> => {
+    const updatePatientRecord = async (patientRecord: PatientRecord): Promise<PatientRecord> => {
         try {
             const client = await setupApiClient(config);
             const patientRecordDTO = patientRecord.toDTO(); // DTOs are common ground between client and server
@@ -42,7 +44,7 @@ export const PatientRecordContextProvider: React.FC = ({ children }) => {
                 return patientRecord;
             } else {
                 const updatedPatientRecord = Object.assign(patientRecord, { id: response.data.id });
-                setPatientRecords([...patientRecords, updatedPatientRecord]);
+                setPatientRecords(patientRecords.map(pr => pr.id === updatedPatientRecord.id ?  updatedPatientRecord : pr))
                 return updatedPatientRecord;
             }
         } catch (error) {
@@ -52,21 +54,8 @@ export const PatientRecordContextProvider: React.FC = ({ children }) => {
         }
     };
 
-    const editPatientRecord = async (patientRecord: PatientRecordDTO) => {
-        // Call the API to edit the patient record
-        // PatientRecordApiClient.editPatientRecord(patientRecord)
-        //     .then((updatedPatientRecord) => {
-        //         const updatedPatientRecords = patientRecords.map((pr) =>
-        //             pr.id === updatedPatientRecord.id ? updatedPatientRecord : pr
-        //         );
-        //         setPatientRecords(updatedPatientRecords);
-        //     })
-        //     .catch((error) => {
-        //         console.error('Error editing patient record:', error);
-        //     });
-    };
-
     const deletePatientRecord = async (id: number) => {
+        return Promise.resolve(true);
         // Call the API to delete the patient record
         // PatientRecordApiClient.deletePatientRecord(id)
         //     .then(() => {
@@ -107,7 +96,7 @@ export const PatientRecordContextProvider: React.FC = ({ children }) => {
 
     return (
         <PatientRecordContext.Provider
-            value={{ patientRecords, addPatientRecord, loaderStatus, setCurrentPatientRecord, currentPatientRecord, listPatientRecords, editPatientRecord, deletePatientRecord }}
+            value={{ patientRecords, updatePatientRecord, loaderStatus, setCurrentPatientRecord, currentPatientRecord, listPatientRecords, deletePatientRecord, patientRecordEditMode, setPatientRecordEditMode }}
         >
             {children}
         </PatientRecordContext.Provider>

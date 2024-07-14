@@ -27,11 +27,11 @@ export function Chat() {
   return (
     <Drawer>
       <DrawerTrigger asChild>
-        <Button variant="ghost" size="icon">
+        <Button variant="outline" size="icon">
           <MessageCircleIcon className="w-5 h-5 text-primary" />
         </Button>
       </DrawerTrigger>
-      <DrawerContent className="w-full max-w-md">
+      <DrawerContent className="sm:max-w-[425px] bg-white dark:bg-zinc-950">
         <DrawerHeader>
           <DrawerTitle>Chat with AI</DrawerTitle>
           <DrawerClose asChild>
