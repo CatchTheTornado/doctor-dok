@@ -10,14 +10,8 @@ interface ChatMessageProps {
 
 const ChatMessage: React.FC<ChatMessageProps> = ({ message, ref }) => {
     return (
-    <div id={'msg-' + message.id} ref={ref} className={message.role === 'user' ?  "p-4 flex items-start gap-4 justify-end bg-gray dark:bg-zinc-500 rounded" :  "p-4 flex items-start gap-4 rounded bg-white dark:bg-zinc-950"}>
-        {message.role !== 'user' ? (
-          <Avatar className="w-8 h-8 border rounded">
-            <AvatarImage src="/placeholder-user.jpg" />
-            <AvatarFallback>AI</AvatarFallback>
-          </Avatar>
-        ) : null }
-        <div className={message.role === 'user' ?  "grid gap-1 text-right" :  "grid gap-1"}>
+    <div id={'msg-' + message.id} ref={ref} className={message.role === 'user' ?  "flex items-start gap-4 justify-end" :  "flex items-start gap-4"}>
+        <div className={message.role === 'user' ?  "p-4 grid gap-4 text-right rounded-lg max-w-[70%] bg-gray dark:bg-zinc-500" :  "p-4 grid gap-1 rounded-lg max-w-[70%] bg-white dark:bg-zinc-950"}>
           <div className="font-bold">{message.name}</div>
           <div className="prose text-sm text-muted-foreground">
             {message.content}
