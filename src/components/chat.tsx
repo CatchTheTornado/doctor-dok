@@ -31,8 +31,20 @@ export function Chat() {
   const chatContext = useContext(ChatContext);
   const [currentMessage, setCurrentMessage] = useState('');
   const messagesContainer = useRef<HTMLDivElement | null>(null);
+  const messageTextArea = useRef<HTMLElement | null>(null);
 
-  useEffect(()=> messagesContainer.current?.scrollIntoView({behavior: "smooth", block:"end"}), [chatContext.messages])
+  useEffect(()=> {
+      const scrollToTheBottom = () => {
+        const scrollEl = messagesContainer.current;
+        scrollEl?.scroll({
+            top: scrollEl?.scrollHeight,
+            behavior: 'smooth',
+        });
+    };
+    scrollToTheBottom();
+    messageTextArea.current?.focus();
+  }, [chatContext.messages]);
+  
 
   const handleSubmit = () => {
     if (currentMessage) {
@@ -149,6 +161,7 @@ export function Chat() {
             <Textarea
               placeholder="Type your message..."
               name="message"
+              ref={messageTextArea}
               value={currentMessage}
               onChange={(e) => setCurrentMessage(e.target.value)}
               id="message"
