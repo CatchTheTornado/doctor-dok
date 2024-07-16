@@ -22,8 +22,15 @@ import { Button } from "@/components/ui/button"
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar"
 import { Table, TableHeader, TableRow, TableHead, TableBody, TableCell } from "@/components/ui/table"
 import { Textarea } from "@/components/ui/textarea"
+import { useContext, useState } from "react"
+import { ChatContext } from "@/contexts/chat-context"
+import ChatMessage from "./chat-message"
 
 export function Chat() {
+
+  const chatContext = useContext(ChatContext);
+  const [currentMessage, setCurrentMessage] = useState('');
+
   return (
     <Drawer>
       <DrawerTrigger asChild>
@@ -31,7 +38,7 @@ export function Chat() {
           <MessageCircleIcon className="w-5 h-5 text-primary" />
         </Button>
       </DrawerTrigger>
-      <DrawerContent className="sm:max-w-[425px] bg-white dark:bg-zinc-950">
+      <DrawerContent className="sm:max-w-[825px] bg-white dark:bg-zinc-950">
         <DrawerHeader>
           <DrawerTitle>Chat with AI</DrawerTitle>
           <DrawerClose asChild>
@@ -42,21 +49,12 @@ export function Chat() {
         </DrawerHeader>
         <div className="flex flex-col h-[500px] overflow-y-auto">
           <div className="flex-1 p-4 space-y-4">
-            <div className="flex items-start gap-4">
-              <Avatar className="w-8 h-8 border">
-                <AvatarImage src="/placeholder-user.jpg" />
-                <AvatarFallback>OA</AvatarFallback>
-              </Avatar>
-              <div className="grid gap-1">
-                <div className="font-bold">ChatGPT</div>
-                <div className="prose text-muted-foreground">
-                  <p>Hello! I'm an AI assistant created by Anthropic. How can I help you today?</p>
-                </div>
-              </div>
-            </div>
-            <div className="flex items-start gap-4 justify-end">
-              <div className="grid gap-1 text-right">
-                <div className="font-bold">You</div>
+            {chatContext.messages.map((message, index) => (
+              <ChatMessage key={index} message={message} />
+            ))}
+          {/* <div className="flex items-start gap-4 justify-end">
+            <div className="grid gap-1 text-right">
+              <div className="font-bold">You</div>
                 <div className="prose text-muted-foreground">
                   <p>
                     Hi there! I'd like to learn more about the latest advances in AI technology. Can you tell me about
@@ -138,7 +136,7 @@ export function Chat() {
                 <AvatarImage src="/placeholder-user.jpg" />
                 <AvatarFallback>YO</AvatarFallback>
               </Avatar>
-            </div>
+            </div> */}
           </div>
         </div>
         <DrawerFooter className="bg-muted py-2 px-4">
@@ -146,11 +144,15 @@ export function Chat() {
             <Textarea
               placeholder="Type your message..."
               name="message"
+              value={currentMessage}
+              onChange={(e) => setCurrentMessage(e.target.value)}
               id="message"
               rows={1}
               className="min-h-[48px] rounded-2xl resize-none p-4 border border-neutral-400 shadow-sm pr-16"
             />
-            <Button type="submit" size="icon" className="absolute w-8 h-8 top-3 right-3">
+            <Button type="submit" size="icon" className="absolute w-8 h-8 top-3 right-3" onClick={() => {
+              chatContext.sendMessage({ role: 'user', name: 'You', content: currentMessage });
+            }}>
               <ArrowUpIcon className="w-4 h-4" />
               <span className="sr-only">Send</span>
             </Button>
