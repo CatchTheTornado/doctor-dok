@@ -22,7 +22,7 @@ import { Button } from "@/components/ui/button"
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar"
 import { Table, TableHeader, TableRow, TableHead, TableBody, TableCell } from "@/components/ui/table"
 import { Textarea } from "@/components/ui/textarea"
-import { useContext, useState } from "react"
+import { useContext, useEffect, useRef, useState } from "react"
 import { ChatContext } from "@/contexts/chat-context"
 import ChatMessage from "./chat-message"
 
@@ -30,6 +30,16 @@ export function Chat() {
 
   const chatContext = useContext(ChatContext);
   const [currentMessage, setCurrentMessage] = useState('');
+  const messagesContainer = useRef<HTMLDivElement | null>(null);
+
+  useEffect(()=> messagesContainer.current?.scrollIntoView({behavior: "smooth", block:"end"}), [chatContext.messages])
+
+  const handleSubmit = () => {
+    if (currentMessage) {
+      chatContext.sendMessage({ role: 'user', name: 'You', content: currentMessage });
+      setCurrentMessage('');
+    }
+  }
 
   return (
     <Drawer>
@@ -41,14 +51,9 @@ export function Chat() {
       <DrawerContent className="sm:max-w-[825px] bg-white dark:bg-zinc-950">
         <DrawerHeader>
           <DrawerTitle>Chat with AI</DrawerTitle>
-          <DrawerClose asChild>
-            <Button variant="ghost" size="icon">
-              <XIcon className="w-4 h-4" />
-            </Button>
-          </DrawerClose>
         </DrawerHeader>
         <div className="flex flex-col h-[500px] overflow-y-auto">
-          <div className="flex-1 p-4 space-y-4">
+          <div className="flex-1 p-4 space-y-4" ref={messagesContainer}>
             {chatContext.messages.map((message, index) => (
               <ChatMessage key={index} message={message} />
             ))}
@@ -148,10 +153,15 @@ export function Chat() {
               onChange={(e) => setCurrentMessage(e.target.value)}
               id="message"
               rows={1}
+              onKeyDown={(e) => {
+                if(e.key === "Enter" && !e.shiftKey) {
+                  handleSubmit()
+                }
+              }}
               className="min-h-[48px] rounded-2xl resize-none p-4 border border-neutral-400 shadow-sm pr-16"
             />
             <Button type="submit" size="icon" className="absolute w-8 h-8 top-3 right-3" onClick={() => {
-              chatContext.sendMessage({ role: 'user', name: 'You', content: currentMessage });
+              handleSubmit();
             }}>
               <ArrowUpIcon className="w-4 h-4" />
               <span className="sr-only">Send</span>
