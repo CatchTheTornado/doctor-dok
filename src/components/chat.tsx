@@ -26,24 +26,20 @@ import { useContext, useEffect, useRef, useState } from "react"
 import { ChatContext } from "@/contexts/chat-context"
 import ChatMessage from "./chat-message"
 
+
 export function Chat() {
 
   const chatContext = useContext(ChatContext);
   const [currentMessage, setCurrentMessage] = useState('');
-  const messagesContainer = useRef<HTMLDivElement | null>(null);
-  const messageTextArea = useRef<HTMLElement | null>(null);
+  const messageTextArea = useRef<HTMLTextAreaElement | null>(null);
+  const lastMessageRef = useRef<HTMLDivElement | null>(null);
 
   useEffect(()=> {
-      const scrollToTheBottom = () => {
-        const scrollEl = messagesContainer.current;
-        scrollEl?.scroll({
-            top: scrollEl?.scrollHeight,
-            behavior: 'smooth',
-        });
-    };
-    scrollToTheBottom();
+    if (chatContext.lastMessage) {
+      lastMessageRef.current?.scrollIntoView({ behavior: 'smooth' });
+    }
     messageTextArea.current?.focus();
-  }, [chatContext.messages]);
+  }, [chatContext.messages, chatContext.lastMessage]);
   
 
   const handleSubmit = () => {
@@ -65,10 +61,11 @@ export function Chat() {
           <DrawerTitle>Chat with AI</DrawerTitle>
         </DrawerHeader>
         <div className="flex flex-col h-[500px] overflow-y-auto">
-          <div className="flex-1 p-4 space-y-4" ref={messagesContainer}>
+          <div className="flex-1 p-4 space-y-4">
             {chatContext.messages.map((message, index) => (
               <ChatMessage key={index} message={message} />
             ))}
+            <div id="last-message" ref={lastMessageRef}></div>
           {/* <div className="flex items-start gap-4 justify-end">
             <div className="grid gap-1 text-right">
               <div className="font-bold">You</div>
@@ -161,6 +158,7 @@ export function Chat() {
             <Textarea
               placeholder="Type your message..."
               name="message"
+              autoFocus
               ref={messageTextArea}
               value={currentMessage}
               onChange={(e) => setCurrentMessage(e.target.value)}
@@ -168,6 +166,7 @@ export function Chat() {
               rows={1}
               onKeyDown={(e) => {
                 if(e.key === "Enter" && !e.shiftKey) {
+                  e.preventDefault();
                   handleSubmit()
                 }
               }}

@@ -73,7 +73,7 @@ export function PatientEditPopup() {
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <Label htmlFor="firstName">First Name</Label>
-                  <Input id="firstName" error={errors.firstName?.message} {...register("firstName")} />
+                  <Input id="firstName" autoFocus error={errors.firstName?.message} {...register("firstName")} />
                   {errors.firstName && <p className="text-red-500 text-sm">{errors.firstName.message}</p>}
                 </div>
                 <div className="space-y-2">
