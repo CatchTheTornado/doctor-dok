@@ -9,6 +9,7 @@
     "lint": "next lint"
   },
   "dependencies": {
+    "@ai-sdk/openai": "^0.0.36",
     "@hookform/resolvers": "^3.6.0",
     "@radix-ui/react-alert-dialog": "^1.1.1",
     "@radix-ui/react-avatar": "^1.0.4",
@@ -36,6 +37,7 @@
     "react-dom": "^18",
     "react-dropzone": "^14.2.3",
     "react-hook-form": "^7.52.0",
+    "react-markdown": "^9.0.1",
     "react-no-ssr": "^1.1.0",
     "react-to-print": "^2.15.1",
     "react-use": "^17.5.0",
