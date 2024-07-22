@@ -80,7 +80,7 @@ export default function PatientRecordItem(record: PatientRecord) {
     chatContext.sendMessage({
       role: 'user',
       createdAt: new Date(),
-      content: 'This is my health result data. Please parse it to JSON. Include the type of this data in "type" key of JSON. As a separate message please describe the results in plain language markdown.',
+      content: 'This is my health result data. Please parse it to JSON. JSON should be all in English. Include the type of this results in english (eg. "blood_results", "rmi") in "type" key of JSON and then more detailed type in "subtype" key. As a separate message please describe the results in plain language markdown. This part should be in the language of the document itself. Note all exceptions from the norm and tell me what it could mean?',
       experimental_attachments: attachments
     })
   }

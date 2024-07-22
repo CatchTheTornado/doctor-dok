@@ -70,6 +70,7 @@ export const ChatContextProvider: React.FC = ({ children }) => {
             setMessages([...messages, resultMessage])
         }
         setIsStreaming(false);
+        setMessages([...messages, resultMessage])
     }
 
     const sendMessage = (msg: CreateMessage) => { // TODO: Add Vercel AI SDK call
