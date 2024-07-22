@@ -20,7 +20,7 @@
     "@radix-ui/react-select": "^2.0.0",
     "@radix-ui/react-slot": "^1.0.2",
     "@radix-ui/react-tabs": "^1.1.0",
-    "ai": "^3.2.24",
+    "ai": "^3.2.27",
     "axios": "^1.7.2",
     "better-sqlite3": "^11.0.0",
     "class-variance-authority": "^0.7.0",

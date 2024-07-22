@@ -16,6 +16,19 @@ const ChatMessage: React.FC<ChatMessageProps> = ({ message, ref }) => {
             <Markdown>
               {message.content}
             </Markdown>
+              <div>
+                {message.experimental_attachments
+                  ?.filter(attachment =>
+                    attachment.contentType.startsWith('image/'),
+                  )
+                  .map((attachment, index) => (
+                    <img
+                      key={`${message.id}-${index}`}
+                      src={attachment.url}
+                      alt={attachment.name}
+                    />
+                  ))}
+              </div>            
           </div>
         </div>
       </div>

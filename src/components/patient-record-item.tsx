@@ -8,12 +8,17 @@ import { PencilIcon } from "lucide-react";
 import { PatientRecordContext } from "@/contexts/patient-record-context";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "./ui/alert-dialog";
 import { PatientRecordApiClient } from "@/data/client/patient-record-api-client";
+import { MessageCircleIcon } from '@/components/chat'
 import Markdown from "react-markdown";
+import { ChatContext } from "@/contexts/chat-context";
+import { Attachment } from 'ai/react';
+import { convertDataContentToBase64String } from "ai";
 
 export default function PatientRecordItem(record: PatientRecord) {
 
   const config = useContext(ConfigContext);
   const patientRecordContext = useContext(PatientRecordContext)
+  const chatContext = useContext(ChatContext);
 
   const getAttachmentApiClient = async () => {
     const secretKey = await config?.getServerConfig('dataEncryptionMasterKey') as string;
@@ -33,19 +38,51 @@ export default function PatientRecordItem(record: PatientRecord) {
     return apiClient;
   }  
 
-  const downloadAttachment = async (attachment: any) => {
-    console.log('Download attachment', attachment);
+  enum URLType {
+    data = 'data',
+    blob = 'blob'
+  }
+  const getAttachmentDataURL = async(attachmentDTO: EncryptedAttachmentDTO, type: URLType): string => {
+    console.log('Download attachment', attachmentDTO);
 
     const client = await getAttachmentApiClient();
-    const arrayBufferData = await client.get(attachment);    
+    const arrayBufferData = await client.get(attachmentDTO);    
 
-    const blob = new Blob([arrayBufferData], { type: attachment.mimeType + ";charset=utf-8" });
-    const url = URL.createObjectURL(blob);
+    if (type === URLType.blob) {
+      const blob = new Blob([arrayBufferData], { type: attachmentDTO.mimeType + ";charset=utf-8" });
+      const url = URL.createObjectURL(blob);
+      return url;
+    } else {
+      const url = 'data:' + attachmentDTO.mimeType +';base64,' + convertDataContentToBase64String(arrayBufferData);
+      return url;
+    }
+  }
+
+  const downloadAttachment = async (attachment: any) => {
+    const url = await getAttachmentDataURL(attachment, URLType.blob);
     window.open(url);    
   };
 
   const deleteHealthRecord = async (record: PatientRecord) => { // TODO: move it to patient record context
     await patientRecordContext?.deletePatientRecord(record);
+  }
+
+  const sendHealthReacordToChat = async (record: PatientRecord) => {
+    const attachments = await Promise.all(record.attachments.map( async ea =>  {
+      return {
+        name: ea.displayName,
+        contentType: ea.mimeType,
+        url: await getAttachmentDataURL(ea.toDTO(), URLType.data) // TODO: convert PDF attachments to images here
+      }
+    }));
+
+    chatContext.setChatOpen(true);
+    chatContext.sendMessage({
+      role: 'user',
+      createdAt: new Date(),
+      content: 'What is that? Please return JSON',
+      experimental_attachments: attachments
+    })
   }
 
 
@@ -68,6 +105,9 @@ export default function PatientRecordItem(record: PatientRecord) {
         <Button size="icon" variant="ghost">
           <PaperclipIcon className="w-4 h-4"  onClick={() => { patientRecordContext?.setCurrentPatientRecord(record);  patientRecordContext?.setPatientRecordEditMode(true); }} />
         </Button>
+        <Button size="icon" variant="ghost">
+          <MessageCircleIcon className="w-4 h-4"  onClick={() => { sendHealthReacordToChat(record) }} />
+        </Button>        
         <AlertDialog>
           <AlertDialogTrigger>
             <Button size="icon" variant="ghost">

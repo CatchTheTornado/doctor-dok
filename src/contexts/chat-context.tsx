@@ -10,6 +10,8 @@ type ChatContextType = {
     messages: Message[];
     lastMessage: Message | null;
     sendMessage: (msg: CreateMessage) => void;
+    chatOpen: boolean,
+    setChatOpen: (value: boolean) => void;
 };
 
 // Create the chat context
@@ -17,6 +19,8 @@ export const ChatContext = createContext<ChatContextType>({
     messages: [],
     lastMessage: null,
     sendMessage: (msg: CreateMessage) => {},
+    chatOpen: false,
+    setChatOpen: (value: boolean) => {}
 });
 
 // Custom hook to access the chat context
@@ -30,6 +34,8 @@ export const ChatContextProvider: React.FC = ({ children }) => {
 //        { role: 'assistant', name: 'AI', content: 'Sure! I will do my best to answer all your questions specifically to your records' }
     ] as Message[]);
     const [lastMessage, setLastMessage] = useState<Message | null>(null);
+    const [chatOpen, setChatOpen] = useState(false);
+
     const config = useContext(ConfigContext);
 
     const aiProvider = async () => {
@@ -44,6 +50,9 @@ export const ChatContextProvider: React.FC = ({ children }) => {
         const result = await streamText({
             model: await aiProvider(),
             messages: convertToCoreMessages(messages),
+            onFinish: (e) =>  {
+                // TODO: add chat persistency and maybe extract health records / other data for #43
+            }
           });
           
         const resultMessage:Message = {
@@ -69,7 +78,9 @@ export const ChatContextProvider: React.FC = ({ children }) => {
     const value = { 
         messages,
         lastMessage,
-        sendMessage
+        sendMessage,
+        chatOpen,
+        setChatOpen
     }
 
     return (

@@ -50,7 +50,7 @@ export function Chat() {
   }
 
   return (
-    <Drawer>
+    <Drawer open={chatContext.chatOpen}>
       <DrawerTrigger asChild>
         <Button variant="outline" size="icon">
           <MessageCircleIcon className="w-5 h-5 text-primary" />
@@ -226,7 +226,7 @@ function XIcon(props) {
   )
 }
 
-function MessageCircleIcon(props) {
+export function MessageCircleIcon(props) {
   return (
     <svg
       {...props}
