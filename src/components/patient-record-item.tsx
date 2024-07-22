@@ -80,7 +80,7 @@ export default function PatientRecordItem(record: PatientRecord) {
     chatContext.sendMessage({
       role: 'user',
       createdAt: new Date(),
-      content: 'What is that? Please return JSON',
+      content: 'This is my health result data. Please parse it to JSON. Include the type of this data in "type" key of JSON. As a separate message please describe the results in plain language markdown.',
       experimental_attachments: attachments
     })
   }

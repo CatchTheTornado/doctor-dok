@@ -25,6 +25,7 @@ import { Textarea } from "@/components/ui/textarea"
 import { useContext, useEffect, useRef, useState } from "react"
 import { ChatContext } from "@/contexts/chat-context"
 import ChatMessage from "./chat-message"
+import DataLoader from "./data-loader"
 
 
 export function Chat() {
@@ -39,7 +40,7 @@ export function Chat() {
       lastMessageRef.current?.scrollIntoView({ behavior: 'smooth' });
     }
     messageTextArea.current?.focus();
-  }, [chatContext.messages, chatContext.lastMessage]);
+  }, [chatContext.messages, chatContext.lastMessage, chatContext.isStreaming]);
   
 
   const handleSubmit = () => {
@@ -50,7 +51,7 @@ export function Chat() {
   }
 
   return (
-    <Drawer open={chatContext.chatOpen}>
+    <Drawer open={chatContext.chatOpen} onOpenChange={chatContext.setChatOpen}>
       <DrawerTrigger asChild>
         <Button variant="outline" size="icon">
           <MessageCircleIcon className="w-5 h-5 text-primary" />
@@ -65,6 +66,9 @@ export function Chat() {
             {chatContext.messages.map((message, index) => (
               <ChatMessage key={index} message={message} />
             ))}
+            {chatContext.isStreaming ? (
+              <div className="ml-2 h-4 w-4 animate-spin rounded-full border-4 border-primary border-t-transparent" />
+            ):null}
             <div id="last-message" ref={lastMessageRef}></div>
           {/* <div className="flex items-start gap-4 justify-end">
             <div className="grid gap-1 text-right">

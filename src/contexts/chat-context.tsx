@@ -12,6 +12,7 @@ type ChatContextType = {
     sendMessage: (msg: CreateMessage) => void;
     chatOpen: boolean,
     setChatOpen: (value: boolean) => void;
+    isStreaming: boolean;
 };
 
 // Create the chat context
@@ -20,7 +21,8 @@ export const ChatContext = createContext<ChatContextType>({
     lastMessage: null,
     sendMessage: (msg: CreateMessage) => {},
     chatOpen: false,
-    setChatOpen: (value: boolean) => {}
+    setChatOpen: (value: boolean) => {},
+    isStreaming: false
 });
 
 // Custom hook to access the chat context
@@ -35,6 +37,7 @@ export const ChatContextProvider: React.FC = ({ children }) => {
     ] as Message[]);
     const [lastMessage, setLastMessage] = useState<Message | null>(null);
     const [chatOpen, setChatOpen] = useState(false);
+    const [isStreaming, setIsStreaming] = useState(false);
 
     const config = useContext(ConfigContext);
 
@@ -47,6 +50,7 @@ export const ChatContextProvider: React.FC = ({ children }) => {
 
     const aiApiCall = async (messages: Message[]) => {
         
+        setIsStreaming(true);
         const result = await streamText({
             model: await aiProvider(),
             messages: convertToCoreMessages(messages),
@@ -65,6 +69,7 @@ export const ChatContextProvider: React.FC = ({ children }) => {
             resultMessage.content += delta;
             setMessages([...messages, resultMessage])
         }
+        setIsStreaming(false);
     }
 
     const sendMessage = (msg: CreateMessage) => { // TODO: Add Vercel AI SDK call
@@ -72,7 +77,10 @@ export const ChatContextProvider: React.FC = ({ children }) => {
         setMessages([...messages, newlyCreatedOne]);
         setLastMessage(newlyCreatedOne)
 
-        aiApiCall([...messages, newlyCreatedOne]);
+        // removing attachments from previously sent messages
+        aiApiCall([...messages.map(msg => {
+            return Object.assign(msg, { experimental_attachments: null, prev_sent_attachments: msg.experimental_attachments })
+        }), newlyCreatedOne]);
     }
 
     const value = { 
@@ -80,7 +88,8 @@ export const ChatContextProvider: React.FC = ({ children }) => {
         lastMessage,
         sendMessage,
         chatOpen,
-        setChatOpen
+        setChatOpen,
+        isStreaming
     }
 
     return (
