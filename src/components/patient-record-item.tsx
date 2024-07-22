@@ -8,6 +8,7 @@ import { PencilIcon } from "lucide-react";
 import { PatientRecordContext } from "@/contexts/patient-record-context";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "./ui/alert-dialog";
 import { PatientRecordApiClient } from "@/data/client/patient-record-api-client";
+import Markdown from "react-markdown";
 
 export default function PatientRecordItem(record: PatientRecord) {
 
@@ -54,7 +55,7 @@ export default function PatientRecordItem(record: PatientRecord) {
         <div className="text-sm font-medium">{record.type}</div>
         <div className="text-xs text-zinc-500 dark:text-zinc-400">{record.createdAt}</div>
       </div>
-      <div className="mt-2 text-sm">{record.description}</div>
+      <div className="mt-2 rose text-sm text-muted-foreground [&>*]:p-2 [&_li]:list-disc [&_li]:ml-4"><Markdown>{record.description}</Markdown></div>
       <div className="mt-2 flex flex-wrap items-center gap-2 w-100">
         {record.attachments.map((attachment, index) => (
           <div key={index} className="text-sm inline-flex w-auto"><Button variant="outline" onClick={() => downloadAttachment(attachment)}><PaperclipIcon className="w-4 h-4 mr-2" /> {attachment.displayName}</Button></div>
