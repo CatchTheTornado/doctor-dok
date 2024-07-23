@@ -1,14 +1,29 @@
 import React, { createContext, useContext, useState } from 'react';
-import { CreateMessage, Message } from 'ai/react';
+import { CreateMessage, Message, Attachment } from 'ai/react';
 import { nanoid } from 'nanoid';
 import { createOpenAI, openai } from '@ai-sdk/openai';
 import { convertToCoreMessages, streamText } from 'ai';
 import { ConfigContext } from './config-context';
 
+enum MessageDisplayMode {
+    Text = 'text',
+    InternalJSONRequest = 'internalJSONRequest',
+    InternalJSONResponse= 'internalJSONResponse'
+}
+
+
+export type MessageEx = Message & {
+    prev_sent_attachments?: Attachment[];
+    displayMode?: MessageDisplayMode
+}
+
+export type CreateMessageEx = MessageEx & {
+    id?: Message['id'];
+}
 
 type ChatContextType = {
-    messages: Message[];
-    lastMessage: Message | null;
+    messages: MessageEx[];
+    lastMessage: MessageEx | null;
     sendMessage: (msg: CreateMessage) => void;
     chatOpen: boolean,
     setChatOpen: (value: boolean) => void;
@@ -34,8 +49,8 @@ export const ChatContextProvider: React.FC = ({ children }) => {
     const [ messages, setMessages ] = useState([
         { role: 'user', name: 'You', content: 'Hi there! I will send in this conversation some medical records, please help me understand it and answer the questions as if you were physican!' },
 //        { role: 'assistant', name: 'AI', content: 'Sure! I will do my best to answer all your questions specifically to your records' }
-    ] as Message[]);
-    const [lastMessage, setLastMessage] = useState<Message | null>(null);
+    ] as MessageEx[]);
+    const [lastMessage, setLastMessage] = useState<MessageEx | null>(null);
     const [chatOpen, setChatOpen] = useState(false);
     const [isStreaming, setIsStreaming] = useState(false);
 
@@ -48,23 +63,25 @@ export const ChatContextProvider: React.FC = ({ children }) => {
         return aiProvider.chat('gpt-4o-2024-05-13')   
     }
 
-    const aiApiCall = async (messages: Message[]) => {
+    const aiApiCall = async (messages: MessageEx[]) => {
         
         setIsStreaming(true);
-        const result = await streamText({
-            model: await aiProvider(),
-            messages: convertToCoreMessages(messages),
-            onFinish: (e) =>  {
-                // TODO: add chat persistency and maybe extract health records / other data for #43
-            }
-          });
-          
-        const resultMessage:Message = {
+        const resultMessage:MessageEx = {
             id: nanoid(),
             content: '',
             createdAt: new Date(),
             role: 'assistant'
-        }
+        }        
+        const result = await streamText({
+            model: await aiProvider(),
+            messages: convertToCoreMessages(messages),
+            onFinish: (e) =>  {
+                e.text.indexOf('```json') > -1 ? resultMessage.displayMode = MessageDisplayMode.InternalJSONResponse : resultMessage.displayMode = MessageDisplayMode.Text
+                // TODO: add chat persistency and maybe extract health records / other data for #43
+            }
+          });
+          
+
         for await (const delta of result.textStream) {
             resultMessage.content += delta;
             setMessages([...messages, resultMessage])
@@ -73,12 +90,18 @@ export const ChatContextProvider: React.FC = ({ children }) => {
         setMessages([...messages, resultMessage])
     }
 
-    const sendMessage = (msg: CreateMessage) => { // TODO: Add Vercel AI SDK call
+    const sendMessage = (msg: CreateMessageEx) => {
         const newlyCreatedOne = { ...msg, id: nanoid() };
+        if (newlyCreatedOne.content.indexOf('JSON')) {
+            newlyCreatedOne.displayMode = MessageDisplayMode.InternalJSONRequest
+        } else {
+            newlyCreatedOne.displayMode = MessageDisplayMode.Text;
+        }
         setMessages([...messages, newlyCreatedOne]);
         setLastMessage(newlyCreatedOne)
 
         // removing attachments from previously sent messages
+        // TODO: remove the workaround with "prev_sent_attachments" by extending the MessageEx type with our own to save space for it
         aiApiCall([...messages.map(msg => {
             return Object.assign(msg, { experimental_attachments: null, prev_sent_attachments: msg.experimental_attachments })
         }), newlyCreatedOne]);

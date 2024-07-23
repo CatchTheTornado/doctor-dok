@@ -13,6 +13,8 @@ import Markdown from "react-markdown";
 import { ChatContext } from "@/contexts/chat-context";
 import { Attachment } from 'ai/react';
 import { convertDataContentToBase64String } from "ai";
+import { convert } from '@/lib/pdf2js'
+import { pdfjs } from 'react-pdf'
 
 export default function PatientRecordItem(record: PatientRecord) {
 
@@ -68,13 +70,29 @@ export default function PatientRecordItem(record: PatientRecord) {
   }
 
   const sendHealthReacordToChat = async (record: PatientRecord) => {
-    const attachments = await Promise.all(record.attachments.map( async ea =>  {
-      return {
-        name: ea.displayName,
-        contentType: ea.mimeType,
-        url: await getAttachmentDataURL(ea.toDTO(), URLType.data) // TODO: convert PDF attachments to images here
+    const attachments = []
+    
+    for(const ea of record.attachments){
+
+      if (ea.mimeType === 'application/pdf') {
+        const pdfBase64Content = await getAttachmentDataURL(ea.toDTO(), URLType.data); // convert to images otherwise it's not supported by vercel ai sdk
+        const imagesArray = await convert(pdfBase64Content, { base64: true }, pdfjs)
+        for (let i = 0; i < imagesArray.length; i++){
+          attachments.push({
+            name: ea.displayName + ' page ' + (i+1),
+            contentType: 'image/x-png',
+            url: imagesArray[i]
+          })
+        }
+
+      } else {
+        attachments.push({
+          name: ea.displayName,
+          contentType: ea.mimeType,
+          url: await getAttachmentDataURL(ea.toDTO(), URLType.data) // TODO: convert PDF attachments to images here
+        })
       }
-    }));
+    }
 
     chatContext.setChatOpen(true);
     chatContext.sendMessage({
