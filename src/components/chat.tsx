@@ -45,7 +45,7 @@ export function Chat() {
 
   const handleSubmit = () => {
     if (currentMessage) {
-      chatContext.sendMessage({ role: 'user', name: 'You', content: currentMessage });
+      chatContext.sendMessage({ message: { role: 'user', name: 'You', content: currentMessage }});
       setCurrentMessage('');
     }
   }
