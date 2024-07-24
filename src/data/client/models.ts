@@ -148,7 +148,7 @@ export class PatientRecord {
     patientId: number;
     description?: string;
     type: string;
-    json?: string;
+    json?: any;
     extra?: string;
     createdAt: string;
     updatedAt: string;
@@ -159,7 +159,12 @@ export class PatientRecord {
       this.patientId = patientRecordSource.patientId;
       this.description = patientRecordSource.description;
       this.type = patientRecordSource.type;
-      this.json = patientRecordSource.json;
+      if(patientRecordSource instanceof PatientRecord) {
+        this.json = patientRecordSource.json
+     } else {
+        this.json = patientRecordSource.json ? (typeof patientRecordSource.json === 'string' ? JSON.parse(patientRecordSource.json) : patientRecordSource.json) : null;
+     }
+
       this.extra = patientRecordSource.extra;
       this.createdAt = patientRecordSource.createdAt;
       this.updatedAt = patientRecordSource.updatedAt;
@@ -180,7 +185,7 @@ export class PatientRecord {
         patientId: this.patientId,
         description: this.description,
         type: this.type,
-        json: this.json,
+        json: JSON.stringify(this.json),
         extra: this.extra,
         createdAt: this.createdAt,
         updatedAt: this.updatedAt,

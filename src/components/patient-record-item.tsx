@@ -15,6 +15,8 @@ import { Attachment } from 'ai/react';
 import { convertDataContentToBase64String } from "ai";
 import { convert } from '@/lib/pdf2js'
 import { pdfjs } from 'react-pdf'
+import { findCodeBlocks } from "@/lib/utils";
+import PatientRecordItemJson from "./patient-record-item-json";
 
 export default function PatientRecordItem(record: PatientRecord) {
 
@@ -72,35 +74,69 @@ export default function PatientRecordItem(record: PatientRecord) {
   const sendHealthReacordToChat = async (record: PatientRecord) => {
     const attachments = []
     
-    for(const ea of record.attachments){
+    if (!record.json) { 
+      for(const ea of record.attachments){
 
-      if (ea.mimeType === 'application/pdf') {
-        const pdfBase64Content = await getAttachmentDataURL(ea.toDTO(), URLType.data); // convert to images otherwise it's not supported by vercel ai sdk
-        const imagesArray = await convert(pdfBase64Content, { base64: true }, pdfjs)
-        for (let i = 0; i < imagesArray.length; i++){
+        if (ea.mimeType === 'application/pdf') {
+          const pdfBase64Content = await getAttachmentDataURL(ea.toDTO(), URLType.data); // convert to images otherwise it's not supported by vercel ai sdk
+          const imagesArray = await convert(pdfBase64Content, { base64: true }, pdfjs)
+          for (let i = 0; i < imagesArray.length; i++){
+            attachments.push({
+              name: ea.displayName + ' page ' + (i+1),
+              contentType: 'image/x-png',
+              url: imagesArray[i]
+            })
+          }
+
+        } else {
           attachments.push({
-            name: ea.displayName + ' page ' + (i+1),
-            contentType: 'image/x-png',
-            url: imagesArray[i]
+            name: ea.displayName,
+            contentType: ea.mimeType,
+            url: await getAttachmentDataURL(ea.toDTO(), URLType.data) // TODO: convert PDF attachments to images here
           })
         }
-
-      } else {
-        attachments.push({
-          name: ea.displayName,
-          contentType: ea.mimeType,
-          url: await getAttachmentDataURL(ea.toDTO(), URLType.data) // TODO: convert PDF attachments to images here
-        })
       }
-    }
 
-    chatContext.setChatOpen(true);
-    chatContext.sendMessage({
-      role: 'user',
-      createdAt: new Date(),
-      content: 'This is my health result data. Please parse it to JSON. JSON should be all in English. Include the type of this results in english (eg. "blood_results", "rmi") in "type" key of JSON and then more detailed type in "subtype" key. As a separate message please describe the results in plain language markdown. This part should be in the language of the document itself. Note all exceptions from the norm and tell me what it could mean?',
-      experimental_attachments: attachments
-    })
+      chatContext.setChatOpen(true);
+      chatContext.sendMessage({
+        message: {
+          role: 'user',
+          createdAt: new Date(),
+          content: 'This is my health result data. Please parse it to JSON array. JSON should be all in English (translate from original language). Each medical record should a row of returned JSON array, for example: [ { type: "blood_results", subtype: "morphology", ... }, {type: "mri", subtype: "head mri", ...}]. Include the type of this results in english (eg. "blood_results", "rmi") in "type" key of JSON and then more detailed type in "subtype" key. If the result is single block of text please try additionaly to saving text result extract all key features from it and put it as an array under "findings" key. Please describe the results in plain language markdown. This part should be in the language of the document itself. Note all exceptions from the norm and tell me what it could mean?',
+          experimental_attachments: attachments
+        },
+        onResult: (resultMessage, result) => {
+          if(result.text.indexOf('```json') > -1){
+            const jsonBlocks = findCodeBlocks(result.text);
+            let recordJSON = [];
+            if(jsonBlocks.blocks.length > 0) {
+              for (const jsonBlock of jsonBlocks.blocks) {
+                const jsonObject = JSON.parse(jsonBlock.code);
+                if(Array.isArray(jsonObject)) {
+                  for (const record of jsonObject) {
+                    recordJSON.push(record);
+                  }
+                } else recordJSON.push(jsonObject);
+                if (record) {
+                  record = new PatientRecord({ ...record, json: recordJSON });
+                  patientRecordContext?.updatePatientRecord(record);
+                }
+              }
+              console.log('JSON repr: ', recordJSON);
+            }
+          }        
+        }
+      })
+    } else {
+      chatContext.setChatOpen(true);
+      chatContext.sendMessage({
+        message: {
+          role: 'user',
+          createdAt: new Date(),
+          content: "This is my health result data in JSON format: ```\n\n" + JSON.stringify(record.json) + "\n\n```. \nJSON Please describe the results in plain language markdown. This part should be in the language of the document itself. Note all exceptions from the norm and tell me what it could mean?",
+        }
+      });
+    }
   }
 
 
@@ -111,6 +147,9 @@ export default function PatientRecordItem(record: PatientRecord) {
         <div className="text-xs text-zinc-500 dark:text-zinc-400">{record.createdAt}</div>
       </div>
       <div className="mt-2 rose text-sm text-muted-foreground [&>*]:p-2 [&_li]:list-disc [&_li]:ml-4"><Markdown>{record.description}</Markdown></div>
+      <div className="mt-2 flex flex-wrap items-center gap-2 w-100">
+        <PatientRecordItemJson record={record} />
+      </div>
       <div className="mt-2 flex flex-wrap items-center gap-2 w-100">
         {record.attachments.map((attachment, index) => (
           <div key={index} className="text-sm inline-flex w-auto"><Button variant="outline" onClick={() => downloadAttachment(attachment)}><PaperclipIcon className="w-4 h-4 mr-2" /> {attachment.displayName}</Button></div>

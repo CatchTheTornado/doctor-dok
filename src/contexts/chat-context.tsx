@@ -2,7 +2,7 @@ import React, { createContext, useContext, useState } from 'react';
 import { CreateMessage, Message, Attachment } from 'ai/react';
 import { nanoid } from 'nanoid';
 import { createOpenAI, openai } from '@ai-sdk/openai';
-import { convertToCoreMessages, streamText } from 'ai';
+import { CallWarning, convertToCoreMessages, FinishReason, streamText } from 'ai';
 import { ConfigContext } from './config-context';
 
 enum MessageDisplayMode {
@@ -21,10 +21,38 @@ export type CreateMessageEx = MessageEx & {
     id?: Message['id'];
 }
 
+export type AIResultEventType = {
+    finishReason: FinishReason;
+    usage: any;
+    text: string;
+    toolCalls?: {
+        type: "tool-call";
+        toolCallId: string;
+        toolName: string;
+        args: any;
+    }[] | undefined;
+    toolResults?: never[] | undefined;
+    rawResponse?: {
+        headers?: Record<string, string>;
+    };
+    warnings?: CallWarning[];
+}
+type OnResultCallback = (result: MessageEx, eventData: AIResultEventType) => void;
+
+export type CreateMessageEnvelope = {
+    message: CreateMessageEx;
+    onResult?: OnResultCallback
+}
+export type CreateMessagesEnvelope = {
+    messages: CreateMessageEx[];
+    onResult?: OnResultCallback
+}
+
 type ChatContextType = {
     messages: MessageEx[];
     lastMessage: MessageEx | null;
-    sendMessage: (msg: CreateMessage) => void;
+    sendMessage: (msg: CreateMessageEnvelope) => void;
+    sendMessages: (msg: CreateMessagesEnvelope) => void;
     chatOpen: boolean,
     setChatOpen: (value: boolean) => void;
     isStreaming: boolean;
@@ -34,7 +62,8 @@ type ChatContextType = {
 export const ChatContext = createContext<ChatContextType>({
     messages: [],
     lastMessage: null,
-    sendMessage: (msg: CreateMessage) => {},
+    sendMessage: (msg: CreateMessageEnvelope) => {},
+    sendMessages: (msg: CreateMessagesEnvelope) => {},
     chatOpen: false,
     setChatOpen: (value: boolean) => {},
     isStreaming: false
@@ -60,10 +89,10 @@ export const ChatContextProvider: React.FC = ({ children }) => {
         const aiProvider = createOpenAI({
             apiKey: await config?.getLocalConfig('chatGptApiKey') as string
         })
-        return aiProvider.chat('gpt-4o-2024-05-13')   
+        return aiProvider.chat('gpt-4o')   //gpt-4o-2024-05-13
     }
 
-    const aiApiCall = async (messages: MessageEx[]) => {
+    const aiApiCall = async (messages: MessageEx[], onResult?: OnResultCallback) => {
         
         setIsStreaming(true);
         const resultMessage:MessageEx = {
@@ -77,6 +106,7 @@ export const ChatContextProvider: React.FC = ({ children }) => {
             messages: convertToCoreMessages(messages),
             onFinish: (e) =>  {
                 e.text.indexOf('```json') > -1 ? resultMessage.displayMode = MessageDisplayMode.InternalJSONResponse : resultMessage.displayMode = MessageDisplayMode.Text
+                if (onResult) onResult(resultMessage, e);
                 // TODO: add chat persistency and maybe extract health records / other data for #43
             }
           });
@@ -90,27 +120,46 @@ export const ChatContextProvider: React.FC = ({ children }) => {
         setMessages([...messages, resultMessage])
     }
 
-    const sendMessage = (msg: CreateMessageEx) => {
+    const prepareMessage = (msg: MessageEx, setMessages: React.Dispatch<React.SetStateAction<MessageEx[]>>, messages: MessageEx[], setLastMessage: React.Dispatch<React.SetStateAction<MessageEx | null>>) => {
         const newlyCreatedOne = { ...msg, id: nanoid() };
         if (newlyCreatedOne.content.indexOf('JSON')) {
-            newlyCreatedOne.displayMode = MessageDisplayMode.InternalJSONRequest
+            newlyCreatedOne.displayMode = MessageDisplayMode.InternalJSONRequest;
         } else {
             newlyCreatedOne.displayMode = MessageDisplayMode.Text;
         }
         setMessages([...messages, newlyCreatedOne]);
-        setLastMessage(newlyCreatedOne)
+        setLastMessage(newlyCreatedOne);
+        return newlyCreatedOne;
+    }    
+    const sendMessage = (envelope: CreateMessageEnvelope) => {
+        const newlyCreatedOne = prepareMessage(envelope.message, setMessages, messages, setLastMessage);
 
         // removing attachments from previously sent messages
         // TODO: remove the workaround with "prev_sent_attachments" by extending the MessageEx type with our own to save space for it
         aiApiCall([...messages.map(msg => {
             return Object.assign(msg, { experimental_attachments: null, prev_sent_attachments: msg.experimental_attachments })
-        }), newlyCreatedOne]);
+        }), newlyCreatedOne], envelope.onResult);
+    }
+
+    const sendMessages = (envelope: CreateMessagesEnvelope) => {
+        const newMessages = [];
+        for (const msg of envelope.messages) {
+            const newlyCreatedOne = prepareMessage(msg, setMessages, messages, setLastMessage);
+            newMessages.push(newlyCreatedOne);
+        }
+
+        // removing attachments from previously sent messages
+        // TODO: remove the workaround with "prev_sent_attachments" by extending the MessageEx type with our own to save space for it
+        aiApiCall([...messages.map(msg => {
+            return Object.assign(msg, { experimental_attachments: null, prev_sent_attachments: msg.experimental_attachments })
+        }), ...newMessages], envelope.onResult);        
     }
 
     const value = { 
         messages,
         lastMessage,
         sendMessage,
+        sendMessages,
         chatOpen,
         setChatOpen,
         isStreaming
@@ -122,3 +171,4 @@ export const ChatContextProvider: React.FC = ({ children }) => {
         </ChatContext.Provider>
     );
 };
+

@@ -11,6 +11,7 @@
   "dependencies": {
     "@ai-sdk/openai": "^0.0.36",
     "@hookform/resolvers": "^3.6.0",
+    "@radix-ui/react-accordion": "^1.2.0",
     "@radix-ui/react-alert-dialog": "^1.1.1",
     "@radix-ui/react-avatar": "^1.0.4",
     "@radix-ui/react-checkbox": "^1.0.4",
@@ -39,6 +40,7 @@
     "react-dom": "^18",
     "react-dropzone": "^14.2.3",
     "react-hook-form": "^7.52.0",
+    "react-json-view": "^1.21.3",
     "react-markdown": "^9.0.1",
     "react-no-ssr": "^1.1.0",
     "react-pdf": "^9.1.0",
