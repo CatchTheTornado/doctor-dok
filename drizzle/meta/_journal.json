@@ -71,6 +71,13 @@
       "when": 1720683117663,
       "tag": "0009_cynical_scarlet_witch",
       "breakpoints": true
+    },
+    {
+      "idx": 10,
+      "version": "6",
+      "when": 1721935212547,
+      "tag": "0010_red_zzzax",
+      "breakpoints": true
     }
   ]
 }

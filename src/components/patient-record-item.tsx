@@ -17,6 +17,9 @@ import { convert } from '@/lib/pdf2js'
 import { pdfjs } from 'react-pdf'
 import { findCodeBlocks } from "@/lib/utils";
 import PatientRecordItemJson from "./patient-record-item-json";
+import { prompts } from "@/data/ai/prompts";
+import { formatString } from 'typescript-string-operations'
+import { parse } from "path";
 
 export default function PatientRecordItem(record: PatientRecord) {
 
@@ -71,69 +74,80 @@ export default function PatientRecordItem(record: PatientRecord) {
     await patientRecordContext?.deletePatientRecord(record);
   }
 
-  const sendHealthReacordToChat = async (record: PatientRecord) => {
+  const parsePatientRecord = async (record: PatientRecord, parsePromptText:string = prompts.patientRecordParse)=> {
     const attachments = []
-    
-    if (!record.json) { 
-      for(const ea of record.attachments){
+    for(const ea of record.attachments){
 
-        if (ea.mimeType === 'application/pdf') {
-          const pdfBase64Content = await getAttachmentDataURL(ea.toDTO(), URLType.data); // convert to images otherwise it's not supported by vercel ai sdk
-          const imagesArray = await convert(pdfBase64Content, { base64: true }, pdfjs)
-          for (let i = 0; i < imagesArray.length; i++){
-            attachments.push({
-              name: ea.displayName + ' page ' + (i+1),
-              contentType: 'image/x-png',
-              url: imagesArray[i]
-            })
-          }
-
-        } else {
+      if (ea.mimeType === 'application/pdf') {
+        const pdfBase64Content = await getAttachmentDataURL(ea.toDTO(), URLType.data); // convert to images otherwise it's not supported by vercel ai sdk
+        const imagesArray = await convert(pdfBase64Content, { base64: true }, pdfjs)
+        for (let i = 0; i < imagesArray.length; i++){
           attachments.push({
-            name: ea.displayName,
-            contentType: ea.mimeType,
-            url: await getAttachmentDataURL(ea.toDTO(), URLType.data) // TODO: convert PDF attachments to images here
+            name: ea.displayName + ' page ' + (i+1),
+            contentType: 'image/x-png',
+            url: imagesArray[i]
           })
         }
-      }
 
-      chatContext.setChatOpen(true);
-      chatContext.sendMessage({
-        message: {
-          role: 'user',
-          createdAt: new Date(),
-          content: 'This is my health result data. Please parse it to JSON array. JSON should be all in English (translate from original language). Each medical record should a row of returned JSON array, for example: [ { type: "blood_results", subtype: "morphology", ... }, {type: "mri", subtype: "head mri", ...}]. Include the type of this results in english (eg. "blood_results", "rmi") in "type" key of JSON and then more detailed type in "subtype" key. If the result is single block of text please try additionaly to saving text result extract all key features from it and put it as an array under "findings" key. Please describe the results in plain language markdown. This part should be in the language of the document itself. Note all exceptions from the norm and tell me what it could mean?',
-          experimental_attachments: attachments
-        },
-        onResult: (resultMessage, result) => {
-          if(result.text.indexOf('```json') > -1){
-            const jsonBlocks = findCodeBlocks(result.text);
-            let recordJSON = [];
-            if(jsonBlocks.blocks.length > 0) {
-              for (const jsonBlock of jsonBlocks.blocks) {
-                const jsonObject = JSON.parse(jsonBlock.code);
+      } else {
+        attachments.push({
+          name: ea.displayName,
+          contentType: ea.mimeType,
+          url: await getAttachmentDataURL(ea.toDTO(), URLType.data) // TODO: convert PDF attachments to images here
+        })
+      }
+    }
+
+    chatContext.setChatOpen(true);
+    chatContext.sendMessage({
+      message: {
+        role: 'user',
+        createdAt: new Date(),
+        content: parsePromptText,
+        experimental_attachments: attachments
+      },
+      onResult: (resultMessage, result) => {
+        if(result.text.indexOf('```json') > -1){
+          const codeBlocks = findCodeBlocks(result.text);
+          let recordJSON = [];
+          let recordMarkdown = ""
+          if(codeBlocks.blocks.length > 0) {
+            for (const block of codeBlocks.blocks) {
+              if (block.syntax === 'json') {
+                const jsonObject = JSON.parse(block.code);
                 if(Array.isArray(jsonObject)) {
                   for (const record of jsonObject) {
                     recordJSON.push(record);
                   }
                 } else recordJSON.push(jsonObject);
-                if (record) {
-                  record = new PatientRecord({ ...record, json: recordJSON });
-                  patientRecordContext?.updatePatientRecord(record);
-                }
               }
-              console.log('JSON repr: ', recordJSON);
+
+              if (block.syntax === 'markdown') {
+                recordMarkdown += block.code;
+              }
             }
-          }        
-        }
-      })
+
+            if (record) {
+              record = new PatientRecord({ ...record, json: recordJSON, text: recordMarkdown });
+              patientRecordContext?.updatePatientRecord(record);
+            }            
+            console.log('JSON repr: ', recordJSON);
+          }
+        }        
+      }
+    })    
+  }
+
+  const sendHealthReacordToChat = async (record: PatientRecord, forceRefresh: boolean = false) => {
+    if (!record.json || forceRefresh) {  // first: parse the record
+      parsePatientRecord(record);
     } else {
       chatContext.setChatOpen(true);
       chatContext.sendMessage({
         message: {
           role: 'user',
           createdAt: new Date(),
-          content: "This is my health result data in JSON format: ```\n\n" + JSON.stringify(record.json) + "\n\n```. \nJSON Please describe the results in plain language markdown. This part should be in the language of the document itself. Note all exceptions from the norm and tell me what it could mean?",
+          content: formatString(prompts.patientRecordIntoChat, JSON.stringify(record.json)),
         }
       });
     }
@@ -147,6 +161,7 @@ export default function PatientRecordItem(record: PatientRecord) {
         <div className="text-xs text-zinc-500 dark:text-zinc-400">{record.createdAt}</div>
       </div>
       <div className="mt-2 rose text-sm text-muted-foreground [&>*]:p-2 [&_li]:list-disc [&_li]:ml-4"><Markdown>{record.description}</Markdown></div>
+      <div className="mt-2 rose text-sm text-muted-foreground [&>*]:p-2 [&_li]:list-disc [&_li]:ml-4"><Markdown>{record.text}</Markdown></div>
       <div className="mt-2 flex flex-wrap items-center gap-2 w-100">
         <PatientRecordItemJson record={record} />
       </div>
@@ -162,6 +177,9 @@ export default function PatientRecordItem(record: PatientRecord) {
         <Button size="icon" variant="ghost">
           <PaperclipIcon className="w-4 h-4"  onClick={() => { patientRecordContext?.setCurrentPatientRecord(record);  patientRecordContext?.setPatientRecordEditMode(true); }} />
         </Button>
+        <Button size="icon" variant="ghost">
+          <RefreshCwIcon className="w-4 h-4"  onClick={() => { sendHealthReacordToChat(record, true) } /* TODO: add prompt UI for altering the prompt */ } />
+        </Button>       
         <Button size="icon" variant="ghost">
           <MessageCircleIcon className="w-4 h-4"  onClick={() => { sendHealthReacordToChat(record) }} />
         </Button>        
@@ -187,4 +205,27 @@ export default function PatientRecordItem(record: PatientRecord) {
       </div>
     </div>
   );
+}
+
+
+function RefreshCwIcon(props) {
+  return (
+    <svg
+      {...props}
+      xmlns="http://www.w3.org/2000/svg"
+      width="24"
+      height="24"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    >
+      <path d="M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8" />
+      <path d="M21 3v5h-5" />
+      <path d="M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 16" />
+      <path d="M8 16H3v5" />
+    </svg>
+  )
 }

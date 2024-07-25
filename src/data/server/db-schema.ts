@@ -22,7 +22,10 @@ export const patientRecords = sqliteTable('patientRecords', {
     patientId: integer('patientId', { mode: 'number' }).references(() => patients.id),
     description: text('description'),
     type: text('type'),
+    
     json: text('json', { mode: 'json' }),
+    text: text('text'),
+
     extra: text('extra', { mode: 'json' }),
     attachments: text('attachments', { mode: 'json' }),
     

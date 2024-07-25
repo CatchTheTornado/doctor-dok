@@ -1,0 +1,1 @@
+ALTER TABLE `patientRecords` ADD `text` text;
