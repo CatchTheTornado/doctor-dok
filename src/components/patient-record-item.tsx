@@ -108,7 +108,7 @@ export default function PatientRecordItem(record: PatientRecord) {
       },
       onResult: (resultMessage, result) => {
         if(result.text.indexOf('```json') > -1){
-          const codeBlocks = findCodeBlocks(result.text);
+          const codeBlocks = findCodeBlocks(result.text.trimEnd().endsWith('```') ? result.text : result.text + '```', false);
           let recordJSON = [];
           let recordMarkdown = ""
           if(codeBlocks.blocks.length > 0) {
