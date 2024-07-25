@@ -19,7 +19,8 @@ import { findCodeBlocks } from "@/lib/utils";
 import PatientRecordItemJson from "./patient-record-item-json";
 import { prompts } from "@/data/ai/prompts";
 import { formatString } from 'typescript-string-operations'
-import { parse } from "path";
+import remarkGfm from 'remark-gfm'
+
 
 export default function PatientRecordItem(record: PatientRecord) {
 
@@ -160,8 +161,8 @@ export default function PatientRecordItem(record: PatientRecord) {
         <div className="text-sm font-medium">{record.type}</div>
         <div className="text-xs text-zinc-500 dark:text-zinc-400">{record.createdAt}</div>
       </div>
-      <div className="mt-2 rose text-sm text-muted-foreground [&>*]:p-2 [&_li]:list-disc [&_li]:ml-4"><Markdown>{record.description}</Markdown></div>
-      <div className="mt-2 rose text-sm text-muted-foreground [&>*]:p-2 [&_li]:list-disc [&_li]:ml-4"><Markdown>{record.text}</Markdown></div>
+      <div className="mt-2 rose text-sm text-muted-foreground [&>*]:p-2 [&_li]:list-disc [&_li]:ml-4"><Markdown remarkPlugins={[remarkGfm]}>{record.description}</Markdown></div>
+      <div className="mt-2 rose text-sm text-muted-foreground [&>*]:p-2 [&_li]:list-disc [&_li]:ml-4"><Markdown remarkPlugins={[remarkGfm]}>{record.text}</Markdown></div>
       <div className="mt-2 flex flex-wrap items-center gap-2 w-100">
         <PatientRecordItemJson record={record} />
       </div>
