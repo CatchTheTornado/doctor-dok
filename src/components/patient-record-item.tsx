@@ -20,6 +20,7 @@ import PatientRecordItemJson from "./patient-record-item-json";
 import { prompts } from "@/data/ai/prompts";
 import { formatString } from 'typescript-string-operations'
 import remarkGfm from 'remark-gfm'
+import { Accordion, AccordionTrigger, AccordionContent, AccordionItem } from "./ui/accordion";
 
 
 export default function PatientRecordItem(record: PatientRecord) {
@@ -162,8 +163,19 @@ export default function PatientRecordItem(record: PatientRecord) {
         <div className="text-xs text-zinc-500 dark:text-zinc-400">{record.createdAt}</div>
       </div>
       <div className="mt-2 rose text-sm text-muted-foreground [&>*]:p-2 [&_li]:list-disc [&_li]:ml-4"><Markdown remarkPlugins={[remarkGfm]}>{record.description}</Markdown></div>
-      <div className="mt-2 rose text-sm text-muted-foreground [&>*]:p-2 [&_li]:list-disc [&_li]:ml-4"><Markdown remarkPlugins={[remarkGfm]}>{record.text}</Markdown></div>
       <div className="mt-2 flex flex-wrap items-center gap-2 w-100">
+        {record.text ? (
+           <div className="w-full">
+                <Accordion type="single" collapsible className="w-full">
+                    <AccordionItem value="item-1">
+                        <AccordionTrigger>Full text results and findings</AccordionTrigger>
+                        <AccordionContent>
+                          <Markdown remarkPlugins={[remarkGfm]}>{record.text}</Markdown>                          
+                        </AccordionContent>
+                    </AccordionItem>
+                </Accordion>
+            </div>        
+          ): null }
         <PatientRecordItemJson record={record} />
       </div>
       <div className="mt-2 flex flex-wrap items-center gap-2 w-100">

@@ -2,6 +2,7 @@ import React from 'react';
 import Markdown from 'react-markdown'
 import ZoomableImage from './zoomable-image';
 import { MessageEx } from '@/contexts/chat-context';
+import remarkGfm from 'remark-gfm';
 
 interface ChatMessageProps {
     message: MessageEx;
@@ -15,7 +16,7 @@ const ChatMessage: React.FC<ChatMessageProps> = ({ message, ref }) => {
           <div className="font-bold">{message.name}</div>
           <div className="prose text-sm text-muted-foreground [&>*]:p-2 [&_li]:list-disc [&_li]:ml-4">
             {message.displayMode === 'internalJSONRequest' || message.displayMode === 'internalJSONResponse' ? ('JSON') : (null)}
-            <Markdown>
+            <Markdown remarkPlugins={[remarkGfm]}>
               {message.content}
             </Markdown>
               <div className="flex items-center justify-left min-h-100">
