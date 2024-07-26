@@ -21,6 +21,7 @@ import { prompts } from "@/data/ai/prompts";
 import { formatString } from 'typescript-string-operations'
 import remarkGfm from 'remark-gfm'
 import { Accordion, AccordionTrigger, AccordionContent, AccordionItem } from "./ui/accordion";
+import { EncryptedAttachmentDTO } from "@/data/dto";
 
 
 export default function PatientRecordItem(record: PatientRecord) {
@@ -76,7 +77,7 @@ export default function PatientRecordItem(record: PatientRecord) {
     await patientRecordContext?.deletePatientRecord(record);
   }
 
-  const parsePatientRecord = async (record: PatientRecord, parsePromptText:string = prompts.patientRecordParse)=> {
+  const parsePatientRecord = async (record: PatientRecord, parsePromptText:string)=> {
     const attachments = []
     for(const ea of record.attachments){
 
@@ -142,14 +143,14 @@ export default function PatientRecordItem(record: PatientRecord) {
 
   const sendHealthReacordToChat = async (record: PatientRecord, forceRefresh: boolean = false) => {
     if (!record.json || forceRefresh) {  // first: parse the record
-      parsePatientRecord(record);
+      parsePatientRecord(record, prompts.patientRecordParse({ record, config }));
     } else {
       chatContext.setChatOpen(true);
       chatContext.sendMessage({
         message: {
           role: 'user',
           createdAt: new Date(),
-          content: formatString(prompts.patientRecordIntoChat, JSON.stringify(record.json)),
+          content: prompts.patientRecordIntoChat({ record, config }),
         }
       });
     }

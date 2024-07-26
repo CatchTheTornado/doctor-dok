@@ -18,7 +18,7 @@ export type MessageEx = Message & {
 }
 
 export type CreateMessageEx = MessageEx & {
-    id?: Message['id'];
+    id?: MessageEx['id'];
 }
 
 export type AIResultEventType = {
