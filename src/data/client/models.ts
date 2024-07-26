@@ -1,3 +1,4 @@
+import { max } from "drizzle-orm";
 import { EncryptedAttachmentDTO, PatientDTO, PatientRecordDTO } from "../dto";
 import { getCurrentTS } from "../utils";
 import { z } from "zod";
@@ -110,11 +111,11 @@ export class EncryptedAttachment {
         this.id = attachmentDTO.id;
         this.assignedTo = attachmentDTO.assignedTo ? ( typeof attachmentDTO.assignedTo == 'string' ? JSON.parse(attachmentDTO.assignedTo) : attachmentDTO.assignedTo ): [];
         this.displayName = attachmentDTO.displayName;
-        this.description = attachmentDTO.description;
-        this.mimeType = attachmentDTO.mimeType;
-        this.type = attachmentDTO.type;
-        this.json = attachmentDTO.json;
-        this.extra = attachmentDTO.extra;
+        this.description = attachmentDTO.description ? attachmentDTO.description : '';
+        this.mimeType = attachmentDTO.mimeType ? attachmentDTO.mimeType : '';
+        this.type = attachmentDTO.type ? attachmentDTO.type : '';
+        this.json = attachmentDTO.json ? attachmentDTO.json : '';
+        this.extra = attachmentDTO.extra ? attachmentDTO.extra : '';
         this.size = attachmentDTO.size;
         this.storageKey = attachmentDTO.storageKey;
         this.createdAt = attachmentDTO.createdAt;
@@ -143,14 +144,44 @@ export class EncryptedAttachment {
     }
 }
 
+
+export const patientRecordItemSchema = z.object({
+    type: z.string().min(1),
+    subtype: z.string().optional(),
+    language: z.string().optional(),
+    test_date: z.date().optional(),
+    admission_date: z.date().optional(),
+    discharge_date: z.date().optional(),
+    conclusion: z.string().optional(),
+    diagnosis: z.array(z.object({})).optional(),
+    findings: z.array(z.object({
+        name: z.string().optional(),
+        value: z.string().optional(),
+        unit: z.string().optional(),
+        min: z.string().optional(),
+        max: z.string().optional(),
+    }).or(z.string())).optional()
+
+  });
+  
+export type PatientRecordItem = z.infer<typeof patientRecordItemSchema>;
+
+export const patientRecordExtraSchema = z.object({
+    name: z.string().optional(),
+    value: z.string().optional(),
+});
+export type PatientRecordExtra = z.infer<typeof patientRecordExtraSchema>;
+
+
+
 export class PatientRecord {
     id?: number;
     patientId: number;
     description?: string;
     type: string;
-    json?: any;
+    json?: PatientRecordItem[] | null;
     text?: string;
-    extra?: string;
+    extra?: PatientRecordExtra[] | null;
     createdAt: string;
     updatedAt: string;
     attachments: EncryptedAttachment[] = [];
@@ -160,14 +191,18 @@ export class PatientRecord {
       this.patientId = patientRecordSource.patientId;
       this.description = patientRecordSource.description;
       this.type = patientRecordSource.type;
-      this.text = patientRecordSource.text;
+      this.text = patientRecordSource.text ? patientRecordSource.text : '';
       if(patientRecordSource instanceof PatientRecord) {
         this.json = patientRecordSource.json
      } else {
         this.json = patientRecordSource.json ? (typeof patientRecordSource.json === 'string' ? JSON.parse(patientRecordSource.json) : patientRecordSource.json) : null;
      }
 
-      this.extra = patientRecordSource.extra;
+     if(patientRecordSource instanceof PatientRecord) {
+        this.extra = patientRecordSource.extra
+     } else {
+        this.extra = patientRecordSource.extra ? (typeof patientRecordSource.extra === 'string' ? JSON.parse(patientRecordSource.extra) : patientRecordSource.extra) : null;
+     }
       this.createdAt = patientRecordSource.createdAt;
       this.updatedAt = patientRecordSource.updatedAt;
       if(patientRecordSource instanceof PatientRecord) {
@@ -188,8 +223,8 @@ export class PatientRecord {
         description: this.description,
         type: this.type,
         json: JSON.stringify(this.json),
-        text: this.text,
-        extra: this.extra,
+        text: this.text ? this.text : '',
+        extra: JSON.stringify(this.extra),
         createdAt: this.createdAt,
         updatedAt: this.updatedAt,
         attachments: JSON.stringify(this.attachments.map(attachment => attachment.toDTO()))
