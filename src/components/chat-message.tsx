@@ -89,7 +89,7 @@ const ChatMessage: React.FC<ChatMessageProps> = ({ message, ref }) => {
                 {message.content}
               </Markdown>
             ))}
-              <div className="flex items-center justify-left min-h-100">
+              <div className="flex-wrap flex items-center justify-left min-h-100">
                 {message.experimental_attachments
                   ?.filter(attachment =>
                     attachment.contentType.startsWith('image/'),
