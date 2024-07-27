@@ -122,7 +122,7 @@ export const ChatContextProvider: React.FC = ({ children }) => {
 
     const prepareMessage = (msg: MessageEx, setMessages: React.Dispatch<React.SetStateAction<MessageEx[]>>, messages: MessageEx[], setLastMessage: React.Dispatch<React.SetStateAction<MessageEx | null>>) => {
         const newlyCreatedOne = { ...msg, id: nanoid() };
-        if (newlyCreatedOne.content.indexOf('JSON')) {
+        if (newlyCreatedOne.content.indexOf('json') > -1) {
             newlyCreatedOne.displayMode = MessageDisplayMode.InternalJSONRequest;
         } else {
             newlyCreatedOne.displayMode = MessageDisplayMode.Text;

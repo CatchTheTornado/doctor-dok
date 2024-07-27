@@ -10,10 +10,12 @@ export const labels = {
     patientRecordItemLabel: (labelFor: string, context: LabelContext) => {
         switch(labelFor) {
             case 'hospitalization': return 'Hospitalization';
+            case 'hospital_discharge_summary': return 'Hospitalization';
             case 'blood_results': return 'Blood results';
             case 'mri': return 'MRI';
             case 'CT scan': return 'CT Scan';
             case 'CT': return 'CT Scan';
+            case 'imaging': return 'Imaging';
             default: return labelFor;
         }
     }
