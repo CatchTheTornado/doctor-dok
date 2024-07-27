@@ -86,7 +86,7 @@ export const PatientRecordContextProvider: React.FC = ({ children }) => {
         try {
             const client = await setupApiClient(config);
             setLoaderStatus(DataLoadingStatus.Loading);
-            const response = await client.get(); // TODO: patient ID is missing
+            const response = await client.get(forPatient.toDTO());
             const fetchedPatientRecords = response.map((patientRecordDTO: PatientRecordDTO) => PatientRecord.fromDTO(patientRecordDTO));
             setPatientRecords(fetchedPatientRecords);
             setLoaderStatus(DataLoadingStatus.Success);

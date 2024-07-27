@@ -1,5 +1,5 @@
 import { ApiClient, ApiEncryptionConfig } from "./base-api-client";
-import { PatientRecordDTO, PatientRecordDTOEncSettings } from "../dto";
+import { PatientDTO, PatientRecordDTO, PatientRecordDTOEncSettings } from "../dto";
 
 export type GetPatientRecordsResponse = PatientRecordDTO[];
 export type PutPatientRecordRequest = PatientRecordDTO;
@@ -29,8 +29,8 @@ export class PatientRecordApiClient extends ApiClient {
       super(baseUrl, encryptionConfig);
     }
   
-    async get(): Promise<GetPatientRecordsResponse> {
-      return this.request<GetPatientRecordsResponse>('/api/patient-record', 'GET', PatientRecordDTOEncSettings) as Promise<GetPatientRecordsResponse>;
+    async get(patient: PatientDTO): Promise<GetPatientRecordsResponse> {
+      return this.request<GetPatientRecordsResponse>('/api/patient-record?patientId=' + patient?.id, 'GET', PatientRecordDTOEncSettings) as Promise<GetPatientRecordsResponse>;
     }
   
     async put(patientRecord: PutPatientRecordRequest): Promise<PutPatientRecordResponse> {

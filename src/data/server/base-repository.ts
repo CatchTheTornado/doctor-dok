@@ -24,7 +24,7 @@ export abstract class BaseRepository<T> implements IWrite<T>, IRead<T> {
     async delete(query: Record<string, any>): Promise<boolean> {
         throw new Error("Method not implemented.");
     }
-    async findAll(): Promise<T[]> {
+    async findAll(searchParams?: URLSearchParams): Promise<T[]> {
         throw new Error("Method not implemented.");
     }
     async findOne(query: Record<string, any>): Promise<T> {

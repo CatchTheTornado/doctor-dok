@@ -30,8 +30,13 @@ export default class ServerPatientRecordRepository extends BaseRepository<Patien
         return db.delete(patientRecords).where(eq(patientRecords.id, parseInt(query.id))).run()
     }
 
-    findAll(): Promise<PatientRecordDTO[]> {
-        return Promise.resolve(db.select().from(patientRecords).all() as PatientRecordDTO[])
+    findAll(searchParams?:URLSearchParams): Promise<PatientRecordDTO[]> {
+        let query = db.select().from(patientRecords);
+        if(searchParams){
+            if(searchParams.has('patientId')){
+                query.where(eq(patientRecords.patientId, parseInt(searchParams.get('patientId') as string)));
+            }
+        }
+        return Promise.resolve(query.all() as PatientRecordDTO[])
     }
-
 }

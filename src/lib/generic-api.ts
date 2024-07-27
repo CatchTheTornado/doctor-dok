@@ -2,6 +2,7 @@ import { BaseRepository } from "@/data/server/base-repository";
 import { getErrorMessage, getZedErrorMessage } from "./utils";
 import { setup } from "@/data/server/db-provider";
 import { ZodError, ZodObject } from "zod";
+import { NextRequest } from "next/server";
 
 export type ApiResult = {
     message: string;
@@ -41,11 +42,12 @@ export async function genericPUT<T extends { [key:string]: any }>(inputObject: a
     }
 }
 
-export async function genericGET<T extends { [key:string]: any }>(request: Request, repo: BaseRepository<T>) {
+export async function genericGET<T extends { [key:string]: any }>(request: NextRequest, repo: BaseRepository<T>) {
     await setup()
-    const items: T[] = await repo.findAll()
+    const items: T[] = await repo.findAll(request.nextUrl.searchParams.size > 0 ? request.nextUrl.searchParams : undefined);
     return items;
 }
+
 
 export async function genericDELETE<T extends { [key:string]: any }>(request: Request, repo: BaseRepository<T>, query: Record<string, string | number>): Promise<ApiResult>{
     await setup()
