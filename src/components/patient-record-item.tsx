@@ -22,6 +22,7 @@ import { formatString } from 'typescript-string-operations'
 import remarkGfm from 'remark-gfm'
 import { Accordion, AccordionTrigger, AccordionContent, AccordionItem } from "./ui/accordion";
 import { EncryptedAttachmentDTO } from "@/data/dto";
+import styles from './patient-record-item.module.css'
 
 
 export default function PatientRecordItem(record: PatientRecord) {
@@ -131,7 +132,8 @@ export default function PatientRecordItem(record: PatientRecord) {
             }
 
             if (record) {
-              record = new PatientRecord({ ...record, json: recordJSON, text: recordMarkdown });
+              const discoveredType = recordJSON.length > 0 ? recordJSON.map(item => item.type).join(", ") : 'note';
+              record = new PatientRecord({ ...record, json: recordJSON, text: recordMarkdown, type: discoveredType });
               patientRecordContext?.updatePatientRecord(record);
             }            
             console.log('JSON repr: ', recordJSON);
@@ -160,10 +162,10 @@ export default function PatientRecordItem(record: PatientRecord) {
   return (
     <div className="bg-zinc-100 dark:bg-zinc-800 p-4 rounded-md">
       <div className="flex items-center justify-between">
-        <div className="text-sm font-medium">{record.type}</div>
+        <div className="text-xs text-zinc-500 dark:text-zinc-400 font-medium">{record.type}</div>
         <div className="text-xs text-zinc-500 dark:text-zinc-400">{record.createdAt}</div>
       </div>
-      <div className="mt-2 rose text-sm text-muted-foreground [&>*]:p-2 [&_li]:list-disc [&_li]:ml-4"><Markdown remarkPlugins={[remarkGfm]}>{record.description}</Markdown></div>
+      <div className="mt-5 rose text-sm text-muted-foreground"><Markdown className={styles.markdown} remarkPlugins={[remarkGfm]}>{record.description}</Markdown></div>
       <div className="mt-2 flex flex-wrap items-center gap-2 w-100">
         {record.text ? (
            <div className="w-full">
@@ -171,7 +173,7 @@ export default function PatientRecordItem(record: PatientRecord) {
                     <AccordionItem value="item-1">
                         <AccordionTrigger>Full text results and findings</AccordionTrigger>
                         <AccordionContent>
-                          <Markdown remarkPlugins={[remarkGfm]}>{record.text}</Markdown>                          
+                          <Markdown className={styles.markdown} remarkPlugins={[remarkGfm]}>{record.text}</Markdown>                          
                         </AccordionContent>
                     </AccordionItem>
                 </Accordion>

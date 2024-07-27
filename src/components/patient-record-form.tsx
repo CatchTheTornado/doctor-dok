@@ -79,8 +79,6 @@ export default function PatientRecordForm({ patient }: { patient: Patient }) {
 
   useEffect(() => {
     setValue("note", patientRecordContext?.currentPatientRecord?.description as string);
-    setValue("noteType", patientRecordContext?.currentPatientRecord?.type as string || 'visit');
-
     let existingFiles:UploadedFile[] = []
     if (patientRecordContext?.currentPatientRecord) {
       existingFiles = patientRecordContext?.currentPatientRecord?.attachments.map((attachment) => {
@@ -124,13 +122,12 @@ export default function PatientRecordForm({ patient }: { patient: Patient }) {
       if (patientRecordContext?.currentPatientRecord && patientRecordContext?.patientRecordEditMode) { // edit mode
         pr = new PatientRecord(patientRecordContext?.currentPatientRecord);
         pr.description = data.note;
-        pr.type = data.noteType;
         pr.attachments = uploadedAttachments;
         pr.updatedAt = getCurrentTS();
       } else {  // add mode
         pr = new PatientRecord({
           patientId: patientContext?.currentPatient?.id as number,
-          type: data.noteType,
+          type: 'note',
           description: data.note,
           updatedAt: getCurrentTS(),
           createdAt: getCurrentTS(),
@@ -213,18 +210,7 @@ export default function PatientRecordForm({ patient }: { patient: Patient }) {
               </EncryptedAttachmentUploader>        
               </div>
               <div className="pt-5 flex items-right">
-              <Select {...register("noteType", { required: true })}>
-                <SelectTrigger className="w-32">
-                  <SelectValue placeholder="Note type" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="memo">Memo</SelectItem>
-                  <SelectItem value="visit">Visit</SelectItem>
-                  <SelectItem value="results">Results</SelectItem>
-                </SelectContent>
-              </Select>
-              {errors.noteType && <span className="text-red-500">Note Type is required</span>}
-              <Button className="ml-5">Save</Button>
+              <Button>Save</Button>
             </div>
           </form>
         </div>
