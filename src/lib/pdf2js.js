@@ -147,7 +147,7 @@ async function doc_render(pdfDocument, pageNo, canvasFactory, conversion_config)
   let page = await pdfDocument.getPage(pageNo);
 
   // Create a viewport at 100% scale
-  let outputScale = conversion_config.scale || 1.0;
+  let outputScale = conversion_config.scale || 1.5;
   let viewport = page.getViewport({ scale: outputScale });
 
   // Scale it up / down dependent on the sizes given in the config (if there
