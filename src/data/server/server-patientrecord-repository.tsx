@@ -1,4 +1,4 @@
-import { BaseRepository } from "./base-repository"
+import { BaseRepository, IQuery } from "./base-repository"
 import { PatientRecordDTO } from "../dto";
 import { db } from '@/data/server/db-provider'
 import { getCurrentTS } from "@/lib/utils";
@@ -30,13 +30,13 @@ export default class ServerPatientRecordRepository extends BaseRepository<Patien
         return db.delete(patientRecords).where(eq(patientRecords.id, parseInt(query.id))).run()
     }
 
-    findAll(searchParams?:URLSearchParams): Promise<PatientRecordDTO[]> {
-        let query = db.select().from(patientRecords);
-        if(searchParams){
-            if(searchParams.has('patientId')){
-                query.where(eq(patientRecords.patientId, parseInt(searchParams.get('patientId') as string)));
+    findAll(query?: IQuery): Promise<PatientRecordDTO[]> {
+        let dbQuery = db.select().from(patientRecords);
+        if(query?.filter){
+            if(query.filter['patientId']){
+                dbQuery.where(eq(patientRecords.patientId, parseInt(query.filter['patientId'] as string)));
             }
         }
-        return Promise.resolve(query.all() as PatientRecordDTO[])
+        return Promise.resolve(dbQuery.all() as PatientRecordDTO[])
     }
 }

@@ -44,7 +44,8 @@ export async function genericPUT<T extends { [key:string]: any }>(inputObject: a
 
 export async function genericGET<T extends { [key:string]: any }>(request: NextRequest, repo: BaseRepository<T>) {
     await setup()
-    const items: T[] = await repo.findAll(request.nextUrl.searchParams.size > 0 ? request.nextUrl.searchParams : undefined);
+    const filterObj: Record<string, string> = Object.fromEntries(request.nextUrl.searchParams.entries());
+    const items: T[] = await repo.findAll({ filter: filterObj });
     return items;
 }
 

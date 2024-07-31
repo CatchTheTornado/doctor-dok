@@ -26,6 +26,20 @@ export const configDTOSchema = z.object({
 export const ConfigDTOEncSettings: DTOEncryptionSettings =  { ecnryptedFields: ['value'] }
 export type ConfigDTO = z.infer<typeof configDTOSchema>;
 
+export const keyDTOSchema = z.object({
+  keyHash: z.string().min(1),
+  databaseIdHash: z.string().min(1),
+  encryptedMasterKey: z.string().min(1),
+  acl: z.string().nullable(),
+  extra: z.string().nullable(),
+  expiryDate: z.string().optional(),
+  updatedAt: z.string().default(() => getCurrentTS()),
+});
+
+export const KeyDTOEncSettings: DTOEncryptionSettings =  { ecnryptedFields: [] }
+export type KeyDTO = z.infer<typeof keyDTOSchema>;
+
+
 export type AttachmentAssigmentDTO = {
   id: number;
   type: string;

@@ -34,3 +34,4 @@ export async function formatDb(): Promise<{ dbFilePath: string, sqlite: Database
 
     return setup();
 }
+
