@@ -6,32 +6,45 @@ import { getCurrentTS } from '@/lib/utils';
 import fs from 'fs';
 
 const rootPath = path.resolve(process.cwd())
-export const dbFilePath = process.env.DB_FILE ?? rootPath + '/data/db.sqlite'
-export let sqlite = new Database(dbFilePath);
-export let db = drizzle(sqlite);        
 
-let MIGRATIONS_EXECUTED = false
+export const Pool = async (maxPool = 10) => {
+	const databaseInstances: Record<string, BetterSQLite3Database> = {}
 
-export async function setup(): Promise<{ dbFilePath: string, sqlite: Database, db: BetterSQLite3Database }> {
-    if(!MIGRATIONS_EXECUTED) {
-        console.log('Running migrations')
-        await migrate(db, { migrationsFolder: './drizzle' }); // run the migrations
-        MIGRATIONS_EXECUTED = true
-    }
-    return {
-        dbFilePath, sqlite, db
-    }
+	return async (databaseId: string, createNewDb: boolean = false) => {
+		if (databaseInstances[databaseId]) {
+			return databaseInstances[databaseId]
+		}
+
+		if (Object.keys(databaseInstances).length >= maxPool) {
+			delete databaseInstances[Object.keys(databaseInstances)[0]]
+		}
+
+		const databaseFile =  path.join(rootPath, 'data', databaseId,  'db.sqlite')
+		let requiresMigration = true
+
+		try {
+			fs.accessSync(databaseFile)
+			requiresMigration = false
+		} catch (error) {
+            if (createNewDb) {
+		    	requiresMigration = true
+            } else {
+                throw new Error('Database not found or inaccessible')
+            }
+		}
+
+		const db = new Database(databaseFile)
+		databaseInstances[databaseId] = drizzle(db)
+
+		if (requiresMigration) {
+            console.log('Running migrations')
+			await migrate(databaseInstances[databaseId], { migrationsFolder: 'drizzle' })
+		}
+
+		return databaseInstances[databaseId]
+	}
 }
 
-export async function formatDb(): Promise<{ dbFilePath: string, sqlite: Database, db: BetterSQLite3Database }> {
-    fs.copyFileSync(rootPath + '/data/db.sqlite', rootPath + '/data/db.sqlite-' + getCurrentTS() + '.bak')
-    fs.unlinkSync(rootPath + '/data/db.sqlite');
+export const pool = Pool()
 
-    sqlite = new Database(dbFilePath);
-    db = drizzle(sqlite);        
-    
-    MIGRATIONS_EXECUTED = false;
-
-    return setup();
-}
 

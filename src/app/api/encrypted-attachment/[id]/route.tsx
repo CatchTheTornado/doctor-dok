@@ -1,5 +1,5 @@
 import ServerEncryptedAttachmentRepository from "@/data/server/server-encryptedattachment-repository";
-import { genericDELETE } from "@/lib/generic-api";
+import { genericDELETE, getDatabaseId } from "@/lib/generic-api";
 import { StorageService } from "@/lib/storage-service";
 import { NextResponse } from "next/server";
 const storageService = new StorageService();
@@ -11,9 +11,9 @@ export async function DELETE(request: Request, { params }: { params: { id: numbe
     if(!recordLocator){
         return Response.json({ message: "Invalid request, no id provided within request url", status: 400 }, {status: 400});
     } else { 
-        const apiResponse = await genericDELETE(request, new ServerEncryptedAttachmentRepository(), { id: recordLocator});
+        const apiResponse = await genericDELETE(request, new ServerEncryptedAttachmentRepository(getDatabaseId(request)), { id: recordLocator});
         if(apiResponse.status === 200){
-            storageService.deleteAttachment(recordLocator);
+            storageService.deleteAttachment(apiResponse.data.storageKey);
         }
         return Response.json(apiResponse);
     }

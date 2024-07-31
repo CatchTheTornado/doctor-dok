@@ -1,6 +1,5 @@
 import { BaseRepository } from "@/data/server/base-repository";
 import { getErrorMessage, getZedErrorMessage } from "./utils";
-import { setup } from "@/data/server/db-provider";
 import { ZodError, ZodObject } from "zod";
 import { NextRequest } from "next/server";
 
@@ -12,9 +11,13 @@ export type ApiResult = {
     status: 200 | 400 | 500;
 }
 
+export function getDatabaseId(request: Request): string {
+    console.log(request.headers.get('database-id-hash'))
+    return request.headers.get('database-id-hash') || 'default';
+}
+
 export async function genericPUT<T extends { [key:string]: any }>(inputObject: any, schema: { safeParse: (a0:any) => { success: true; data: T; } | { success: false; error: ZodError; } }, repo: BaseRepository<T>, identityKey: string): Promise<ApiResult> {
     try {
-        await setup();
         const validationResult = schema.safeParse(inputObject); // validation
         if (validationResult.success === true) {
             const updatedValues:T = validationResult.data as T;
@@ -43,7 +46,6 @@ export async function genericPUT<T extends { [key:string]: any }>(inputObject: a
 }
 
 export async function genericGET<T extends { [key:string]: any }>(request: NextRequest, repo: BaseRepository<T>) {
-    await setup()
     const filterObj: Record<string, string> = Object.fromEntries(request.nextUrl.searchParams.entries());
     const items: T[] = await repo.findAll({ filter: filterObj });
     return items;
@@ -51,7 +53,6 @@ export async function genericGET<T extends { [key:string]: any }>(request: NextR
 
 
 export async function genericDELETE<T extends { [key:string]: any }>(request: Request, repo: BaseRepository<T>, query: Record<string, string | number>): Promise<ApiResult>{
-    await setup()
     try {
         if(await repo.delete(query)) {
             return {

@@ -1,6 +1,6 @@
 import { BaseRepository, IQuery } from "./base-repository"
 import { PatientRecordDTO } from "../dto";
-import { db } from '@/data/server/db-provider'
+import { pool } from '@/data/server/db-provider'
 import { getCurrentTS } from "@/lib/utils";
 import { patientRecords } from "./db-schema";
 import { eq } from "drizzle-orm";
@@ -10,11 +10,13 @@ export default class ServerPatientRecordRepository extends BaseRepository<Patien
     
     
     async create(item: PatientRecordDTO): Promise<PatientRecordDTO> {
+        const db = (await this.db());
         return create(item, patientRecords, db); // generic implementation
     }
 
     // update patient
-    async upsert(query:Record<string, any>, item: PatientRecordDTO): Promise<PatientRecordDTO> {        
+    async upsert(query:Record<string, any>, item: PatientRecordDTO): Promise<PatientRecordDTO> { 
+        const db = (await this.db());       
         let existingRecord:PatientRecordDTO | null = query.id ? db.select().from(patientRecords).where(eq(patientRecords.id, query.id)).get() as PatientRecordDTO : null
         if (!existingRecord) {
             existingRecord = await this.create(item);
@@ -27,10 +29,12 @@ export default class ServerPatientRecordRepository extends BaseRepository<Patien
     }    
 
     async delete(query: Record<string, string>): Promise<boolean> {
+        const db = (await this.db());
         return db.delete(patientRecords).where(eq(patientRecords.id, parseInt(query.id))).run()
     }
 
-    findAll(query?: IQuery): Promise<PatientRecordDTO[]> {
+    async findAll(query?: IQuery): Promise<PatientRecordDTO[]> {
+        const db = (await this.db());
         let dbQuery = db.select().from(patientRecords);
         if(query?.filter){
             if(query.filter['patientId']){

@@ -1,8 +1,9 @@
 import { EncryptedAttachmentDTO, EncryptedAttachmentDTOSchema } from "@/data/dto";
 import ServerEncryptedAttachmentRepository from "@/data/server/server-encryptedattachment-repository";
-import { genericGET, genericPUT } from "@/lib/generic-api";
+import { genericGET, genericPUT, getDatabaseId } from "@/lib/generic-api";
 import { StorageService } from "@/lib/storage-service";
 import { getErrorMessage } from "@/lib/utils";
+import { NextRequest } from "next/server";
 
 const storageService = new StorageService();
 
@@ -22,7 +23,7 @@ async function handlePUTRequest(inputJson: any, request: Request, file?: File) {
     let apiResult = await genericPUT<EncryptedAttachmentDTO>(
         inputJson,
         EncryptedAttachmentDTOSchema,
-        new ServerEncryptedAttachmentRepository(),
+        new ServerEncryptedAttachmentRepository(getDatabaseId(request)),
         'id'
     );
     if (apiResult.status === 200) { // validation went OK, now we can store the file
@@ -41,6 +42,6 @@ async function handlePUTRequest(inputJson: any, request: Request, file?: File) {
     return Response.json(apiResult, { status: apiResult.status });
 }
 
-export async function GET(request: Request) {
-    return Response.json(await genericGET<EncryptedAttachmentDTO>(request, new ServerEncryptedAttachmentRepository()));
+export async function GET(request: NextRequest) {
+    return Response.json(await genericGET<EncryptedAttachmentDTO>(request, new ServerEncryptedAttachmentRepository(getDatabaseId(request))));
 }

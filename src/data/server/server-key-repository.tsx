@@ -1,21 +1,27 @@
-import { BaseRepository } from "./base-repository"
+import { BaseRepository, IFilter, IQuery } from "./base-repository"
 import { KeyDTO } from "../dto";
-import { db } from '@/data/server/db-provider'
+import { pool } from '@/data/server/db-provider'
 import { getCurrentTS } from "@/lib/utils";
 import { keys } from "./db-schema";
 import { eq } from "drizzle-orm/sql";
 import { create } from "./generic-repository";
 
+
+export type KeysQuery = IQuery & { 
+    filter: { keyHash: string, databaseIdHash: string }
+}
 export default class ServerKeyRepository extends BaseRepository<KeyDTO> {
 
 
     // create a new config
     async create(item: KeyDTO): Promise<KeyDTO> {
+        const db = (await this.db());
         return create(item, keys, db); // generic implementation
     }
 
     // update config
     async upsert(query:Record<string, any>, item: KeyDTO): Promise<KeyDTO> {        
+        const db = (await this.db());
         let existingKey = db.select({ keyHash: keys.keyHash, databaseIdHash: keys.databaseIdHash, updatedAt: keys.updatedAt, extra: keys.extra, acl: keys.acl, expiryDate: keys.expiryDate}).from(keys).where(eq(keys.keyHash, query['keyHash'])).get() as KeyDTO
         if (!existingKey) {
             existingKey = await this.create(item)
@@ -27,18 +33,26 @@ export default class ServerKeyRepository extends BaseRepository<KeyDTO> {
         return Promise.resolve(existingKey as KeyDTO)   
     }
 
-    async delete(query: Record<string, string>): Promise<boolean> {
+    async delete(query: IFilter): Promise<boolean> {
+        const db = (await this.db());
         return db.delete(keys).where(eq(keys.keyHash, query['keyHash'])).run()
     }
 
-    async findAll(searchParams: Base): Promise<KeyDTO[]> {
-        let query = db.select().from(keys).$dynamic
+    async findAll(query: KeysQuery): Promise<KeyDTO[]> {
+        const db = (await this.db());
+        let dbQuery = db.select().from(keys);
 
-        if(searchParams){
-            if(searchParams.hasOwnProperty('databaseIdHash')){
-                query.where(eq(keys.databaseIdHash, searchParams['databaseIdHash']))
+        if(query?.filter){
+            if(query.filter.databaseIdHash){ 
+                dbQuery.where(eq(keys.databaseIdHash, query.filter.databaseIdHash))
+
             }
-        return Promise.resolve(query.all() as ConfigDTO[])
+            if(query.filter.keyHash){
+                dbQuery.where(eq(keys.keyHash, query.filter.keyHash))
+            }
+        }
+
+        return Promise.resolve(dbQuery.all() as KeyDTO[])
     }
 
 }

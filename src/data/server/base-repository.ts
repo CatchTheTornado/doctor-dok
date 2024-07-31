@@ -1,3 +1,6 @@
+import { BetterSQLite3Database } from "drizzle-orm/better-sqlite3";
+import { Pool, pool } from "./db-provider";
+
 // import all interfaces
 export type IFilter = Record<string, any> | any;
 
@@ -22,6 +25,15 @@ export interface IWrite<T> {
 
 // that class only can be extended
 export abstract class BaseRepository<T> implements IWrite<T>, IRead<T> {
+    databaseId: string;
+    constructor(databaseId: string) {
+        this.databaseId = databaseId;
+    }
+
+    async db(): Promise<BetterSQLite3Database<Record<string, never>>> {
+        return (await pool)(this.databaseId, false);
+    }
+
     async create(item: T): Promise<T> {
         throw new Error("Method not implemented.");
     }

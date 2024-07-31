@@ -11,8 +11,8 @@ export type ApiEncryptionConfig = {
 export class ApiClient {
   private baseUrl: string;
   private encryptionFilter: DTOEncryptionFilter<any> | null = null;
-  private encryptionConfig?: ApiEncryptionConfig = null;
-  private encryptionUtils: EncryptionUtils = null;
+  private encryptionConfig?: ApiEncryptionConfig | null = null;
+  private encryptionUtils: EncryptionUtils | null = null;
 
   constructor(baseUrl: string, encryptionConfig?: ApiEncryptionConfig) {
     this.baseUrl = baseUrl;
@@ -73,6 +73,8 @@ export class ApiClient {
         body = await this.encryptionFilter.encrypt(body, encryptionSettings);
       }
     }
+
+    headers['database-id-hash']  = 'default'; // TODO: get it from the client
 
     const config: AxiosRequestConfig = {
       method,
