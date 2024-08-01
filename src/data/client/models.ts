@@ -231,3 +231,24 @@ export class PatientRecord {
       };
     }  
   }
+
+export class DatabaseCreate {
+    databaseId: string;
+    key: string;
+
+    constructor(databaseId: string, key: string) {
+        this.databaseId = databaseId;
+        this.key = key;
+    }
+}
+
+export class DatabaseAuthorize {
+    databaseId: string;
+    key: string;
+
+    constructor(databaseId: string, key: string) {
+        this.databaseId = databaseId;
+        this.key = key;
+    }
+}
+

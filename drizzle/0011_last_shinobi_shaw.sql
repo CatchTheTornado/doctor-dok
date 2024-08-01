@@ -1,5 +1,7 @@
 CREATE TABLE `keys` (
-	`keyHash` text PRIMARY KEY NOT NULL,
+	`keyLocatorHash` text PRIMARY KEY NOT NULL,	
+	`keyHash` text NOT NULL,
+	`keyHashParams` text NOT NULL,
 	`databaseIdHash` text,
 	`encryptedMasterKey` text,
 	`acl` text,

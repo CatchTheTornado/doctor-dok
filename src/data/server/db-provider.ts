@@ -7,9 +7,51 @@ import fs from 'fs';
 
 const rootPath = path.resolve(process.cwd())
 
-export const Pool = async (maxPool = 10) => {
-	const databaseInstances: Record<string, BetterSQLite3Database> = {}
+export type DatabaseManifest = {
+	databaseIdHash: string,
+	createdAt: string,
 
+	creator: {
+		ip?: string,
+		ua?: string,
+		geo?: {
+			country?: string,
+			city?: string,
+			latitute?: string,
+			longitude?: string,
+		}
+	}
+}
+
+export const maintenance = { 
+	databaseDirectory: (databaseId:string) =>  path.join(rootPath, 'data', databaseId),
+	databaseFileName: (databaseId:string) =>  path.join(maintenance.databaseDirectory(databaseId),  'db.sqlite'),
+	createDatabaseManifest: (databaseId: string, databaseManifest: DatabaseManifest) => {
+		const databaseDirectory = maintenance.databaseDirectory(databaseId)
+		if (!fs.existsSync(databaseDirectory)) {
+			fs.mkdirSync(databaseDirectory, { recursive: true })
+		}
+
+		const manifestPath = path.join(databaseDirectory, 'manifest.json')
+		if (!fs.existsSync(manifestPath)) {
+			fs.writeFileSync(manifestPath, JSON.stringify({
+				...databaseManifest,
+				createdAt: getCurrentTS(),
+			}))
+		}
+	},
+	checkIfDatabaseExists: (databaseId: string) => {
+		try {
+			fs.accessSync(maintenance.databaseFileName(databaseId))
+			return true
+		} catch (error) {
+			return false
+		}
+	}
+}
+
+export const Pool = async (maxPool = 50) => {
+	const databaseInstances: Record<string, BetterSQLite3Database> = {}
 	return async (databaseId: string, createNewDb: boolean = false) => {
 		if (databaseInstances[databaseId]) {
 			return databaseInstances[databaseId]
@@ -19,24 +61,19 @@ export const Pool = async (maxPool = 10) => {
 			delete databaseInstances[Object.keys(databaseInstances)[0]]
 		}
 
-		const databaseFile =  path.join(rootPath, 'data', databaseId,  'db.sqlite')
+		const databaseFile = maintenance.databaseFileName(databaseId)
 		let requiresMigration = true
 
-		try {
-			fs.accessSync(databaseFile)
-			requiresMigration = false
-		} catch (error) {
-            if (createNewDb) {
-		    	requiresMigration = true
-            } else {
+		if(!maintenance.checkIfDatabaseExists(databaseId)) {
+            if (!createNewDb) {
                 throw new Error('Database not found or inaccessible')
-            }
+            }			
 		}
 
 		const db = new Database(databaseFile)
 		databaseInstances[databaseId] = drizzle(db)
 
-		if (requiresMigration) {
+		if (requiresMigration) { // we are never skipping running the migrations when first adding database to the pool bc of possible changes in the schema
             console.log('Running migrations')
 			await migrate(databaseInstances[databaseId], { migrationsFolder: 'drizzle' })
 		}
@@ -46,5 +83,3 @@ export const Pool = async (maxPool = 10) => {
 }
 
 export const pool = Pool()
-
-
