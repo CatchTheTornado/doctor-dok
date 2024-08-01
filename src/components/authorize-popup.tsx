@@ -47,13 +47,13 @@ export function AuthorizePopup() {
           <TabsContent value="authorize">
             <Card>
               <CardHeader>
-                <CardTitle>Authorize database</CardTitle>
+                <CardTitle>Open database</CardTitle>
                 <CardDescription>
                   Provide the "Databse ID" and "Key" to authorize and open database.
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-2">
-                Authorize
+                
               </CardContent>
             </Card>
           </TabsContent>
@@ -62,7 +62,7 @@ export function AuthorizePopup() {
               <CardHeader>
                 <CardTitle>Create database</CardTitle>
                 <CardDescription>
-                  Create new database
+                  
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-2">

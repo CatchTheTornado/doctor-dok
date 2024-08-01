@@ -56,7 +56,7 @@ const FileSvgDraw = () => {
   );
 };
 
-export default function PatientRecordForm({ patient }: { patient: Patient }) {
+export default function PatientRecordForm({ patient }: { patient?: Patient }) {
   const patientContext = useContext(PatientContext);
   const configContext = useContext(ConfigContext);
   const dbContext = useContext(DatabaseContext);
