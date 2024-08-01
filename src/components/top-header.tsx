@@ -5,6 +5,7 @@ import PatientRecordForm from "./patient-record-form";
 import { PatientContext } from "@/contexts/patient-context";
 import { useContext } from "react";
 import { Chat } from "./chat";
+import { AuthorizePopup } from "./authorize-popup";
 
 export default function TopHeader() {
     const patientContext = useContext(PatientContext);
@@ -20,10 +21,6 @@ export default function TopHeader() {
           {(patientContext?.currentPatient !== null) ? (
             <Chat />
           ) : ("")}          
-          <SettingsPopup />
-          <Button variant="ghost" size="icon">
-            <LogInIcon className="h-5 w-5" />
-          </Button>
         </div>
       </div>
     );
