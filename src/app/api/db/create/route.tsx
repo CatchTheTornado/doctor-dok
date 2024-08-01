@@ -4,6 +4,6 @@ import { getErrorMessage } from "@/lib/utils";
 
 
 
-// clear all the database
+// This is the UC01 implementation of https://github.com/CatchTheTornado/patient-pad/issues/65
 export async function POST(request: Request) {
 }

@@ -18,8 +18,10 @@ export const config = sqliteTable('config', {
 });
 
 export const keys = sqliteTable('keys', {
-    keyHash: text('keyHash').primaryKey(),
+    keyLocatorHash: text('keyLocatorHash').primaryKey(),
     databaseIdHash: text('databaseIdHash', { mode: 'text' }).notNull(),
+    keyHash: text('keyHash').notNull(),
+    keyHashParams: text('keyHashParams').notNull(),
     encryptedMasterKey: text('encryptedMasterKey').notNull(),
     acl: text('acl'),
     extra: text('extra'),
