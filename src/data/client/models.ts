@@ -1,6 +1,8 @@
 import { EncryptedAttachmentDTO, PatientDTO, PatientRecordDTO } from "../dto";
 import { z } from "zod";
 
+import PasswordValidator from 'password-validator';
+
 
 export enum DataLoadingStatus {
     Idle = 'idle',
@@ -224,3 +226,20 @@ export class DatabaseAuthorize {
     }
 }
 
+export const databaseIdValidator = (value:string) => {
+    const passSchema = new PasswordValidator();
+    passSchema.is().min(6).has().not().spaces();
+    return passSchema.validate(value);
+    
+}
+export const userKeyValidator = (value:string) => {
+    const passSchema = new PasswordValidator();
+    passSchema.is().min(8).has().not().spaces();
+    return passSchema.validate(value);
+}
+
+export const sharingKeyValidator = (value:string) => {
+    const passSchema = new PasswordValidator();
+    passSchema.is().min(6).has().not().spaces().has().digits(6);
+    return passSchema.validate(value);
+}
