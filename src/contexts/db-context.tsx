@@ -1,8 +1,9 @@
-import React, { createContext, useState, useEffect, useContext } from 'react';
+import React, { createContext, useState, useEffect, useContext, PropsWithChildren } from 'react';
 import { DatabaseCreateRequestDTO, KeyHashParamsDTO, PatientRecordDTO } from '@/data/dto';
-import { DatabaseAuthorize, DatabaseCreate, DataLoadingStatus, Patient, PatientRecord } from '@/data/client/models';
+import { DatabaseAuthorize, DatabaseAuthStatus, DatabaseCreate, DataLoadingStatus, Patient, PatientRecord } from '@/data/client/models';
 import { AuthorizeDbResponse, CreateDbResponse, DbApiClient } from '@/data/client/db-api-client';
 import { ConfigContextType } from './config-context';
+import { generateEncryptionKey } from '@/lib/crypto';
 
 export type DatabaseContextType = {
 
@@ -25,13 +26,26 @@ export type DatabaseContextType = {
     keyHashParams: KeyHashParamsDTO;
     setKeyHashParams: (params: KeyHashParamsDTO) => void;
 
+    accessToken: string;
+    setAccesToken: (hash: string) => void;
+
+    refreshToken: string;
+    setRefreshToken: (hash: string) => void;
+
+    authStatus: {
+        status: DatabaseAuthStatus
+        isAuthorized: () => boolean;
+        isError: () => boolean;
+        isInProgress: () => boolean;   
+    }
+
     create: (createRequest:DatabaseCreate) => Promise<void>;
     authorize: (authorizeRequest:DatabaseAuthorize) => Promise<void>;
 }
 
 export const DatabaseContext = createContext<DatabaseContextType | null>(null);
 
-const DatabaseProvider: React.FC = ({ children }) => {
+export const DatabaseContextProvider: React.FC<PropsWithChildren> = ({ children }) => {
     const [databaseId, setDatabaseId] = useState<string>('');
     const [masterKey, setMasterKey] = useState<string>('');
     const [encryptionKey, setEncryptionKey] = useState<string>('');
@@ -47,12 +61,31 @@ const DatabaseProvider: React.FC = ({ children }) => {
         parallelism: 1
     });
 
+    const [accessToken, setAccesToken] = useState<string>('');
+    const [refreshToken, setRefreshToken] = useState<string>('');
+
+
+    const authStatus = {
+        status: DatabaseAuthStatus.NotAuthorized,
+        isAuthorized: () => {
+            return authStatus.status === DatabaseAuthStatus.Authorized;
+        },
+        isError: () => {
+            return authStatus.status === DatabaseAuthStatus.AuthorizationError;
+        },
+        isInProgress: () => {
+            return authStatus.status === DatabaseAuthStatus.InProgress;
+        }
+    }    
+
     const setupApiClient = async (config: ConfigContextType | null) => {
         const client = new DbApiClient('');
         return client;
     }
     const create = async (createRequest: DatabaseCreate) => {
         // Implement UC01 hashing and encryption according to https://github.com/CatchTheTornado/patient-pad/issues/65
+        const masterKey = generateEncryptionKey()
+
     };
 
     const authorize = async (authorizeRequest: DatabaseAuthorize) => {
@@ -73,6 +106,11 @@ const DatabaseProvider: React.FC = ({ children }) => {
         setMasterKey,
         encryptionKey,
         setEncryptionKey,
+        authStatus,
+        accessToken,
+        setAccesToken,
+        refreshToken,
+        setRefreshToken,       
         create,
         authorize,
     };
@@ -84,4 +122,3 @@ const DatabaseProvider: React.FC = ({ children }) => {
     );
 };
 
-export default DatabaseProvider;

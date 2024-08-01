@@ -1,4 +1,4 @@
-import React, { createContext, useState, useEffect, useContext } from 'react';
+import React, { createContext, useState, useEffect, useContext, PropsWithChildren } from 'react';
 import { PatientRecordDTO } from '@/data/dto';
 import { PatientRecordApiClient } from '@/data/client/patient-record-api-client';
 import { ApiEncryptionConfig } from '@/data/client/base-api-client';
@@ -7,6 +7,7 @@ import { ConfigContext, ConfigContextType } from './config-context';
 import { toast } from 'sonner';
 import { sort } from 'fast-sort';
 import { EncryptedAttachmentApiClient } from '@/data/client/encrypted-attachment-api-client';
+import { DatabaseContext } from './db-context';
 
 export type PatientRecordContextType = {
     patientRecords: PatientRecord[];
@@ -22,7 +23,7 @@ export type PatientRecordContextType = {
 
 export const PatientRecordContext = createContext<PatientRecordContextType | null>(null);
 
-export const PatientRecordContextProvider: React.FC = ({ children }) => {
+export const PatientRecordContextProvider: React.FC<PropsWithChildren> = ({ children }) => {
     const [patientRecordEditMode, setPatientRecordEditMode] = useState<boolean>(false);
     const [patientRecords, setPatientRecords] = useState<PatientRecord[]>([]);
     const [loaderStatus, setLoaderStatus] = useState<DataLoadingStatus>(DataLoadingStatus.Loading);
@@ -32,6 +33,7 @@ export const PatientRecordContextProvider: React.FC = ({ children }) => {
     }, []);
 
     const config = useContext(ConfigContext);
+    const dbContext = useContext(DatabaseContext)
 
     const updatePatientRecord = async (patientRecord: PatientRecord): Promise<PatientRecord> => {
         try {
@@ -99,7 +101,7 @@ export const PatientRecordContextProvider: React.FC = ({ children }) => {
     };
 
     const setupApiClient = async (config: ConfigContextType | null) => {
-        const masterKey = await config?.getServerConfig('dataEncryptionMasterKey') as string
+        const masterKey = dbContext.masterKey;
         const encryptionConfig: ApiEncryptionConfig = {
             secretKey: masterKey,
             useEncryption: true
@@ -109,7 +111,7 @@ export const PatientRecordContextProvider: React.FC = ({ children }) => {
     }
 
     const setupAttachmentsApiClient = async (config: ConfigContextType | null) => {
-        const masterKey = await config?.getServerConfig('dataEncryptionMasterKey') as string
+        const masterKey = dbContext?.masterKey;
         const encryptionConfig: ApiEncryptionConfig = {
             secretKey: masterKey,
             useEncryption: true

@@ -23,16 +23,18 @@ import remarkGfm from 'remark-gfm'
 import { Accordion, AccordionTrigger, AccordionContent, AccordionItem } from "./ui/accordion";
 import { EncryptedAttachmentDTO } from "@/data/dto";
 import styles from './patient-record-item.module.css'
+import { DatabaseContext } from "@/contexts/db-context";
 
 
 export default function PatientRecordItem(record: PatientRecord) {
 
   const config = useContext(ConfigContext);
+  const dbContext = useContext(DatabaseContext);
   const patientRecordContext = useContext(PatientRecordContext)
   const chatContext = useContext(ChatContext);
 
   const getAttachmentApiClient = async () => {
-    const secretKey = await config?.getServerConfig('dataEncryptionMasterKey') as string;
+    const secretKey = dbContext?.masterKey;
     const apiClient = new EncryptedAttachmentApiClient('', {
       secretKey: secretKey,
       useEncryption: secretKey ? true : false
@@ -41,7 +43,7 @@ export default function PatientRecordItem(record: PatientRecord) {
   }
 
   const getPatientRecordApiClient = async () => {
-    const secretKey = await config?.getServerConfig('dataEncryptionMasterKey') as string;
+    const secretKey = dbContext?.masterKey;
     const apiClient = new PatientRecordApiClient('', {
       secretKey: secretKey,
       useEncryption: secretKey ? true : false

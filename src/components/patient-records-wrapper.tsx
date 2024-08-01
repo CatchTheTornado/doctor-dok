@@ -8,10 +8,12 @@ import { NoRecordsAlert } from "./shared/no-records-alert";
 import { ListIcon } from "lucide-react";
 import { useEffectOnce } from "react-use";
 import { PatientRecordContext } from "@/contexts/patient-record-context";
+import { DatabaseContext } from "@/contexts/db-context";
 
 export default function PatientRecordsWrapper({}) {
   const patientContext = useContext(PatientContext);
   const configContext = useContext(ConfigContext);
+  const dbContext = useContext(DatabaseContext)
   const patientRecordContext = useContext(PatientRecordContext);
 
   useEffect(() => {
@@ -27,7 +29,7 @@ export default function PatientRecordsWrapper({}) {
           <div>
             <div className="flex-1 overflow-auto">
               <div className="grid gap-6">
-                { (!configContext?.dataLinkStatus.isError()) ? (
+                { (!dbContext?.authStatus.isError()) ? (
                   <PatientRecordList key={0} patient={patientContext?.currentPatient} />
                 ) : (
                   <DatabaseLinkAlert />

@@ -11,9 +11,11 @@ import { Button } from "./ui/button";
 import DatabaseLinkAlert from "./shared/database-link-alert";
 import { PatientEditPopup } from "./patient-edit-popup";
 import { NoRecordsAlert } from "./shared/no-records-alert";
+import { DatabaseContext } from "@/contexts/db-context";
 
 export default function PatientListPopup() {
   const configContext = useContext(ConfigContext);
+  const dbContext = useContext(DatabaseContext);
   const patientsContext = useContext(PatientContext)
   const [open, setOpen] = useState(false)
 
@@ -27,7 +29,7 @@ export default function PatientListPopup() {
       <CredenzaContent className="sm:max-w-[500px] bg-white dark:bg-zinc-950" side="top">
         <CredenzaHeader>
           <CredenzaTitle>List patients
-            {(configContext?.dataLinkStatus.isReady()) ? (
+            {(dbContext?.authStatus.isAuthorized()) ? (
               <PatientEditPopup />
             ) : (null)}
           </CredenzaTitle>
@@ -37,7 +39,7 @@ export default function PatientListPopup() {
         </CredenzaHeader>
         <div className="bg-white dark:bg-zinc-900 border-r border-zinc-200 dark:border-zinc-800">
           <div className="h-auto overflow-auto">
-            {(configContext?.dataLinkStatus.isReady()) ? (
+            {(dbContext?.authStatus.isAuthorized()) ? (
               <div className="p-4 space-y-4">
                 {patientsContext?.loaderStatus === DataLoadingStatus.Loading ? (
                   <div className="flex justify-center">

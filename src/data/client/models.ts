@@ -1,6 +1,4 @@
-import { max } from "drizzle-orm";
 import { EncryptedAttachmentDTO, PatientDTO, PatientRecordDTO } from "../dto";
-import { getCurrentTS } from "../utils";
 import { z } from "zod";
 
 
@@ -11,38 +9,12 @@ export enum DataLoadingStatus {
     Error = 'error',
 }
 
-export enum DataLinkStatus {
+export enum DatabaseAuthStatus {
     Empty = 'Empty',
     NotAuthorized = 'NotAuthorized',
     AuthorizationError = 'AuthorizationError',
     Authorized = 'Success',
     InProgress = 'InProgress'
-}
-
-export class ServerDataLinkStatus {
-    status: DataLinkStatus;
-    message: string;
-    constructor(status: DataLinkStatus, message: string) {
-        this.status = status;
-        this.message = message;
-    }
-
-    isReady(): boolean {
-        return this.status === DataLinkStatus.Authorized;
-    }
-
-    isInProgress(): boolean {
-        return this.status === DataLinkStatus.InProgress;
-    }
-
-    isError(): boolean {
-        return this.status === DataLinkStatus.AuthorizationError;
-    }
-
-    isEmpty(): boolean {
-        return this.status === DataLinkStatus.Empty;
-    }    
-
 }
 
 export class Patient {

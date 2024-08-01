@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState } from 'react';
+import React, { createContext, PropsWithChildren, useContext, useState } from 'react';
 import { CreateMessage, Message, Attachment } from 'ai/react';
 import { nanoid } from 'nanoid';
 import { createOpenAI, openai } from '@ai-sdk/openai';
@@ -73,7 +73,7 @@ export const ChatContext = createContext<ChatContextType>({
 export const useChatContext = () => useContext(ChatContext);
 
 // Chat context provider component
-export const ChatContextProvider: React.FC = ({ children }) => {
+export const ChatContextProvider: React.FC<PropsWithChildren> = ({ children }) => {
     
     const [ messages, setMessages ] = useState([
         { role: 'user', name: 'You', content: 'Hi there! I will send in this conversation some medical records, please help me understand it and answer the questions as if you were physican!' },
@@ -87,7 +87,7 @@ export const ChatContextProvider: React.FC = ({ children }) => {
 
     const aiProvider = async () => {
         const aiProvider = createOpenAI({
-            apiKey: await config?.getLocalConfig('chatGptApiKey') as string
+            apiKey: await config?.getServerConfig('chatGptApiKey') as string
         })
         return aiProvider.chat('gpt-4o')   //gpt-4o-2024-05-13
     }
