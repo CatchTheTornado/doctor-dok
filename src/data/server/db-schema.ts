@@ -25,7 +25,7 @@ export const keys = sqliteTable('keys', {
     encryptedMasterKey: text('encryptedMasterKey').notNull(),
     acl: text('acl'),
     extra: text('extra'),
-    expiryDate: text('expiryDate').notNull().default(sql`CURRENT_TIMESTAMP`),
+    expiryDate: text('expiryDate').default(sql`CURRENT_TIMESTAMP`),
     updatedAt: text('updatedAt').notNull().default(sql`CURRENT_TIMESTAMP`)
 }); 
 

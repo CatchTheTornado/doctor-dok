@@ -22,20 +22,20 @@ export default class ServerKeyRepository extends BaseRepository<KeyDTO> {
     // update config
     async upsert(query:Record<string, any>, item: KeyDTO): Promise<KeyDTO> {        
         const db = (await this.db());
-        let existingKey = db.select({ keyHash: keys.keyHash, databaseIdHash: keys.databaseIdHash, updatedAt: keys.updatedAt, extra: keys.extra, acl: keys.acl, expiryDate: keys.expiryDate}).from(keys).where(eq(keys.keyHash, query['keyHash'])).get() as KeyDTO
+        let existingKey = db.select({ keyLocatorHash: keys.keyLocatorHash, keyHash: keys.keyHash, databaseIdHash: keys.databaseIdHash, updatedAt: keys.updatedAt, extra: keys.extra, acl: keys.acl, expiryDate: keys.expiryDate}).from(keys).where(eq(keys.keyLocatorHash, query['keyLocatorHash'])).get() as KeyDTO
         if (!existingKey) {
             existingKey = await this.create(item)
         } else {
             existingKey = item
             existingKey.updatedAt = getCurrentTS()
-            db.update(keys).set(existingKey).where(eq(keys.keyHash, query['keyHash'])).run();
+            db.update(keys).set(existingKey).where(eq(keys.keyLocatorHash, query['keyLocatorHash'])).run();
         }
         return Promise.resolve(existingKey as KeyDTO)   
     }
 
     async delete(query: IFilter): Promise<boolean> {
         const db = (await this.db());
-        return db.delete(keys).where(eq(keys.keyHash, query['keyHash'])).run()
+        return db.delete(keys).where(eq(keys.keyLocatorHash, query['keyLocatorHash'])).run()
     }
 
     async findAll(query: KeysQuery): Promise<KeyDTO[]> {
@@ -50,6 +50,9 @@ export default class ServerKeyRepository extends BaseRepository<KeyDTO> {
             if(query.filter.keyHash){
                 dbQuery.where(eq(keys.keyHash, query.filter.keyHash))
             }
+            if(query.filter.keyLocatorHash){
+                dbQuery.where(eq(keys.keyLocatorHash, query.filter.keyLocatorHash))
+            }            
         }
 
         return Promise.resolve(dbQuery.all() as KeyDTO[])

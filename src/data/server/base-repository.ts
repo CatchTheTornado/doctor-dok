@@ -49,7 +49,12 @@ export abstract class BaseRepository<T> implements IWrite<T>, IRead<T> {
     async findAll(query?: IQuery): Promise<T[]> {
         throw new Error("Method not implemented.");
     }
-    async findOne(query: IFilter): Promise<T> {
-        throw new Error("Method not implemented.");
+    async findOne(query: IFilter): Promise<T | null> {
+        const records = await this.findAll({ filter: query });
+        if(records.length > 0){
+            return Promise.resolve(records[0])
+        } else {
+            return Promise.resolve(null)
+        }
     }
 }

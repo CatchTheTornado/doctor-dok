@@ -1,7 +1,7 @@
 {
   "version": "6",
   "dialect": "sqlite",
-  "id": "b7fc8fe1-ced4-4948-b7ab-9e1659feabda",
+  "id": "7a4fcbba-9fc0-4b57-9332-1ba0290da878",
   "prevId": "792a5518-ee83-4673-aca6-e3f8bc87eec4",
   "tables": {
     "config": {
@@ -132,8 +132,8 @@
     "keys": {
       "name": "keys",
       "columns": {
-        "keyHash": {
-          "name": "keyHash",
+        "keyLocatorHash": {
+          "name": "keyLocatorHash",
           "type": "text",
           "primaryKey": true,
           "notNull": true,
@@ -143,14 +143,28 @@
           "name": "databaseIdHash",
           "type": "text",
           "primaryKey": false,
-          "notNull": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "keyHash": {
+          "name": "keyHash",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "keyHashParams": {
+          "name": "keyHashParams",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
           "autoincrement": false
         },
         "encryptedMasterKey": {
           "name": "encryptedMasterKey",
           "type": "text",
           "primaryKey": false,
-          "notNull": false,
+          "notNull": true,
           "autoincrement": false
         },
         "acl": {
@@ -171,7 +185,7 @@
           "name": "expiryDate",
           "type": "text",
           "primaryKey": false,
-          "notNull": true,
+          "notNull": false,
           "autoincrement": false,
           "default": "CURRENT_TIMESTAMP"
         },
