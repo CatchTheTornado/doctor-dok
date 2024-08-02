@@ -6,22 +6,34 @@ import { Input } from "@/components/ui/input"
 import { useForm } from "react-hook-form";
 import { databaseIdValidator, userKeyValidator } from "@/data/client/models";
 import { PasswordInput } from "./ui/password-input";
-import { EyeIcon, EyeOffIcon } from "lucide-react";
-import { useContext, useState } from "react"
+import { EyeIcon, EyeOffIcon, PrinterIcon, WandIcon } from "lucide-react";
+import { ReactElement, useContext, useState } from "react"
 import { Checkbox } from "./ui/checkbox";
 import NoSSR  from "react-no-ssr"
+import { DatabaseContext } from "@/contexts/db-context";
+import { generateEncryptionKey } from "@/lib/crypto";
+import { KeyPrint } from "./key-print";
+import { BlobProvider, PDFDownloadLink } from '@react-pdf/renderer'
 
 interface CreateDatabaseFormProps {
 }
 
 export function CreateDatabaseForm({  
 }: CreateDatabaseFormProps) {
-  const { register, handleSubmit, formState: { errors } } = useForm();
+  const { register, setValue, getValues, handleSubmit, formState: { errors } } = useForm({
+    defaultValues: {
+      databaseId: '',
+      key: generateEncryptionKey()
+    }
+  });
   const [showPassword, setShowPassword] = useState(false)
+  const [printKey, setPrintKey] = useState<ReactElement | null>(null);
   const [keepLoggedIn, setKeepLoggedIn] = useState(typeof localStorage !== 'undefined' ? localStorage.getItem("keepLoggedIn") === "true" : false)
+  const dbContext = useContext(DatabaseContext);
 
   const handleCreateDatabase = handleSubmit((data) => {
     // Handle form submission
+    dbContext?.create(data.databaseId, data.key);
   });
 
   return (
@@ -40,48 +52,74 @@ export function CreateDatabaseForm({
         {errors.databaseId && <span className="text-red-500 text-sm">Database Id must be at least 6 letters and/or digits and unique</span>}
        </div>
       <div className="flex flex-col space-y-2 gap-2 mb-4">
-        <Label htmlFor="key">Key</Label>
-            <div className="relative">
-            <PasswordInput autoComplete="new-password" id="password"
-                type={showPassword ? 'text' : 'password'}
-                {...register("key", { required: true,
-                    validate: {
-                        key: userKeyValidator
-                    }            
-                    })}                        />
-                <Button
-                    type="button"
-                    variant="ghost"
-                    size="sm"
-                    className="absolute right-0 top-0 h-full px-3 py-2 hover:bg-transparent z-0"
-                    onClick={() => setShowPassword((prev) => !prev)}
-                >
-                    {showPassword ? (
-                    <EyeIcon
-                        className="h-4 w-4"
-                        aria-hidden="true"
-                    />
-                    ) : (
-                    <EyeOffIcon
-                        className="h-4 w-4"
-                        aria-hidden="true"
-                    />
-                    )}
-                    <span className="sr-only">
-                    {showPassword ? "Hide password" : "Show password"}
-                    </span>
-                </Button>
+            <Label htmlFor="key">Key</Label>
+            <div className="flex gap-2">
+              <div className="relative">
+                <PasswordInput autoComplete="new-password" id="password"
+                    type={showPassword ? 'text' : 'password'}
+                    {...register("key", { required: true,
+                        validate: {
+                            key: userKeyValidator
+                        }            
+                        })}                        />
+                    <Button
+                        type="button"
+                        variant="ghost"
+                        size="sm"
+                        className="absolute right-0 top-0 h-full px-3 py-2 hover:bg-transparent z-0"
+                        onClick={() => setShowPassword((prev) => !prev)}
+                    >
+                        {showPassword ? (
+                        <EyeIcon
+                            className="h-4 w-4"
+                            aria-hidden="true"
+                        />
+                        ) : (
+                        <EyeOffIcon
+                            className="h-4 w-4"
+                            aria-hidden="true"
+                        />
+                        )}
+                        <span className="sr-only">
+                        {showPassword ? "Hide password" : "Show password"}
+                        </span>
+                    </Button>
 
-                {/* hides browsers password toggles */}
-                <style>{`
-                    .hide-password-toggle::-ms-reveal,
-                    .hide-password-toggle::-ms-clear {
-                    visibility: hidden;
-                    pointer-events: none;
-                    display: none;
-                    }
-                `}</style>
-                </div>
+                    {/* hides browsers password toggles */}
+                    <style>{`
+                        .hide-password-toggle::-ms-reveal,
+                        .hide-password-toggle::-ms-clear {
+                        visibility: hidden;
+                        pointer-events: none;
+                        display: none;
+                        }
+                    `}</style>
+              </div>
+              <Button variant="outline" className="p-1 h-10 w-10" onClick={(e) => {
+                e.preventDefault();
+                setValue('key', generateEncryptionKey());
+                setShowPassword(true);
+              }}><WandIcon className="w-4 h-4" /></Button>
+              <Button variant="outline" className="p-1 h-10 w-10" onClick={(e) => {
+                e.preventDefault();
+                setPrintKey(
+                  <div className="text-sm text-blue-600 dark:text-blue-500 hover:underline">
+                    <BlobProvider document={<KeyPrint key={getValues().key} databaseId={getValues().databaseId} />} fileName="PatientId-KEY.pdf">
+                    {({ blob, url, loading, error }) => {
+                      console.log(url);
+                            // Do whatever you need with blob here
+                            url = URL.createObjectURL(blob as Blob);
+                            window.open(url);
+                            return null;
+                          }}
+                    </BlobProvider>
+                  </div>
+                );
+              }}><PrinterIcon className="w-4 h-4" /></Button>
+            </div>
+            <div>
+              {printKey}
+            </div>
             {errors.key && <span className="text-red-500 text-sm">Key must be at least 8 characters length including digits, alpha, lower and upper letters.</span>}
             <p className="text-sm text-zinc-500 dark:text-zinc-400">
             Please save or print this master key. <strong>It's like crypto wallet.</strong> After losing it your medical records <strong className="text-red-500">WILL BE LOST FOREVER</strong>.

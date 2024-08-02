@@ -23,6 +23,7 @@
     "@radix-ui/react-select": "^2.0.0",
     "@radix-ui/react-slot": "^1.0.2",
     "@radix-ui/react-tabs": "^1.1.0",
+    "@react-pdf/renderer": "^3.4.4",
     "ai": "^3.2.27",
     "axios": "^1.7.2",
     "better-sqlite3": "^11.0.0",
