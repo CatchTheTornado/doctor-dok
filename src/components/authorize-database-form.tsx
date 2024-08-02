@@ -9,6 +9,7 @@ import { Checkbox } from "./ui/checkbox";
 import { EyeIcon, EyeOffIcon } from "lucide-react";
 import { useState } from "react";
 import { PasswordInput } from "./ui/password-input";
+import NoSSR  from "react-no-ssr"
 
 interface AuthorizeDatabaseFormProps {
 }
@@ -84,17 +85,19 @@ export function AuthorizeDatabaseForm({
         {errors.key && <span className="text-red-500 text-sm">Key must be at least 8 characters length including digits, alpha, lower and upper letters.</span>}
         </div>
         <div className="flex items-center justify-between gap-4 mt-4">
-            <div className="flex items-center gap-2">
-                <Checkbox
-                    id="keepLoggedIn"
-                    checked={keepLoggedIn}
-                    onCheckedChange={(checked) => {
-                    setKeepLoggedIn(checked);
-                    localStorage.setItem("keepLoggedIn", checked.toString());
-                        }}
-                />
-                <label htmlFor="keepLoggedIn" className="text-sm">Keep me logged in</label>
-            </div>      
+            <NoSSR>
+              <div className="flex items-center gap-2">
+                  <Checkbox
+                      id="keepLoggedIn"
+                      checked={keepLoggedIn}
+                      onCheckedChange={(checked) => {
+                      setKeepLoggedIn(checked);
+                      localStorage.setItem("keepLoggedIn", checked.toString());
+                          }}
+                  />
+                  <label htmlFor="keepLoggedIn" className="text-sm">Keep me logged in</label>
+              </div>      
+            </NoSSR>
             <div className="items-center flex justify-center">
                 <Button type="submit">Create database</Button>
             </div>

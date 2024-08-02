@@ -9,6 +9,7 @@ import { PasswordInput } from "./ui/password-input";
 import { EyeIcon, EyeOffIcon } from "lucide-react";
 import { useContext, useState } from "react"
 import { Checkbox } from "./ui/checkbox";
+import NoSSR  from "react-no-ssr"
 
 interface CreateDatabaseFormProps {
 }
@@ -88,7 +89,8 @@ export function CreateDatabaseForm({
         </p>        
       </div>
       <div className="flex items-center justify-between gap-4 mt-4">
-        <div className="flex items-center gap-2">
+        <NoSSR>
+          <div className="flex items-center gap-2">
             <Checkbox
                 id="keepLoggedIn"
                 checked={keepLoggedIn}
@@ -98,7 +100,8 @@ export function CreateDatabaseForm({
                     }}
             />
             <label htmlFor="keepLoggedIn" className="text-sm">Keep me logged in</label>
-        </div>      
+          </div>      
+        </NoSSR>
         <div className="items-center flex justify-center">
             <Button type="submit">Create database</Button>
         </div>
