@@ -4,6 +4,8 @@ import { DatabaseAuthorizeRequest, DatabaseAuthStatus, DatabaseCreateRequest, Da
 import { AuthorizeDbResponse, CreateDbResponse, DbApiClient } from '@/data/client/db-api-client';
 import { ConfigContextType } from './config-context';
 import { generateEncryptionKey } from '@/lib/crypto';
+const argon2 = require("argon2-browser");
+
 
 export type CreateDatabaseResult = {
     success: boolean;
@@ -91,18 +93,29 @@ export const DatabaseContextProvider: React.FC<PropsWithChildren> = ({ children 
     const create = async (createRequest: DatabaseCreateRequest): Promise<CreateDatabaseResult> => {
         // Implement UC01 hashing and encryption according to https://github.com/CatchTheTornado/patient-pad/issues/65
 
+        const keyHashParams = {
+            salt: generateEncryptionKey(),
+            time: 2,
+            mem: 16 * 1024,
+            hashLen: 32,
+            parallelism: 1
+        } 
+        const keyHash = await argon2.hash({
+          pass: createRequest.key,
+          salt: keyHashParams.salt,
+          time: keyHashParams.time,
+          mem: keyHashParams.mem,
+          hashLen: keyHashParams.hashLen,
+          parallelism: keyHashParams.parallelism
+        });
+        console.log(keyHash);
+
         const apiClient = await setupApiClient(null);
         apiClient.create({
             databaseIdHash: databaseHashId,
             encryptedMasterKey: masterKey,
             keyHash: keyHash,
-            keyHashParams: {
-                hashLen: 0,
-                salt: '',
-                time: 1,
-                mem: 16,
-                parallelism: 1
-            },
+            keyHashParams,
             keyLocatorHash: keyLocatorHash,
         });
 
