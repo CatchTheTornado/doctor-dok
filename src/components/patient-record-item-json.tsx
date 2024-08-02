@@ -1,13 +1,15 @@
+"use client"
 import React from 'react';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from './ui/accordion';
 import { PatientRecord } from '@/data/client/models';
-import ReactJson from 'react-json-view'
 import { labels } from '@/data/ai/labels';
 import { formatString } from 'typescript-string-operations';
+import dynamic from 'next/dynamic';
 
 interface Props {
     record: PatientRecord;
 }
+const DynamicReactJson = dynamic(import('react-json-view'), { ssr: false });
 
 const PatientRecordItemJson: React.FC<Props> = ({ record }) => {
     if (Array.isArray(record.json)) {
@@ -18,7 +20,7 @@ const PatientRecordItemJson: React.FC<Props> = ({ record }) => {
                         <AccordionItem key={index} value={'item-' + index}>
                             <AccordionTrigger>{formatString('{0} [{1}]', labels.patientRecordItemLabel(item.type, { record }), item.subtype)}</AccordionTrigger>
                             <AccordionContent>
-                                <ReactJson theme="paraiso" src={item} />
+                                <DynamicReactJson theme="paraiso" src={item} />
                             </AccordionContent>
                         </AccordionItem>
                     ))}

@@ -17,7 +17,7 @@ export function AuthorizeDatabaseForm({
 }: AuthorizeDatabaseFormProps) {
   const { register, handleSubmit, formState: { errors } } = useForm();
   const [showPassword, setShowPassword] = useState(false)
-  const [keepLoggedIn, setKeepLoggedIn] = useState(localStorage.getItem("keepLoggedIn") === "true")
+  const [keepLoggedIn, setKeepLoggedIn] = useState(typeof localStorage !== 'undefined' ? localStorage.getItem("keepLoggedIn") === "true" : false)
 
   const handleAuthorizeDatabase = handleSubmit((data) => {
     // Handle form submission

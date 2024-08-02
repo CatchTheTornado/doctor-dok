@@ -10,6 +10,7 @@
   },
   "dependencies": {
     "@ai-sdk/openai": "^0.0.36",
+    "@enhances/with-resolvers": "^0.0.5",
     "@hookform/resolvers": "^3.6.0",
     "@radix-ui/react-accordion": "^1.2.0",
     "@radix-ui/react-alert-dialog": "^1.1.1",
@@ -31,12 +32,12 @@
     "drizzle-orm": "^0.31.2",
     "fast-sort": "^3.4.0",
     "fs": "^0.0.1-security",
+    "is-url": "^1.2.4",
     "lucide-react": "^0.400.0",
     "nanoid": "^5.0.7",
     "next": "14.2.4",
     "next-themes": "^0.3.0",
     "password-validator": "^5.3.0",
-    "pdf-img-convert": "^1.2.1",
     "react": "^18.3.1",
     "react-dom": "^18",
     "react-dropzone": "^14.2.3",
@@ -67,6 +68,9 @@
     "postcss": "^8",
     "tailwindcss": "^3.4.1",
     "typescript": "^5"
+  },
+  "resolutions": {
+    "string-width": "4.2.3"
   },
   "engines": {
     "node": "20"
