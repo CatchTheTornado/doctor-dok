@@ -1,25 +1,12 @@
 "use client"
 
-import { useContext, useState } from "react"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Button } from "@/components/ui/button"
-import { Label } from "@/components/ui/label"
-import { Input } from "@/components/ui/input"
-import { useForm } from "react-hook-form";
-import { ConfigContext } from "@/contexts/config-context";
 import { Card, CardContent, CardDescription, CardHeader } from "./ui/card";
-import { databaseIdValidator, userKeyValidator } from "@/data/client/models";
 import { AuthorizeDatabaseForm } from "./authorize-database-form";
 import { CreateDatabaseForm } from "./create-database-form";
-
-
-
+import { useState } from 'react';
 
 export function AuthorizePopup() {
-  const config = useContext(ConfigContext);
-  const [databaseId, setDatabaseId] = useState("");
-  const [key, setKey] = useState("");
-
   return (
     <div className="p-4 flex items-center justify-center h-screen">
       <div>
