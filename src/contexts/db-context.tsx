@@ -3,7 +3,8 @@ import { DatabaseCreateRequestDTO, KeyHashParamsDTO, PatientRecordDTO } from '@/
 import { DatabaseAuthorizeRequest, DatabaseAuthStatus, DatabaseCreateRequest, DataLoadingStatus, Patient, PatientRecord } from '@/data/client/models';
 import { AuthorizeDbResponse, CreateDbResponse, DbApiClient } from '@/data/client/db-api-client';
 import { ConfigContextType } from './config-context';
-import { generateEncryptionKey } from '@/lib/crypto';
+import { EncryptionUtils, generateEncryptionKey, sha256 } from '@/lib/crypto';
+import getConfig from 'next/config';
 const argon2 = require("argon2-browser");
 
 
@@ -108,20 +109,27 @@ export const DatabaseContextProvider: React.FC<PropsWithChildren> = ({ children 
           hashLen: keyHashParams.hashLen,
           parallelism: keyHashParams.parallelism
         });
-        console.log(keyHash);
+        const { publicRuntimeConfig } = getConfig()
+        const databaseIdHash = await sha256(createRequest.key, publicRuntimeConfig.defaultDatabaseIdHashSalt);
+        const keyLocatorHash = await sha256(createRequest.key + createRequest.databaseId, publicRuntimeConfig.defaultKeyLocatorHashSalt);
 
+        const encryptionUtils = new EncryptionUtils(createRequest.key);
+        const encryptedMasterKey = await encryptionUtils.encrypt(generateEncryptionKey());
+        
         const apiClient = await setupApiClient(null);
-        apiClient.create({
-            databaseIdHash: databaseHashId,
-            encryptedMasterKey: masterKey,
-            keyHash: keyHash,
+        const apiRequest = {
+            databaseIdHash,
+            encryptedMasterKey,
+            keyHash,
             keyHashParams,
-            keyLocatorHash: keyLocatorHash,
-        });
+            keyLocatorHash,
+        };
+        console.log(apiRequest);
+        const apiResponse = await apiClient.create(apiRequest);
 
         return {
-            success: true,
-            message: 'Database created',
+            success: apiResponse.status === 200,
+            message: apiResponse.message,
             issues: []
         }
     };

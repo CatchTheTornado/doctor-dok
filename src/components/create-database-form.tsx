@@ -14,6 +14,7 @@ import { DatabaseContext } from "@/contexts/db-context";
 import { generateEncryptionKey } from "@/lib/crypto";
 import { KeyPrint } from "./key-print";
 import { pdf, Document, Page } from '@react-pdf/renderer';
+import { toast } from "sonner";
 
 
 interface CreateDatabaseFormProps {
@@ -32,19 +33,25 @@ export function CreateDatabaseForm({
   const [keepLoggedIn, setKeepLoggedIn] = useState(typeof localStorage !== 'undefined' ? localStorage.getItem("keepLoggedIn") === "true" : false)
   const dbContext = useContext(DatabaseContext);
 
-  const handleCreateDatabase = handleSubmit((data) => {
+  const handleCreateDatabase = handleSubmit(async (data) => {
     // Handle form submission
-    dbContext?.create({
+    const result = await dbContext?.create({
       databaseId: data.databaseId,
       key: data.key
     });
+
+    if(result?.success) {
+      toast.success(result?.message);
+    } else {
+      toast.error(result?.message);
+    }
   });
 
   return (
     <form onSubmit={handleCreateDatabase}>
       <div className="flex flex-col space-y-2 gap-2 mb-4">
         <Label htmlFor="databaseId">Database ID</Label>
-        <Input
+        <Input autoFocus 
           type="text"
           id="databaseId"
           {...register("databaseId", { required: true,
