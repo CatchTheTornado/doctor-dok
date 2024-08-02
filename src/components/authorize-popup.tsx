@@ -4,12 +4,18 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Card, CardContent, CardDescription, CardHeader } from "./ui/card";
 import { AuthorizeDatabaseForm } from "./authorize-database-form";
 import { CreateDatabaseForm } from "./create-database-form";
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
+import DataLoader from './data-loader';
 
 export function AuthorizePopup() {
+  const [applicationLoaded, setApplicationLoaded] = useState(false);
+  useEffect(() => {
+    setApplicationLoaded(true);
+  },[]);
   return (
     <div className="p-4 flex items-center justify-center h-screen">
-      <div>
+     {!applicationLoaded ? (<div className="w-96"><DataLoader /></div>):(
+      <div className="transition-opacity">
         <h1 className="text-5xl text-center p-8">Patient Pad</h1>
         <Tabs defaultValue="create" className="w-96">
           <TabsList className="grid grid-cols-2">
@@ -42,6 +48,7 @@ export function AuthorizePopup() {
           </TabsContent>
         </Tabs>
       </div>
+        )}
     </div>
   )
 }
