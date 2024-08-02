@@ -206,7 +206,7 @@ export class PatientRecord {
     }  
   }
 
-export class DatabaseCreate {
+export class DatabaseCreateRequest {
     databaseId: string;
     key: string;
 
@@ -216,7 +216,7 @@ export class DatabaseCreate {
     }
 }
 
-export class DatabaseAuthorize {
+export class DatabaseAuthorizeRequest {
     databaseId: string;
     key: string;
 

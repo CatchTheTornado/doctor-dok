@@ -94,7 +94,13 @@ export type PatientRecordDTO = z.infer<typeof patientRecordDTOSchema>;
 export const databaseCreateRequestSchema = z.object({
   keyLocatorHash: z.string().min(64).max(64),
   keyHash: z.string().min(32),
-  keyHashParams: z.string().min(1),
+  keyHashParams: z.object({
+    salt: z.string(),
+    time: z.number().positive().int(),
+    mem: z.number().positive().int(),
+    hashLen: z.number().positive().int(),
+    parallelism: z.number().positive().int(),
+  }),
   databaseIdHash: z.string().min(1).min(64).max(64),
   encryptedMasterKey: z.string().min(1),
 });

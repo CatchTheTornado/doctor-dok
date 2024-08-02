@@ -34,7 +34,10 @@ export function CreateDatabaseForm({
 
   const handleCreateDatabase = handleSubmit((data) => {
     // Handle form submission
-    dbContext?.create(data.databaseId, data.key);
+    dbContext?.create({
+      databaseId: data.databaseId,
+      key: data.key
+    });
   });
 
   return (
