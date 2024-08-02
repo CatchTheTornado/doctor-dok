@@ -54,9 +54,13 @@ export function CreateDatabaseForm({
            })}
         />
         {errors.databaseId && <span className="text-red-500 text-sm">Database Id must be at least 6 letters and/or digits and unique</span>}
+        <p className="text-sm text-zinc-500 dark:text-zinc-400">
+            Please pick a unique database id. We do not store this name. It could be your Personal ID if you like or any other unique name, at least 6 letters or digits.
+        </p>        
+
        </div>
       <div className="flex flex-col space-y-2 gap-2 mb-4">
-            <Label htmlFor="key">Key</Label>
+            <Label htmlFor="key">User Key</Label>
             <div className="flex gap-2">
               <div className="relative">
                 <PasswordInput autoComplete="new-password" id="password"

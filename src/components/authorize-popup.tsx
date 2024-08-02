@@ -15,7 +15,7 @@ export function AuthorizePopup() {
   return (
     <div className="p-4 flex items-center justify-center h-screen">
      {!applicationLoaded ? (<div className="w-96"><DataLoader /></div>):(
-      <div className="transition-opacity">
+      <div>
         <h1 className="text-5xl text-center p-8">Patient Pad</h1>
         <Tabs defaultValue="create" className="w-96">
           <TabsList className="grid grid-cols-2">
