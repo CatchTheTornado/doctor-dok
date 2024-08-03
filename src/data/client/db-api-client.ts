@@ -1,4 +1,4 @@
-import { DatabaseAuthorizeChallengeRequestDTO, DatabaseAuthorizeRequestDTO, DatabaseCreateRequestDTO } from "../dto";
+import { DatabaseAuthorizeChallengeRequestDTO, DatabaseAuthorizeRequestDTO, DatabaseCreateRequestDTO, KeyHashParamsDTO } from "../dto";
 import { ApiClient, ApiEncryptionConfig } from "./base-api-client";
 
 export type CreateDbResponse = {
@@ -11,9 +11,7 @@ export type CreateDbResponse = {
 };
 export type AuthorizeDbChallengeResponse = {
   message: string;
-  data?: {
-    challengeId: string;
-  }
+  data?: KeyHashParamsDTO,
   status: number;
   issues?: any[];
 };
@@ -21,7 +19,9 @@ export type AuthorizeDbChallengeResponse = {
 export type AuthorizeDbResponse = {
   message: string;
   data: {
+    encryptedMasterKey: string;
     accessToken: string;
+    refreshToken: string;
   }
   status: number;
   issues?: any[];

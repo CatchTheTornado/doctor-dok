@@ -7,19 +7,26 @@ import { useForm } from "react-hook-form";
 import { databaseIdValidator, userKeyValidator } from "@/data/client/models";
 import { Checkbox } from "./ui/checkbox";
 import { EyeIcon, EyeOffIcon } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { PasswordInput } from "./ui/password-input";
 import NoSSR  from "react-no-ssr"
+import { AuthorizeDatabaseResult } from "@/contexts/db-context";
 
 interface AuthorizeDatabaseFormProps {
 }
 
 export function AuthorizeDatabaseForm({
 }: AuthorizeDatabaseFormProps) {
+  const [operationResult, setOperationResult] = useState<AuthorizeDatabaseResult | null>(null);
+
   const { register, handleSubmit, formState: { errors } } = useForm();
   const [showPassword, setShowPassword] = useState(false)
   const [keepLoggedIn, setKeepLoggedIn] = useState(typeof localStorage !== 'undefined' ? localStorage.getItem("keepLoggedIn") === "true" : false)
 
+  useEffect(() => { // TODO: load credentials from local storage
+    setOperationResult(null);
+  }, []);
+  
   const handleAuthorizeDatabase = handleSubmit((data) => {
     // Handle form submission
   });
@@ -27,6 +34,17 @@ export function AuthorizeDatabaseForm({
   return (
     <form onSubmit={handleAuthorizeDatabase}>
       <div className="flex flex-col space-y-2 gap-2 mb-4">
+        {operationResult ? (
+          <div>
+            <p className={operationResult.success ? "p-3 border-2 border-green-500 background-green-200 text-sm font-semibold text-green-500" : "background-red-200 p-3 border-red-500 border-2 text-sm font-semibold text-red-500"}>{operationResult.message}</p>
+            <ul>
+              {operationResult.issues.map((issue, index) => (
+                <li key={index}>{issue}</li>
+              ))}
+            </ul>
+          </div>
+        ) : null}
+
         <Label htmlFor="databaseId">Database ID</Label>
         <Input
           type="text"
@@ -93,7 +111,7 @@ export function AuthorizeDatabaseForm({
                       onCheckedChange={(checked) => {
                       setKeepLoggedIn(checked);
                       localStorage.setItem("keepLoggedIn", checked.toString());
-                          }}
+                    }}
                   />
                   <label htmlFor="keepLoggedIn" className="text-sm">Keep me logged in</label>
               </div>      

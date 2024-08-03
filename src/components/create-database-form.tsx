@@ -38,6 +38,7 @@ export function CreateDatabaseForm({
 
   useEffect(() => { 
     setOperationResult(null);
+    // TODO: load credentials from local storage
   }, []);
   const handleCreateDatabase = handleSubmit(async (data) => {
     // Handle form submission

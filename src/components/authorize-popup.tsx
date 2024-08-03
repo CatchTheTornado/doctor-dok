@@ -17,7 +17,7 @@ export function AuthorizePopup() {
      {!applicationLoaded ? (<div className="w-96"><DataLoader /></div>):(
       <div>
         <h1 className="text-5xl text-center p-8">Patient Pad</h1>
-        <Tabs defaultValue="create" className="w-96">
+        <Tabs defaultValue="authorize" className="w-96">
           <TabsList className="grid grid-cols-2">
             <TabsTrigger value="authorize" className="dark:data-[state=active]:bg-zinc-900 data-[state=active]:bg-zinc-100">Open database</TabsTrigger>
             <TabsTrigger value="create" className="dark:data-[state=active]:bg-zinc-900 data-[state=active]:bg-zinc-100">Create database</TabsTrigger>
