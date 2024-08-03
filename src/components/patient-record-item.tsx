@@ -1,3 +1,4 @@
+import '@enhances/with-resolvers';
 import { Button } from "@/components/ui/button";
 import { PaperclipIcon, Trash2Icon } from "./icons";
 import { PatientRecord } from "@/data/client/models";
@@ -23,17 +24,19 @@ import remarkGfm from 'remark-gfm'
 import { Accordion, AccordionTrigger, AccordionContent, AccordionItem } from "./ui/accordion";
 import { EncryptedAttachmentDTO } from "@/data/dto";
 import styles from './patient-record-item.module.css'
+import { DatabaseContext } from "@/contexts/db-context";
 
 
 export default function PatientRecordItem(record: PatientRecord) {
 
   const config = useContext(ConfigContext);
+  const dbContext = useContext(DatabaseContext);
   const patientRecordContext = useContext(PatientRecordContext)
   const chatContext = useContext(ChatContext);
 
   const getAttachmentApiClient = async () => {
-    const secretKey = await config?.getServerConfig('dataEncryptionMasterKey') as string;
-    const apiClient = new EncryptedAttachmentApiClient('', {
+    const secretKey = dbContext?.masterKey;
+    const apiClient = new EncryptedAttachmentApiClient('', dbContext, {
       secretKey: secretKey,
       useEncryption: secretKey ? true : false
     })
@@ -41,8 +44,8 @@ export default function PatientRecordItem(record: PatientRecord) {
   }
 
   const getPatientRecordApiClient = async () => {
-    const secretKey = await config?.getServerConfig('dataEncryptionMasterKey') as string;
-    const apiClient = new PatientRecordApiClient('', {
+    const secretKey = dbContext?.masterKey;
+    const apiClient = new PatientRecordApiClient('', dbContext, {
       secretKey: secretKey,
       useEncryption: secretKey ? true : false
     })

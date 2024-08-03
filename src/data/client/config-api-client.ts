@@ -1,3 +1,4 @@
+import { DatabaseContextType } from "@/contexts/db-context";
 import { ConfigDTO, ConfigDTOEncSettings } from "../dto";
 import { ApiClient, ApiEncryptionConfig } from "./base-api-client";
 
@@ -18,8 +19,8 @@ export type PutConfigResponseError = {
 export type PutConfigResponse = PutConfigResponseSuccess | PutConfigResponseError;
 
 export class ConfigApiClient extends ApiClient {
-    constructor(baseUrl: string, encryptionConfig?: ApiEncryptionConfig) {
-      super(baseUrl, encryptionConfig);
+    constructor(baseUrl: string, dbContext?: DatabaseContextType | null, encryptionConfig?: ApiEncryptionConfig) {
+      super(baseUrl, dbContext, encryptionConfig);
     }
   
     async get(): Promise<ConfigDTO[]> {

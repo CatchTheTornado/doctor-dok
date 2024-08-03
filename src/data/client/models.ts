@@ -1,7 +1,7 @@
-import { max } from "drizzle-orm";
 import { EncryptedAttachmentDTO, PatientDTO, PatientRecordDTO } from "../dto";
-import { getCurrentTS } from "../utils";
 import { z } from "zod";
+
+import PasswordValidator from 'password-validator';
 
 
 export enum DataLoadingStatus {
@@ -11,38 +11,12 @@ export enum DataLoadingStatus {
     Error = 'error',
 }
 
-export enum DataLinkStatus {
+export enum DatabaseAuthStatus {
     Empty = 'Empty',
     NotAuthorized = 'NotAuthorized',
     AuthorizationError = 'AuthorizationError',
     Authorized = 'Success',
     InProgress = 'InProgress'
-}
-
-export class ServerDataLinkStatus {
-    status: DataLinkStatus;
-    message: string;
-    constructor(status: DataLinkStatus, message: string) {
-        this.status = status;
-        this.message = message;
-    }
-
-    isReady(): boolean {
-        return this.status === DataLinkStatus.Authorized;
-    }
-
-    isInProgress(): boolean {
-        return this.status === DataLinkStatus.InProgress;
-    }
-
-    isError(): boolean {
-        return this.status === DataLinkStatus.AuthorizationError;
-    }
-
-    isEmpty(): boolean {
-        return this.status === DataLinkStatus.Empty;
-    }    
-
 }
 
 export class Patient {
@@ -231,3 +205,41 @@ export class PatientRecord {
       };
     }  
   }
+
+export class DatabaseCreateRequest {
+    databaseId: string;
+    key: string;
+
+    constructor(databaseId: string, key: string) {
+        this.databaseId = databaseId;
+        this.key = key;
+    }
+}
+
+export class DatabaseAuthorizeRequest {
+    databaseId: string;
+    key: string;
+
+    constructor(databaseId: string, key: string) {
+        this.databaseId = databaseId;
+        this.key = key;
+    }
+}
+
+export const databaseIdValidator = (value:string) => {
+    const passSchema = new PasswordValidator();
+    passSchema.is().min(6).has().not().spaces();
+    return passSchema.validate(value);
+    
+}
+export const userKeyValidator = (value:string) => {
+    const passSchema = new PasswordValidator();
+    passSchema.is().min(8).has().not().spaces();
+    return passSchema.validate(value);
+}
+
+export const sharingKeyValidator = (value:string) => {
+    const passSchema = new PasswordValidator();
+    passSchema.is().min(6).has().not().spaces().has().digits(6);
+    return passSchema.validate(value);
+}

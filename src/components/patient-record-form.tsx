@@ -14,7 +14,7 @@ import { use, useContext, useEffect, useState } from "react";
 import { EncryptedAttachment, Patient, PatientRecord } from "@/data/client/models";
 import { Credenza, CredenzaContent, CredenzaDescription, CredenzaHeader, CredenzaTitle, CredenzaTrigger } from "./credenza";
 import { PlusIcon } from "lucide-react";
-import { useForm } from "react-hook-form";
+import { useForm, useFormContext } from "react-hook-form";
 import { PatientContext } from "@/contexts/patient-context";
 import { PatientRecordContext } from "@/contexts/patient-record-context";
 import { getCurrentTS } from "@/lib/utils";
@@ -24,6 +24,7 @@ import { EncryptedAttachmentApiClient } from "@/data/client/encrypted-attachment
 import { ConfigContext } from "@/contexts/config-context";
 import { set } from "zod";
 import DataLoader from "./data-loader";
+import { DatabaseContext } from "@/contexts/db-context";
 
 
 const FileSvgDraw = () => {
@@ -55,9 +56,10 @@ const FileSvgDraw = () => {
   );
 };
 
-export default function PatientRecordForm({ patient }: { patient: Patient }) {
+export default function PatientRecordForm({ patient }: { patient?: Patient }) {
   const patientContext = useContext(PatientContext);
   const configContext = useContext(ConfigContext);
+  const dbContext = useContext(DatabaseContext);
   const patientRecordContext = useContext(PatientRecordContext);
   const [files, setFiles] = useState<UploadedFile[] | null>(null);
   const [dialogOpen, setDialogOpen] = useState(false);
@@ -139,8 +141,8 @@ export default function PatientRecordForm({ patient }: { patient: Patient }) {
 
       if(savedPatientRecord?.id) // if patient record is saved successfully
       {
-         const eaac = new EncryptedAttachmentApiClient('', {
-          secretKey: await configContext?.getServerConfig('dataEncryptionMasterKey') as string,
+         const eaac = new EncryptedAttachmentApiClient('', dbContext, {
+          secretKey: dbContext,
           useEncryption: true
         });
         uploadedAttachments?.forEach(async (attachmentToUpdate) => {

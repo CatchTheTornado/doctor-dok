@@ -78,6 +78,13 @@
       "when": 1721935212547,
       "tag": "0010_red_zzzax",
       "breakpoints": true
+    },
+    {
+      "idx": 11,
+      "version": "6",
+      "when": 1722504249191,
+      "tag": "0011_strange_glorian",
+      "breakpoints": true
     }
   ]
 }

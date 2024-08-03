@@ -28,6 +28,7 @@ import { v4 as uuidv4 } from 'uuid';
 import { EncryptedAttachmentApiClient } from "@/data/client/encrypted-attachment-api-client";
 import { ConfigContext } from "@/contexts/config-context";
 import { DTOEncryptionFilter, EncryptionUtils } from "@/lib/crypto";
+import { DatabaseContext } from "@/contexts/db-context";
 
 type DirectionOptions = "rtl" | "ltr" | undefined;
 
@@ -97,6 +98,7 @@ export const EncryptedAttachmentUploader = forwardRef<
     const [activeIndex, setActiveIndex] = useState(-1);
     const [uploadQueueSize, setQueueSize] = useState(0);
     const config = useContext(ConfigContext);
+    const dbContext = useContext(DatabaseContext)
     const {
       accept = {
         "image/*": [".jpg", ".jpeg", ".png", ".pdf"],
@@ -114,7 +116,7 @@ export const EncryptedAttachmentUploader = forwardRef<
         if (!value) return;
         const fileToRemove = value.find((_, index) => index === i);
         if (fileToRemove) {
-          const apiClient = new EncryptedAttachmentApiClient('', {
+          const apiClient = new EncryptedAttachmentApiClient('', dbContext, {
             useEncryption: false  // for FormData we're encrypting records by ourselves - above
           })
           if(fileToRemove.dto) apiClient.delete(fileToRemove.dto); // remove file from storage
@@ -198,7 +200,7 @@ export const EncryptedAttachmentUploader = forwardRef<
         if (fileToUpload){
           fileToUpload.status = 'uploading ...';
           const formData = new FormData();
-          const masterKey = await config?.getServerConfig('dataEncryptionMasterKey');
+          const masterKey = await dbContext?.masterKey;
           if(fileToUpload && fileToUpload.file) 
           { 
             const encFilter = masterKey ? new DTOEncryptionFilter(masterKey as string) : null;
@@ -223,7 +225,7 @@ export const EncryptedAttachmentUploader = forwardRef<
 
             formData.append("attachmentDTO", JSON.stringify(attachmentDTO));
             try {
-              const apiClient = new EncryptedAttachmentApiClient('', {
+              const apiClient = new EncryptedAttachmentApiClient('', dbContext, {
                 useEncryption: false  // for FormData we're encrypting records by ourselves - above
               })
               const result = await apiClient.put(formData);

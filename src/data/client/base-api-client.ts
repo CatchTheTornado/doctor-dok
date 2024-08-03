@@ -1,6 +1,7 @@
 import { DTOEncryptionFilter, EncryptionUtils } from "@/lib/crypto";
 import { DTOEncryptionSettings } from "../dto";
 import axios, { AxiosRequestConfig, AxiosResponse } from 'axios';
+import { DatabaseContextType } from "@/contexts/db-context";
 
 export type ApiEncryptionConfig = {
   secretKey?: string;
@@ -11,11 +12,13 @@ export type ApiEncryptionConfig = {
 export class ApiClient {
   private baseUrl: string;
   private encryptionFilter: DTOEncryptionFilter<any> | null = null;
-  private encryptionConfig?: ApiEncryptionConfig = null;
-  private encryptionUtils: EncryptionUtils = null;
+  private encryptionConfig?: ApiEncryptionConfig | null = null;
+  private encryptionUtils: EncryptionUtils | null = null;
+  private dbContext?: DatabaseContextType | null = null;
 
-  constructor(baseUrl: string, encryptionConfig?: ApiEncryptionConfig) {
+  constructor(baseUrl: string, databaseContext?: DatabaseContextType | null, encryptionConfig?: ApiEncryptionConfig) {
     this.baseUrl = baseUrl;
+    this.dbContext = databaseContext;
     if (encryptionConfig?.useEncryption) {
       this.encryptionFilter = new DTOEncryptionFilter(encryptionConfig.secretKey as string);
     }
@@ -27,6 +30,14 @@ export class ApiClient {
     endpoint: string
   ): Promise<ArrayBuffer> {
     const headers: Record<string, string> = {};
+
+    if (this.dbContext?.accessToken) {
+      headers['Authorization'] = `Bearer ${this.dbContext?.accessToken}`;
+    }
+
+    if(this.dbContext?.databaseHashId) {
+      headers['Database-Id-Hash'] = this.dbContext?.databaseHashId;
+    }    
 
     const config: AxiosRequestConfig = {
       method: 'GET',
@@ -41,7 +52,7 @@ export class ApiClient {
       if (response.status >= 400) {
         throw new Error(response.statusText || 'Request failed');
       }
-      return (this.encryptionConfig?.useEncryption) ? this.encryptionUtils.decryptArrayBuffer(response.data) : response.data;
+      return (this.encryptionConfig?.useEncryption) ? this.encryptionUtils?.decryptArrayBuffer(response.data) : response.data;
       
     } catch (error) {
       throw new Error('Request failed');
@@ -56,6 +67,14 @@ export class ApiClient {
     formData?: FormData
   ): Promise<T | T[]> {
     const headers: Record<string, string> = {};
+
+    if (this.dbContext?.accessToken) {
+      headers['Authorization'] = `Bearer ${this.dbContext?.accessToken}`;
+    }
+
+    if(this.dbContext?.databaseHashId) {
+      headers['Database-Id-Hash'] = this.dbContext?.databaseHashId;
+    }
 
     if (formData) {
       if (this.encryptionFilter) {

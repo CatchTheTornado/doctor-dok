@@ -1,6 +1,6 @@
-import { BaseRepository } from "./base-repository"
+import { BaseRepository, IQuery } from "./base-repository"
 import { PatientRecordDTO } from "../dto";
-import { db } from '@/data/server/db-provider'
+import { pool } from '@/data/server/db-provider'
 import { getCurrentTS } from "@/lib/utils";
 import { patientRecords } from "./db-schema";
 import { eq } from "drizzle-orm";
@@ -10,11 +10,13 @@ export default class ServerPatientRecordRepository extends BaseRepository<Patien
     
     
     async create(item: PatientRecordDTO): Promise<PatientRecordDTO> {
+        const db = (await this.db());
         return create(item, patientRecords, db); // generic implementation
     }
 
     // update patient
-    async upsert(query:Record<string, any>, item: PatientRecordDTO): Promise<PatientRecordDTO> {        
+    async upsert(query:Record<string, any>, item: PatientRecordDTO): Promise<PatientRecordDTO> { 
+        const db = (await this.db());       
         let existingRecord:PatientRecordDTO | null = query.id ? db.select().from(patientRecords).where(eq(patientRecords.id, query.id)).get() as PatientRecordDTO : null
         if (!existingRecord) {
             existingRecord = await this.create(item);
@@ -27,16 +29,18 @@ export default class ServerPatientRecordRepository extends BaseRepository<Patien
     }    
 
     async delete(query: Record<string, string>): Promise<boolean> {
+        const db = (await this.db());
         return db.delete(patientRecords).where(eq(patientRecords.id, parseInt(query.id))).run()
     }
 
-    findAll(searchParams?:URLSearchParams): Promise<PatientRecordDTO[]> {
-        let query = db.select().from(patientRecords);
-        if(searchParams){
-            if(searchParams.has('patientId')){
-                query.where(eq(patientRecords.patientId, parseInt(searchParams.get('patientId') as string)));
+    async findAll(query?: IQuery): Promise<PatientRecordDTO[]> {
+        const db = (await this.db());
+        let dbQuery = db.select().from(patientRecords);
+        if(query?.filter){
+            if(query.filter['patientId']){
+                dbQuery.where(eq(patientRecords.patientId, parseInt(query.filter['patientId'] as string)));
             }
         }
-        return Promise.resolve(query.all() as PatientRecordDTO[])
+        return Promise.resolve(dbQuery.all() as PatientRecordDTO[])
     }
 }

@@ -1,4 +1,17 @@
+import { BetterSQLite3Database } from "drizzle-orm/better-sqlite3";
+import { Pool, pool } from "./db-provider";
+
 // import all interfaces
+export type IFilter = Record<string, any> | any;
+
+export interface IQuery {
+    limit?: number;
+    offset?: number;
+    sort?: Record<string, any>;
+    filter?: IFilter
+    search?: string;
+}
+
 export interface IWrite<T> {
     create(item: T): Promise<T>;
     update(query: Record<string, any>, item: T): Promise<T>;
@@ -6,12 +19,21 @@ export interface IWrite<T> {
   }
 
   export interface IRead<T> {
-    findAll(): Promise<T[]>;
-    findOne(query: Record<string, any>): Promise<T>;
+    findAll(query: IQuery): Promise<T[]>;
+    findOne(query: IFilter): Promise<T>;
   }
 
 // that class only can be extended
 export abstract class BaseRepository<T> implements IWrite<T>, IRead<T> {
+    databaseId: string;
+    constructor(databaseId: string) {
+        this.databaseId = databaseId;
+    }
+
+    async db(): Promise<BetterSQLite3Database<Record<string, never>>> {
+        return (await pool)(this.databaseId, false);
+    }
+
     async create(item: T): Promise<T> {
         throw new Error("Method not implemented.");
     }
@@ -24,10 +46,15 @@ export abstract class BaseRepository<T> implements IWrite<T>, IRead<T> {
     async delete(query: Record<string, any>): Promise<boolean> {
         throw new Error("Method not implemented.");
     }
-    async findAll(searchParams?: URLSearchParams): Promise<T[]> {
+    async findAll(query?: IQuery): Promise<T[]> {
         throw new Error("Method not implemented.");
     }
-    async findOne(query: Record<string, any>): Promise<T> {
-        throw new Error("Method not implemented.");
+    async findOne(query: IFilter): Promise<T | null> {
+        const records = await this.findAll({ filter: query });
+        if(records.length > 0){
+            return Promise.resolve(records[0])
+        } else {
+            return Promise.resolve(null)
+        }
     }
 }

@@ -26,6 +26,22 @@ export const configDTOSchema = z.object({
 export const ConfigDTOEncSettings: DTOEncryptionSettings =  { ecnryptedFields: ['value'] }
 export type ConfigDTO = z.infer<typeof configDTOSchema>;
 
+export const keyDTOSchema = z.object({
+  keyLocatorHash: z.string().min(64).max(64),
+  keyHash: z.string().min(32),
+  keyHashParams: z.string().min(1),
+  databaseIdHash: z.string().min(64).max(64),
+  encryptedMasterKey: z.string().min(1),
+  acl: z.string().nullable(),
+  extra: z.string().nullable(),
+  expiryDate: z.string().nullable(),
+  updatedAt: z.string().default(() => getCurrentTS()),
+});
+
+export const KeyDTOEncSettings: DTOEncryptionSettings =  { ecnryptedFields: [] }
+export type KeyDTO = z.infer<typeof keyDTOSchema>;
+
+
 export type AttachmentAssigmentDTO = {
   id: number;
   type: string;
@@ -72,3 +88,38 @@ export const patientRecordDTOSchema = z.object({
 
 export const PatientRecordDTOEncSettings = { ecnryptedFields: ['description', 'type', 'json', 'extra', 'text', 'attachments'] }
 export type PatientRecordDTO = z.infer<typeof patientRecordDTOSchema>;
+
+
+
+export const databaseCreateRequestSchema = z.object({
+  keyLocatorHash: z.string().min(64).max(64),
+  keyHash: z.string().min(32),
+  keyHashParams: z.string().min(1),
+  databaseIdHash: z.string().min(1).min(64).max(64),
+  encryptedMasterKey: z.string().min(1),
+});
+export type DatabaseCreateRequestDTO = z.infer<typeof databaseCreateRequestSchema>;
+
+
+export const databaseAuthorizeChallengeRequestSchema = z.object({
+  keyLocatorHash: z.string().min(64).max(64),
+  databaseIdHash: z.string().min(1).min(64).max(64),
+});
+export type DatabaseAuthorizeChallengeRequestDTO = z.infer<typeof databaseAuthorizeChallengeRequestSchema>;
+
+export const databaseAuthorizeRequestSchema = z.object({
+  keyLocatorHash: z.string().min(64).max(64),
+  keyHash: z.string().min(32),
+  databaseIdHash: z.string().min(1).min(64).max(64),
+});
+export type DatabaseAuthorizeRequestDTO = z.infer<typeof databaseAuthorizeRequestSchema>;
+
+
+  export const keyHashParamsDTOSchema = z.object({
+    salt: z.string(),
+    time: z.number().positive().int(),
+    mem: z.number().positive().int(),
+    hashLen: z.number().positive().int(),
+    parallelism: z.number().positive().int(),
+  });
+  export type KeyHashParamsDTO = z.infer<typeof keyHashParamsDTOSchema>;

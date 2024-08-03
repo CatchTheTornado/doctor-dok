@@ -1,5 +1,6 @@
 import { ApiClient, ApiEncryptionConfig } from "./base-api-client";
 import { PatientDTO, PatientRecordDTO, PatientRecordDTOEncSettings } from "../dto";
+import { DatabaseContextType } from "@/contexts/db-context";
 
 export type GetPatientRecordsResponse = PatientRecordDTO[];
 export type PutPatientRecordRequest = PatientRecordDTO;
@@ -25,8 +26,8 @@ export type PutPatientRecordResponse = PutPatientRecordResponseSuccess | PutPati
 
 
 export class PatientRecordApiClient extends ApiClient {
-    constructor(baseUrl: string, encryptionConfig?: ApiEncryptionConfig) {
-      super(baseUrl, encryptionConfig);
+    constructor(baseUrl: string, dbContext?: DatabaseContextType | null, encryptionConfig?: ApiEncryptionConfig) {
+      super(baseUrl, dbContext, encryptionConfig);
     }
   
     async get(patient: PatientDTO): Promise<GetPatientRecordsResponse> {

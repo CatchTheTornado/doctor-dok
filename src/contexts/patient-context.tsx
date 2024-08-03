@@ -1,4 +1,4 @@
-import React, { createContext, useState, useEffect, useContext } from 'react';
+import React, { createContext, useState, useEffect, useContext, PropsWithChildren } from 'react';
 import { PatientDTO } from '@/data/dto';
 import { PatientApiClient } from '@/data/client/patient-api-client';
 import { ApiEncryptionConfig } from '@/data/client/base-api-client';
@@ -6,6 +6,7 @@ import { ApiEncryptionConfig } from '@/data/client/base-api-client';
 
 import { DataLoadingStatus, Patient } from '@/data/client/models';
 import { ConfigContext, ConfigContextType } from './config-context';
+import { DatabaseContext } from './db-context';
 
 
 export type PatientContextType = {
@@ -21,16 +22,26 @@ export type PatientContextType = {
 
 export const PatientContext = createContext<PatientContextType | null>(null);
 
-export const PatientContextProvider: React.FC = ({ children }) => {
+export const PatientContextProvider: React.FC<PropsWithChildren> = ({ children }) => {
     const [patients, setPatients] = useState<Patient[]>([]);
     const [loaderStatus, setLoaderStatus] = useState<DataLoadingStatus>(DataLoadingStatus.Idle);
     const [currentPatient, setCurrentPatient] = useState<Patient | null>(null); // new state
     const config = useContext(ConfigContext);
+    const dbContext = useContext(DatabaseContext);
 
     useEffect(() => {
         listPatients();
     }, []);
-
+    const setupApiClient = async (config: ConfigContextType | null) => {
+        const masterKey = dbContext?.masterKey
+        const encryptionConfig: ApiEncryptionConfig = {
+            secretKey: masterKey,
+            useEncryption: true
+        };
+        const client = new PatientApiClient('', dbContext, encryptionConfig);
+        return client;
+    }
+    
     const addPatient = async (patient: Patient) => {
         const client = await setupApiClient(config);
         const patientDTO = patient.toDTO(); // DTOs are common ground between client and server
@@ -105,12 +116,3 @@ export const PatientContextProvider: React.FC = ({ children }) => {
     );
 };
 
-async function setupApiClient(config: ConfigContextType | null) {
-    const masterKey = await config?.getServerConfig('dataEncryptionMasterKey') as string
-    const encryptionConfig: ApiEncryptionConfig = {
-        secretKey: masterKey,
-        useEncryption: true
-    };
-    const client = new PatientApiClient('', encryptionConfig);
-    return client;
-}

@@ -5,24 +5,33 @@ import PatientRecordForm from "./patient-record-form";
 import { PatientContext } from "@/contexts/patient-context";
 import { useContext } from "react";
 import { Chat } from "./chat";
+import { AuthorizePopup } from "./authorize-popup";
+import { LogOutIcon } from "lucide-react";
+import { DatabaseContext } from "@/contexts/db-context";
+import { toast } from "sonner";
 
 export default function TopHeader() {
     const patientContext = useContext(PatientContext);
-
+    const dbContext = useContext(DatabaseContext);
     return (
       <div className="sticky top-0 z-1000 flex items-center justify-between border-b border-zinc-200 dark:border-zinc-800 p-4 bg-zinc-200 dark:bg-zinc-800">
         <div className="font-medium">Patient Pad {patientContext?.currentPatient ? (' for ' + patientContext.currentPatient.displayName()) : (null)}</div>
         <div className="flex items-center gap-2">
           <PatientListPopup />
+          <SettingsPopup />
           {(patientContext?.currentPatient !== null) ? (
             <PatientRecordForm patient={patientContext?.currentPatient} />
           ) : ("")}
           {(patientContext?.currentPatient !== null) ? (
             <Chat />
-          ) : ("")}          
-          <SettingsPopup />
-          <Button variant="ghost" size="icon">
-            <LogInIcon className="h-5 w-5" />
+          ) : ("")}     
+          <Button variant="outline" size="icon"  onClick={() => {
+              dbContext?.logout();
+              localStorage.removeItem('keepLoggedIn');
+              toast.info("Logged out successfully");
+
+            }} >
+            <LogOutIcon className="cursor-pointer w-6 h-6"/>     
           </Button>
         </div>
       </div>
