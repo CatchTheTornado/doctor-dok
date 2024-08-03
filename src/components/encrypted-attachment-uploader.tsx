@@ -116,7 +116,7 @@ export const EncryptedAttachmentUploader = forwardRef<
         if (!value) return;
         const fileToRemove = value.find((_, index) => index === i);
         if (fileToRemove) {
-          const apiClient = new EncryptedAttachmentApiClient('', {
+          const apiClient = new EncryptedAttachmentApiClient('', dbContext, {
             useEncryption: false  // for FormData we're encrypting records by ourselves - above
           })
           if(fileToRemove.dto) apiClient.delete(fileToRemove.dto); // remove file from storage
@@ -225,7 +225,7 @@ export const EncryptedAttachmentUploader = forwardRef<
 
             formData.append("attachmentDTO", JSON.stringify(attachmentDTO));
             try {
-              const apiClient = new EncryptedAttachmentApiClient('', {
+              const apiClient = new EncryptedAttachmentApiClient('', dbContext, {
                 useEncryption: false  // for FormData we're encrypting records by ourselves - above
               })
               const result = await apiClient.put(formData);

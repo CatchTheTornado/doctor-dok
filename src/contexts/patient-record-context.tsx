@@ -101,12 +101,12 @@ export const PatientRecordContextProvider: React.FC<PropsWithChildren> = ({ chil
     };
 
     const setupApiClient = async (config: ConfigContextType | null) => {
-        const masterKey = dbContext.masterKey;
+        const masterKey = dbContext?.masterKey;
         const encryptionConfig: ApiEncryptionConfig = {
             secretKey: masterKey,
             useEncryption: true
         };
-        const client = new PatientRecordApiClient('', encryptionConfig);
+        const client = new PatientRecordApiClient('', dbContext, encryptionConfig);
         return client;
     }
 
@@ -116,7 +116,7 @@ export const PatientRecordContextProvider: React.FC<PropsWithChildren> = ({ chil
             secretKey: masterKey,
             useEncryption: true
         };
-        const client = new EncryptedAttachmentApiClient('', encryptionConfig);
+        const client = new EncryptedAttachmentApiClient('', dbContext, encryptionConfig);
         return client;
     }
 

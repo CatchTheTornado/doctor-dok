@@ -28,15 +28,17 @@ export function SettingsPopup() {
       const chatGptKey = await config?.getServerConfig('chatGptApiKey');
       setValue("chatGptApiKey", chatGptKey as string);
     }
+    fetchDefaultConfig();
   }, []);
 
   async function onSubmit(formData) {
     config?.setServerConfig('chatGptApiKey', formData['chatGptApiKey']);
+    setDialogOpen(false);
   }
 
 
   return (
-    <Credenza open={dialogOpen} onOpenChange={setDialogOpen}>
+    <Credenza open={config?.isConfigDialogOpen} onOpenChange={config?.setConfigDialogOpen}>
       <CredenzaTrigger asChild>
         <Button variant="outline" size="icon">
           <SettingsIcon className="w-6 h-6" />
@@ -45,10 +47,10 @@ export function SettingsPopup() {
       <CredenzaContent className="sm:max-w-[425px] bg-white dark:bg-zinc-950">
         <div className="p-4">
           <form onSubmit={handleSubmit(onSubmit)}>
-            <Tabs defaultValue="auth">
+            <Tabs defaultValue="settings">
               <TabsList className="grid w-full grid-cols-2">
-                <TabsTrigger value="settings">AI Settings</TabsTrigger>
-              </TabsList>
+                <TabsTrigger value="settings" className="dark:data-[state=active]:bg-zinc-900 data-[state=active]:bg-zinc-100">AI Settings</TabsTrigger>
+            </TabsList>
               <TabsContent value="settings">
                 <Card>
                   <CardHeader>

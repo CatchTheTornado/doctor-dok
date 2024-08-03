@@ -1,4 +1,4 @@
-import { databaseAuthorizeChallengeRequestSchema, KeyDTO } from "@/data/dto";
+import { databaseAuthorizeChallengeRequestSchema, keyHashParamsDTOSchema, KeyDTO } from "@/data/dto";
 import ServerKeyRepository from "@/data/server/server-key-repository";
 import { getErrorMessage, getZedErrorMessage } from "@/lib/utils";
 
@@ -21,11 +21,22 @@ export async function POST(request: Request) {
                     status: 401               
                 });                    
             } else {
-                return Response.json({
-                    message: 'Key found. Challenge is ready.',
-                    data: existingKeys[0].keyHashParams,
-                    status: 200
-                });                    
+                const khpdValidation = keyHashParamsDTOSchema.safeParse(JSON.parse(existingKeys[0].keyHashParams))
+                if (!khpdValidation.success) {
+                    console.error(khpdValidation);
+                    return Response.json({
+                        message: getZedErrorMessage(khpdValidation.error),
+                        issues: khpdValidation.error.issues,
+                        status: 400               
+                    });  
+                } else {
+                    const keyHashParamsObject = khpdValidation.data
+                    return Response.json({
+                        message: 'Key found. Challenge is ready.',
+                        data: keyHashParamsObject,
+                        status: 200
+                    });       
+                }             
             }         
         } else {
             console.error(validationResult);

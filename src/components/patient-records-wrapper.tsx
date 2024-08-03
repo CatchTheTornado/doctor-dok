@@ -9,6 +9,7 @@ import { ListIcon } from "lucide-react";
 import { useEffectOnce } from "react-use";
 import { PatientRecordContext } from "@/contexts/patient-record-context";
 import { DatabaseContext } from "@/contexts/db-context";
+import { DatabaseAuthStatus } from "@/data/client/models";
 
 export default function PatientRecordsWrapper({}) {
   const patientContext = useContext(PatientContext);
@@ -29,7 +30,7 @@ export default function PatientRecordsWrapper({}) {
           <div>
             <div className="flex-1 overflow-auto">
               <div className="grid gap-6">
-                { (!dbContext?.authStatus.isError()) ? (
+                { (dbContext?.authStatus === DatabaseAuthStatus.Authorized) ? (
                   <PatientRecordList key={0} patient={patientContext?.currentPatient} />
                 ) : (
                   <DatabaseLinkAlert />

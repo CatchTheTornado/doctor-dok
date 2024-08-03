@@ -36,7 +36,7 @@ export default function PatientRecordItem(record: PatientRecord) {
 
   const getAttachmentApiClient = async () => {
     const secretKey = dbContext?.masterKey;
-    const apiClient = new EncryptedAttachmentApiClient('', {
+    const apiClient = new EncryptedAttachmentApiClient('', dbContext, {
       secretKey: secretKey,
       useEncryption: secretKey ? true : false
     })
@@ -45,7 +45,7 @@ export default function PatientRecordItem(record: PatientRecord) {
 
   const getPatientRecordApiClient = async () => {
     const secretKey = dbContext?.masterKey;
-    const apiClient = new PatientRecordApiClient('', {
+    const apiClient = new PatientRecordApiClient('', dbContext, {
       secretKey: secretKey,
       useEncryption: secretKey ? true : false
     })

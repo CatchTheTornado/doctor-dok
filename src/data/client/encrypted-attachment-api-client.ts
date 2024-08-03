@@ -1,3 +1,4 @@
+import { DatabaseContextType } from "@/contexts/db-context";
 import { EncryptedAttachmentDTO } from "../dto";
 import { ApiClient, ApiEncryptionConfig } from "./base-api-client";
 
@@ -23,8 +24,8 @@ export type PutEncryptedAttachmentResponseError = {
 export type PutEncryptedAttachmentResponse = PutEncryptedAttachmentResponseSuccess | PutEncryptedAttachmentResponseError;
 
 export class EncryptedAttachmentApiClient extends ApiClient {
-    constructor(baseUrl: string, encryptionConfig?: ApiEncryptionConfig) {
-      super(baseUrl, encryptionConfig);
+    constructor(baseUrl: string, dbContext?: DatabaseContextType | null, encryptionConfig?: ApiEncryptionConfig) {
+      super(baseUrl, dbContext, encryptionConfig);
     }
 
   

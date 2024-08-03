@@ -47,6 +47,10 @@ export function CreateDatabaseForm({
       key: data.key
     });
 
+    if (keepLoggedIn){
+      localStorage.setItem("databaseId", data.databaseId);
+      localStorage.setItem("key", data.key);
+    }
     setOperationResult(result);
     if(result?.success) {
       toast.success(result?.message);
@@ -59,7 +63,7 @@ export function CreateDatabaseForm({
     return (<div className="flex flex-col space-y-2 gap-2 mb-4">
       <h2 className="text-green-500 text-bold">Congratulations!</h2>
       <p className="text-sm">Database has ben successfully created. Please store the credentials in safe place as they are <strong>NEVER send to server</strong> and thus <strong>CAN NOT be recovered</strong></p>
-      <div className="border-2 border-dashed border-red-400 p-5">
+      <div className="border-2 border-dashed border-green-400 p-5">
         <div className="text-sm mb-5">
           <Label htmlFor="databaseId">Database ID:</Label>
           <Input id="databaseId" readOnly value={dbContext?.databaseId} />

@@ -1,6 +1,5 @@
-import { databaseAuthorizeChallengeRequestSchema, databaseAuthorizeRequestSchema, KeyDTO } from "@/data/dto";
-import { authorizeKey, checkKey } from "@/data/server/server-key-helpers";
-import ServerKeyRepository from "@/data/server/server-key-repository";
+import { databaseAuthorizeRequestSchema, KeyDTO } from "@/data/dto";
+import { authorizeKey } from "@/data/server/server-key-helpers";
 import { getErrorMessage, getZedErrorMessage } from "@/lib/utils";
 import jwt from 'jsonwebtoken';
 

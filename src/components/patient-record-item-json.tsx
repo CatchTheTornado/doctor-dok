@@ -34,7 +34,7 @@ const PatientRecordItemJson: React.FC<Props> = ({ record }) => {
                     <AccordionItem value="item-1">
                         <AccordionTrigger>Structured results</AccordionTrigger>
                         <AccordionContent>
-                            <ReactJson src={record.json} />
+                            <DynamicReactJson src={record.json} />
                         </AccordionContent>
                     </AccordionItem>
                 </Accordion>

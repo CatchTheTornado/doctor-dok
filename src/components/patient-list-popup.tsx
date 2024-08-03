@@ -1,7 +1,7 @@
 import { useContext, useState } from "react";
 import PatientItem from "./patient-item";
 import { PatientContext } from "@/contexts/patient-context";
-import { DataLoadingStatus } from "@/data/client/models";
+import { DatabaseAuthStatus, DataLoadingStatus } from "@/data/client/models";
 import DataLoader from "./data-loader";
 import { ConfigContext } from "@/contexts/config-context";
 import { Alert, AlertDescription, AlertTitle } from "./ui/alert";
@@ -29,7 +29,7 @@ export default function PatientListPopup() {
       <CredenzaContent className="sm:max-w-[500px] bg-white dark:bg-zinc-950" side="top">
         <CredenzaHeader>
           <CredenzaTitle>List patients
-            {(dbContext?.authStatus.isAuthorized()) ? (
+            {(dbContext?.authStatus == DatabaseAuthStatus.Authorized) ? (
               <PatientEditPopup />
             ) : (null)}
           </CredenzaTitle>
@@ -39,7 +39,7 @@ export default function PatientListPopup() {
         </CredenzaHeader>
         <div className="bg-white dark:bg-zinc-900 border-r border-zinc-200 dark:border-zinc-800">
           <div className="h-auto overflow-auto">
-            {(dbContext?.authStatus.isAuthorized()) ? (
+            {(dbContext?.authStatus == DatabaseAuthStatus.Authorized) ? (
               <div className="p-4 space-y-4">
                 {patientsContext?.loaderStatus === DataLoadingStatus.Loading ? (
                   <div className="flex justify-center">

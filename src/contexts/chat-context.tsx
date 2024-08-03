@@ -4,6 +4,7 @@ import { nanoid } from 'nanoid';
 import { createOpenAI, openai } from '@ai-sdk/openai';
 import { CallWarning, convertToCoreMessages, FinishReason, streamText } from 'ai';
 import { ConfigContext } from './config-context';
+import { toast } from 'sonner';
 
 enum MessageDisplayMode {
     Text = 'text',
@@ -84,10 +85,18 @@ export const ChatContextProvider: React.FC<PropsWithChildren> = ({ children }) =
     const [isStreaming, setIsStreaming] = useState(false);
 
     const config = useContext(ConfigContext);
+    const checkApiConfig = async () => {
+        const apiKey = await config?.serverConfig['chatGptApiKey'] as string;
+        if (!apiKey) {
+            config?.setConfigDialogOpen(true);
+            toast.info('Please enter Chat GPT API Key first');
+        }
+    }
 
     const aiProvider = async () => {
+        await checkApiConfig();
         const aiProvider = createOpenAI({
-            apiKey: await config?.getServerConfig('chatGptApiKey') as string
+            apiKey: await config?.serverConfig['chatGptApiKey'] as string
         })
         return aiProvider.chat('gpt-4o')   //gpt-4o-2024-05-13
     }
