@@ -11,7 +11,7 @@ export type ApiResult = {
     status: 200 | 400 | 500;
 }
 
-export function getDatabaseId(request: Request): string {
+export function getDatabaseIdHash(request: Request): string {
     console.log(request.headers.get('database-id-hash'))
     return request.headers.get('database-id-hash') || 'default';
 }

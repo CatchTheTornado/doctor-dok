@@ -99,7 +99,7 @@ export function AuthorizeDatabaseForm({
               </div>      
             </NoSSR>
             <div className="items-center flex justify-center">
-                <Button type="submit">Create database</Button>
+                <Button type="submit">Open database</Button>
             </div>
         </div>
     </form>

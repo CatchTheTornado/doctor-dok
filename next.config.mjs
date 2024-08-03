@@ -3,10 +3,6 @@ import withBundleAnalyzer from '@next/bundle-analyzer';
 
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-    publicRuntimeConfig: {
-        defaultKeyLocatorHashSalt: 'ooph9uD4cohN9Eechog0nohzoon9ahra',
-        defaultDatabaseIdHashSalt: 'daiv2aez4thiewaegahyohNgaeFe2aij'
-    },
     webpack: (config, { buildId, dev, isServer, defaultLoaders, webpack }) => {
       config.module.rules.push({
         test: /\.wasm$/,

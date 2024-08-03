@@ -26,11 +26,14 @@ export type DatabaseManifest = {
 export const maintenance = { 
 	databaseDirectory: (databaseId:string) =>  path.join(rootPath, 'data', databaseId),
 	databaseFileName: (databaseId:string) =>  path.join(maintenance.databaseDirectory(databaseId),  'db.sqlite'),
-	createDatabaseManifest: (databaseId: string, databaseManifest: DatabaseManifest) => {
+	createDatabaseManifest: async (databaseId: string, databaseManifest: DatabaseManifest) => {
 		const databaseDirectory = maintenance.databaseDirectory(databaseId)
 		if (!fs.existsSync(databaseDirectory)) {
 			fs.mkdirSync(databaseDirectory, { recursive: true })
 		}
+
+		console.log('Creating new database hash = ' + databaseId);
+		const newDb = (await pool)(databaseId, true); // create new database
 
 		const manifestPath = path.join(databaseDirectory, 'manifest.json')
 		if (!fs.existsSync(manifestPath)) {
