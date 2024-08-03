@@ -31,6 +31,14 @@ export class ApiClient {
   ): Promise<ArrayBuffer> {
     const headers: Record<string, string> = {};
 
+    if (this.dbContext?.accessToken) {
+      headers['Authorization'] = `Bearer ${this.dbContext?.accessToken}`;
+    }
+
+    if(this.dbContext?.databaseHashId) {
+      headers['Database-Id-Hash'] = this.dbContext?.databaseHashId;
+    }    
+
     const config: AxiosRequestConfig = {
       method: 'GET',
       url: `${this.baseUrl}${endpoint}`,

@@ -1,12 +1,12 @@
 import ServerConfigRepository from "@/data/server/server-config-repository";
-import { genericDELETE, getDatabaseIdHash } from "@/lib/generic-api";
-import { NextRequest } from "next/server";
+import { genericDELETE, authorizeDatabaseIdHash } from "@/lib/generic-api";
+import { NextRequest, NextResponse } from "next/server";
 
-export async function DELETE(request: NextRequest, { params }: { params: { key: string }} ) {
+export async function DELETE(request: NextRequest, { params }: { params: { key: string }}) {
     const recordLocator = params.key;
     if(!recordLocator){
         return Response.json({ message: "Invalid request, no key provided within request url", status: 400 }, {status: 400});
     } else { 
-        return Response.json(await genericDELETE(request, new ServerConfigRepository(getDatabaseIdHash(request)), { key: recordLocator}));
+        return Response.json(await genericDELETE(request, new ServerConfigRepository(await authorizeDatabaseIdHash(request)), { key: recordLocator}));
     }
 }

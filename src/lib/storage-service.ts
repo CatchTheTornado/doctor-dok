@@ -5,9 +5,9 @@ export class StorageService {
     private rootPath: string;
     private uploadPath: string;
 
-    constructor() {
+    constructor(databaseIdHash: string) {
         this.rootPath = path.resolve(process.cwd());
-        this.uploadPath = path.resolve(this.rootPath, 'uploads');
+        this.uploadPath =path.join(this.rootPath, 'data', databaseIdHash)
     }
 
     public async saveAttachment(file: File, storageKey: string): Promise<void> {

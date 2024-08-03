@@ -28,6 +28,16 @@ const nextConfig = {
       config.plugins.push(
         new webpack.IgnorePlugin({ resourceRegExp: /\/__tests__\// })
       );
+
+      config.externals.push({
+          'node:crypto': 'commonjs crypto',
+          // 'node:fs': 'commonjs fs',
+          // 'node:path': 'commonjs path',
+          // 'node:os': 'commonjs os',
+          // 'node:util': 'commonjs util',
+          // 'node:stream': 'commonjs stream',
+          // 'node:buffer': 'commonjs buffer'
+      });
   
       // Important: return the modified config
       return config;

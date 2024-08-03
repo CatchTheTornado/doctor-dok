@@ -37,7 +37,7 @@
     "fast-sort": "^3.4.0",
     "fs": "^0.0.1-security",
     "is-url": "^1.2.4",
-    "jsonwebtoken": "^9.0.2",
+    "jose": "^5.6.3",
     "lucide-react": "^0.400.0",
     "nanoid": "^5.0.7",
     "next": "14.2.4",

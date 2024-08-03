@@ -1,7 +1,7 @@
 import { databaseAuthorizeRequestSchema, KeyDTO } from "@/data/dto";
 import { authorizeKey } from "@/data/server/server-key-helpers";
 import { getErrorMessage, getZedErrorMessage } from "@/lib/utils";
-import jwt from 'jsonwebtoken';
+import {SignJWT, jwtVerify, type JWTPayload} from 'jose'
 
 // clear all the database
 export async function POST(request: Request) {
@@ -19,12 +19,33 @@ export async function POST(request: Request) {
                     status: 401               
                 });                    
             } else {
+
+                const alg = 'HS256'
+                const tokenPayload = { databaseIdHash: authRequest.databaseIdHash, keyHash: authRequest.keyHash, keyLocatorHash: authRequest.keyLocatorHash }
+                const accessToken = await new SignJWT(tokenPayload)
+                .setProtectedHeader({ alg })
+                .setIssuedAt()
+                .setIssuer('urn:ctt:patient-pad')
+                .setAudience('urn:ctt:patient-pad')
+                .setExpirationTime('15m')
+                .sign(new TextEncoder().encode(process.env.PATIENT_PAD_TOKEN_SECRET || 'Jeipho7ahchue4ahhohsoo3jahmui6Ap'))
+
+                const refreshToken = await new SignJWT(tokenPayload)
+                .setProtectedHeader({ alg })
+                .setIssuedAt()
+                .setIssuer('urn:ctt:patient-pad')
+                .setAudience('urn:ctt:patient-pad')
+                .setExpirationTime('4h')
+                .sign(new TextEncoder().encode(process.env.PATIENT_PAD_REFRESH_TOKEN_SECRET || 'Am2haivu9teiseejai5Ao6engae8hiuw'))
+
+
+                console.log('OUT JWT = ' + accessToken);
                 return Response.json({
                     message: 'Succesfully Authorized!',
                     data: {
                         encryptedMasterKey: (keyDetails as KeyDTO).encryptedMasterKey,
-                        accessToken: jwt.sign({ databaseIdHash: authRequest.databaseIdHash, keyHash: authRequest.keyHash, keyLocatorHash: authRequest.keyLocatorHash }, process.env.PATIENT_PAD_TOKEN_SECRET || 'Jeipho7ahchue4ahhohsoo3jahmui6Ap' , { expiresIn: '10m' }),
-                        refreshToken: jwt.sign({ databaseIdHash: authRequest.databaseIdHash, keyHash: authRequest.keyHash, keyLocatorHash: authRequest.keyLocatorHash },  process.env.PATIENT_PAD_REFRESH_TOKEN_SECRET || 'Am2haivu9teiseejai5Ao6engae8hiuw', { expiresIn: '3h' })
+                        accessToken:  accessToken,
+                        refreshToken: refreshToken
                     },
                     status: 200
                 });                    
