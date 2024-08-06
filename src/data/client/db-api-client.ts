@@ -1,5 +1,5 @@
 import { DatabaseContextType } from "@/contexts/db-context";
-import { DatabaseAuthorizeChallengeRequestDTO, DatabaseAuthorizeRequestDTO, DatabaseCreateRequestDTO, KeyHashParamsDTO } from "../dto";
+import { DatabaseAuthorizeChallengeRequestDTO, DatabaseAuthorizeRequestDTO, DatabaseCreateRequestDTO, DatabaseRefreshRequestDTO, KeyHashParamsDTO } from "../dto";
 import { ApiClient, ApiEncryptionConfig } from "./base-api-client";
 
 export type CreateDbResponse = {
@@ -28,6 +28,16 @@ export type AuthorizeDbResponse = {
   issues?: any[];
 };
 
+export type RefreshDbResponse = {
+  message: string;
+  data: {
+    accessToken: string;
+    refreshToken: string;
+  }
+  status: number;
+  issues?: any[];
+};
+
 export class DbApiClient extends ApiClient {
     constructor(baseUrl: string, dbContext?: DatabaseContextType | null, encryptionConfig?: ApiEncryptionConfig) {
       super(baseUrl, dbContext, encryptionConfig);
@@ -44,5 +54,9 @@ export class DbApiClient extends ApiClient {
     async authorize(authorizeRequest: DatabaseAuthorizeRequestDTO): Promise<AuthorizeDbResponse> {
       return this.request<AuthorizeDbResponse>('/api/db/authorize', 'POST', { ecnryptedFields: [] }, authorizeRequest) as Promise<AuthorizeDbResponse>;
    }
+
+   async refresh(refreshRequest: DatabaseRefreshRequestDTO): Promise<RefreshDbResponse> {
+    return this.request<AuthorizeDbResponse>('/api/db/refresh', 'POST', { ecnryptedFields: [] }, refreshRequest) as Promise<AuthorizeDbResponse>;
+ }   
 
   }

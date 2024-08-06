@@ -36,13 +36,10 @@ export function AuthorizeDatabaseForm({
   const handleAuthorizeDatabase = handleSubmit(async (data) => {
     const result = await dbContext?.authorize({
       databaseId: data.databaseId,
-      key: data.key
+      key: data.key,
+      keepLoggedIn: keepLoggedIn
     });
-
-    if (keepLoggedIn){
-      localStorage.setItem("databaseId", data.databaseId); // TODO: encrypt values with some static key
-      localStorage.setItem("key", data.key);
-    }
+    
     setOperationResult(result as AuthorizeDatabaseResult);
     if(result?.success) {
       toast.success(result?.message);

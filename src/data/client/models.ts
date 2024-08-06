@@ -216,15 +216,41 @@ export class DatabaseCreateRequest {
     }
 }
 
+
+export class DatabaseKeepLoggedInRequest {
+    encryptedDatabaseId: string;
+    encryptedKey: string;
+    keepLoggedIn: boolean;
+
+    constructor(encryptedDatabaseId: string, encryptedKey: string, keepLoggedIn: boolean) {
+        this.encryptedDatabaseId = encryptedDatabaseId;
+        this.encryptedKey = encryptedKey;;
+        this.keepLoggedIn = keepLoggedIn;
+    }
+}
+
 export class DatabaseAuthorizeRequest {
     databaseId: string;
     key: string;
+    keepLoggedIn: boolean;
 
-    constructor(databaseId: string, key: string) {
+    constructor(databaseId: string, key: string, keepLoggedIn: boolean) {
         this.databaseId = databaseId;
         this.key = key;
+        this.keepLoggedIn = keepLoggedIn;
     }
 }
+
+export class DatabaseRefreshRequest {
+    refreshToken: string;
+    keepLoggedIn?: boolean;
+
+    constructor(refreshToken: string, keepLoggedIn?: boolean) {
+        this.refreshToken = refreshToken;
+        this.keepLoggedIn = keepLoggedIn;
+    }
+}
+
 
 export const databaseIdValidator = (value:string) => {
     const passSchema = new PasswordValidator();

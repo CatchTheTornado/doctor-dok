@@ -15,7 +15,6 @@ import { useForm } from "react-hook-form";
 
 export function SettingsPopup() {
   const config = useContext(ConfigContext);
-  const [dialogOpen, setDialogOpen] = useState(false);
   
   const { handleSubmit, register, setError, getValues, setValue, formState: { errors,  } } = useForm({
       defaultValues: {
@@ -33,7 +32,7 @@ export function SettingsPopup() {
 
   async function onSubmit(formData) {
     config?.setServerConfig('chatGptApiKey', formData['chatGptApiKey']);
-    setDialogOpen(false);
+    config?.setConfigDialogOpen(false);
   }
 
 
@@ -82,7 +81,7 @@ export function SettingsPopup() {
             <CredenzaFooter>
               <div className="flex items-center justify-between gap-4 mt-4">
                 <div className="flex gap-2">
-                  <Button type="button" onClick={() => setDialogOpen(false)}>Cancel</Button>
+                  <Button type="button" onClick={() => config?.setConfigDialogOpen(false)}>Cancel</Button>
                   <Button type="submit">Go!</Button>
                 </div>
               </div>

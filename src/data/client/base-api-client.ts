@@ -2,6 +2,7 @@ import { DTOEncryptionFilter, EncryptionUtils } from "@/lib/crypto";
 import { DTOEncryptionSettings } from "../dto";
 import axios, { AxiosRequestConfig, AxiosResponse } from 'axios';
 import { DatabaseContextType } from "@/contexts/db-context";
+import { toast } from "sonner";
 
 export type ApiEncryptionConfig = {
   secretKey?: string;
@@ -48,6 +49,22 @@ export class ApiClient {
 
     try {
       const response: AxiosResponse<ArrayBuffer> = await axios(config);
+
+      if(response.status === 401) {
+        console.error('Unauthorized, first and only refresh attempt');
+        // Refresh token
+        const refreshResult = this.dbContext?.refresh({
+          refreshToken: this.dbContext.refreshToken
+        })
+        if((await refreshResult)?.success) {
+          console.log('Refresh token success', this.dbContext?.accessToken);
+          return this.getArrayBuffer(endpoint);
+        } else {
+          this.dbContext?.logout();
+          toast.error('Refresh token failed. Please try to log-in again.');
+          throw new Error('Request failed. Refresh token failed. Try log-in again.');
+        }
+      }
 
       if (response.status >= 400) {
         throw new Error(response.statusText || 'Request failed');
@@ -102,6 +119,22 @@ export class ApiClient {
 
     try {
       const response: AxiosResponse = await axios(config);
+
+      if(response.status === 401) {
+        console.error('Unauthorized, first and only refresh attempt');
+        // Refresh token
+        const refreshResult = this.dbContext?.refresh({
+          refreshToken: this.dbContext.refreshToken
+        })
+        if((await refreshResult)?.success) {
+          console.log('Refresh token success', this.dbContext?.accessToken);
+          return this.request(endpoint, method, encryptionSettings, body, formData);
+        } else {
+          this.dbContext?.logout();
+          toast.error('Refresh token failed. Please try to log-in again.');
+          throw new Error('Request failed. Refresh token failed. Try log-in again.');
+        }
+      }
 
       if (response.status >= 400) {
         const errorData = response.data;

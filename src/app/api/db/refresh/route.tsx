@@ -1,4 +1,4 @@
-import { databaseAuthorizeRequestSchema, KeyDTO } from "@/data/dto";
+import { DatabaseAuthorizeRequestDTO, databaseRefreshRequestSchema, KeyDTO } from "@/data/dto";
 import { authorizeKey } from "@/data/server/server-key-helpers";
 import { getErrorMessage, getZedErrorMessage } from "@/lib/utils";
 import {SignJWT, jwtVerify, type JWTPayload} from 'jose'
@@ -7,9 +7,16 @@ import {SignJWT, jwtVerify, type JWTPayload} from 'jose'
 export async function POST(request: Request) {
     try {
         const jsonRequest = await request.json();
-        const validationResult = databaseAuthorizeRequestSchema.safeParse(jsonRequest); // validation
+        const validationResult = databaseRefreshRequestSchema.safeParse(jsonRequest); // validation
         if (validationResult.success === true) {
-            const authRequest = validationResult.data;
+
+            const jwtToken = validationResult.data.refreshToken;
+            const tokenData = await jwtVerify<DatabaseAuthorizeRequestDTO>(jwtToken, new TextEncoder().encode(process.env.PATIENT_PAD_REFRESH_TOKEN_SECRET || 'Am2haivu9teiseejai5Ao6engae8hiuw'))
+            const authRequest = {
+                databaseIdHash: tokenData.payload.databaseIdHash,
+                keyHash: tokenData.payload.keyHash,
+                keyLocatorHash: tokenData.payload.keyLocatorHash                
+            };
             const keyDetails = await authorizeKey(authRequest);
 
             if (!keyDetails) { // this situation theoretically should not happen bc. if database file exists we return out of the function
@@ -38,11 +45,10 @@ export async function POST(request: Request) {
                 .sign(new TextEncoder().encode(process.env.PATIENT_PAD_REFRESH_TOKEN_SECRET || 'Am2haivu9teiseejai5Ao6engae8hiuw'))
 
                 return Response.json({
-                    message: 'Succesfully Authorized!',
+                    message: 'Succesfully Refreshed!',
                     data: {
-                        encryptedMasterKey: (keyDetails as KeyDTO).encryptedMasterKey,
                         accessToken:  accessToken,
-                        refreshToken: refreshToken
+                        refreshToken: refreshToken,
                     },
                     status: 200
                 });                    

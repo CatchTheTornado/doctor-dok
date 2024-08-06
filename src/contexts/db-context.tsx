@@ -1,14 +1,21 @@
 import React, { createContext, useState, useEffect, useContext, PropsWithChildren } from 'react';
 import { DatabaseCreateRequestDTO, KeyHashParamsDTO, PatientRecordDTO } from '@/data/dto';
-import { DatabaseAuthorizeRequest, DatabaseAuthStatus, DatabaseCreateRequest, DataLoadingStatus, Patient, PatientRecord } from '@/data/client/models';
-import { AuthorizeDbResponse, CreateDbResponse, DbApiClient } from '@/data/client/db-api-client';
+import { DatabaseAuthorizeRequest, DatabaseAuthStatus, DatabaseCreateRequest, DatabaseKeepLoggedInRequest, DatabaseRefreshRequest, DataLoadingStatus, Patient, PatientRecord } from '@/data/client/models';
+import { AuthorizeDbResponse, CreateDbResponse, DbApiClient, RefreshDbResponse } from '@/data/client/db-api-client';
 import { ConfigContextType } from './config-context';
 import { EncryptionUtils, generateEncryptionKey, sha256 } from '@/lib/crypto';
 import getConfig from 'next/config';
+import { toast } from 'sonner';
 const argon2 = require("argon2-browser");
 
 
 export type AuthorizeDatabaseResult = {
+    success: boolean;
+    message: string;
+    issues: string[];
+}
+
+export type RefreshDatabaseResult = {
     success: boolean;
     message: string;
     issues: string[];
@@ -52,6 +59,9 @@ export type DatabaseContextType = {
 
     create: (createRequest:DatabaseCreateRequest) => Promise<CreateDatabaseResult>;
     authorize: (authorizeRequest:DatabaseAuthorizeRequest) => Promise<AuthorizeDatabaseResult>;
+    refresh: (authorizeRequest:DatabaseRefreshRequest) => Promise<RefreshDatabaseResult>;
+    keepLoggedIn: (kliReqest: DatabaseKeepLoggedInRequest) => Promise<AuthorizeDatabaseResult>;
+
     logout: () => void;
 }
 
@@ -63,6 +73,7 @@ export const DatabaseContextProvider: React.FC<PropsWithChildren> = ({ children 
     // note: these salts ARE NOT used to hash passwords etc. (for this purpose we generate a dynamic per-user-key hash - below)
     const defaultDatabaseIdHashSalt = process.env.NEXT_PUBLIC_DATABASE_ID_HASH_SALT || 'ooph9uD4cohN9Eechog0nohzoon9ahra';
     const defaultKeyLocatorHashSalt = process.env.NEXT_PUBLIC_KEY_LOCATOR_HASH_SALT || 'daiv2aez4thiewaegahyohNgaeFe2aij';
+    const keepLoggedInKeyEncryptionKey = process.env.NEXT_PUBLIC_KEEP_LOGGED_IN_KEY_ENCRYPTION_KEY || 'aeghah9eeghah9eeghah9eeghah9eegh';
 
     const [databaseId, setDatabaseId] = useState<string>('');
     const [masterKey, setMasterKey] = useState<string>('');
@@ -81,7 +92,6 @@ export const DatabaseContextProvider: React.FC<PropsWithChildren> = ({ children 
 
     const [accessToken, setAccesToken] = useState<string>('');
     const [refreshToken, setRefreshToken] = useState<string>('');
-
     const [authStatus, setAuthStatus] = useState<DatabaseAuthStatus>(DatabaseAuthStatus.NotAuthorized);
 
     const setupApiClient = async (config: ConfigContextType | null) => {
@@ -155,10 +165,53 @@ export const DatabaseContextProvider: React.FC<PropsWithChildren> = ({ children 
             mem: 0,
             parallelism: 1
         });
-        setAccesToken('');
+        setAccesToken(''); // we're not clearing keep logged in token
         setRefreshToken('');
         setAuthStatus(DatabaseAuthStatus.NotAuthorized);
+
+        if(typeof localStorage !== 'undefined') {
+            localStorage.removeItem('keepLoggedIn');
+            localStorage.removeItem('key');
+            localStorage.removeItem('databaseId');
+        }
     };
+
+    const refresh = async (refreshRequest: DatabaseRefreshRequest): Promise<RefreshDatabaseResult> => {
+        const apiClient = await setupApiClient(null);
+        const apiResponse = await apiClient.refresh({
+            refreshToken: refreshRequest.refreshToken
+        });
+
+        if(apiResponse.status === 200) { // user is virtually logged in
+            setAccesToken((apiResponse as RefreshDbResponse).data.accessToken);
+            setRefreshToken((apiResponse as RefreshDbResponse).data.refreshToken);
+
+            setAuthStatus(DatabaseAuthStatus.Authorized);
+            return {
+                success: true,
+                message: apiResponse.message,
+                issues: apiResponse.issues ? apiResponse.issues : []
+            }
+        } else {
+            toast.error('Error refreshing the session. Please log in again.');
+            setAuthStatus(DatabaseAuthStatus.NotAuthorized);
+            logout();
+            return {
+                success: false,
+                message: apiResponse.message,
+                issues: apiResponse.issues ? apiResponse.issues : []
+            }
+        }
+    };
+
+    const keepLoggedIn = async (kliReqest: DatabaseKeepLoggedInRequest): Promise<AuthorizeDatabaseResult> => {
+        const encryptionUtils = new EncryptionUtils(keepLoggedInKeyEncryptionKey);
+        return authorize({
+            databaseId: await encryptionUtils.decrypt(kliReqest.encryptedDatabaseId),
+            key: await encryptionUtils.decrypt(kliReqest.encryptedKey),
+            keepLoggedIn: kliReqest.keepLoggedIn
+        });
+    }
 
     const authorize = async (authorizeRequest: DatabaseAuthorizeRequest): Promise<AuthorizeDatabaseResult> => {
         setAuthStatus(DatabaseAuthStatus.InProgress);
@@ -206,6 +259,16 @@ export const DatabaseContextProvider: React.FC<PropsWithChildren> = ({ children 
                 setAccesToken((authResponse as AuthorizeDbResponse).data.accessToken);
                 setRefreshToken((authResponse as AuthorizeDbResponse).data.refreshToken);
                 setAuthStatus(DatabaseAuthStatus.Authorized);
+
+                if(typeof localStorage !== 'undefined') {
+                    localStorage.setItem('keepLoggedIn', (authorizeRequest.keepLoggedIn ? 'true' : 'false'));
+                    if (authorizeRequest.keepLoggedIn) {
+                        const encryptionUtils = new EncryptionUtils(keepLoggedInKeyEncryptionKey);
+                        localStorage.setItem('key', await encryptionUtils.encrypt(authorizeRequest.key));
+                        localStorage.setItem('databaseId', await encryptionUtils.encrypt(authorizeRequest.databaseId));
+                    }
+                }
+
                 return {
                     success: true,
                     message: authResponse.message,
@@ -213,6 +276,7 @@ export const DatabaseContextProvider: React.FC<PropsWithChildren> = ({ children 
                 }
 
             } else {
+                console.error('Error in authorize: ', authResponse.message);
                 setAuthStatus(DatabaseAuthStatus.AuthorizationError);
                 return {
                     success: false,
@@ -220,6 +284,9 @@ export const DatabaseContextProvider: React.FC<PropsWithChildren> = ({ children 
                     issues: authResponse.issues ? authResponse.issues : []
                 }
             }
+        } else {
+            toast.error('Error in authorization challenge. Please try again.');
+            console.error('Error in authorize/challenge: ', authChallengResponse.message);
         }
 
         return {
@@ -252,7 +319,9 @@ export const DatabaseContextProvider: React.FC<PropsWithChildren> = ({ children 
         setRefreshToken,       
         create,
         authorize,
-        logout
+        logout,
+        refresh,
+        keepLoggedIn
     };
 
     return (

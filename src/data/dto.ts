@@ -114,6 +114,11 @@ export const databaseAuthorizeRequestSchema = z.object({
 });
 export type DatabaseAuthorizeRequestDTO = z.infer<typeof databaseAuthorizeRequestSchema>;
 
+export const databaseRefreshRequestSchema = z.object({
+  refreshToken: z.string().min(1),
+});
+
+export type DatabaseRefreshRequestDTO = z.infer<typeof databaseRefreshRequestSchema>;
 
   export const keyHashParamsDTOSchema = z.object({
     salt: z.string(),

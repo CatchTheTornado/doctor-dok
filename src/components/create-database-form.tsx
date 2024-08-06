@@ -95,7 +95,8 @@ export function CreateDatabaseForm({
         setOperationResult(null);
         dbContext?.authorize({ // this will authorize the database and in a side effect close this popup
           databaseId: dbContext?.databaseId,
-          key: dbContext?.encryptionKey
+          key: dbContext?.encryptionKey,
+          keepLoggedIn: keepLoggedIn
         });
       }}>Go to application</Button>
     </div>)
