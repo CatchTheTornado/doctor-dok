@@ -8,7 +8,7 @@ type LabelContext = {
 }
 export const labels = {
     patientRecordItemLabel: (labelFor: string, context: LabelContext) => {
-        switch(labelFor) {
+        switch(labelFor.trim().toLowerCase()) {
             case 'hospitalization': return 'Hospitalization';
             case 'hospital_discharge_summary': return 'Hospitalization';
             case 'blood_results': return 'Blood results';
@@ -16,6 +16,8 @@ export const labels = {
             case 'CT scan': return 'CT Scan';
             case 'CT': return 'CT Scan';
             case 'imaging': return 'Imaging';
+            case 'radiology': return 'Radiology';
+            case 'medical_record': return 'Medical record';
             default: return labelFor;
         }
     }

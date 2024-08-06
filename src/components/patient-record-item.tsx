@@ -5,7 +5,7 @@ import { PatientRecord } from "@/data/client/models";
 import { EncryptedAttachmentApiClient } from "@/data/client/encrypted-attachment-api-client";
 import { ConfigContext } from "@/contexts/config-context";
 import { useContext, useEffect, useState } from "react";
-import { PencilIcon } from "lucide-react";
+import { PencilIcon, Wand2Icon } from "lucide-react";
 import { PatientRecordContext } from "@/contexts/patient-record-context";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "./ui/alert-dialog";
 import { PatientRecordApiClient } from "@/data/client/patient-record-api-client";
@@ -26,6 +26,8 @@ import { EncryptedAttachmentDTO } from "@/data/dto";
 import styles from './patient-record-item.module.css'
 import { DatabaseContext } from "@/contexts/db-context";
 import ZoomableImage from './zoomable-image';
+import { labels } from '@/data/ai/labels';
+import PatientRecordItemExtra from './patient-record-item-extra';
 
 
 export default function PatientRecordItem({ record, displayAttachmentPreviews }: { record: PatientRecord, displayAttachmentPreviews: boolean }) {
@@ -112,7 +114,27 @@ export default function PatientRecordItem({ record, displayAttachmentPreviews }:
     return attachments
   }
 
+  const extraToRecord = async (type: string, promptText: string, record: PatientRecord) => {
+
+    chatContext.setChatOpen(true);
+      chatContext.sendMessage({
+        message: {
+          role: 'user',
+          createdAt: new Date(),
+          content: promptText,
+        },
+        onResult: (resultMessage, result) => {    
+          let recordEXTRA = record.extra || []
+          recordEXTRA.find(p => p.type === type) ? recordEXTRA = recordEXTRA.map(p => p.type === type ? { ...p, value: result.text } : p) : recordEXTRA.push({ type: type, value: result.text })
+          record = new PatientRecord({ ...record, extra: recordEXTRA });
+          patientRecordContext?.updatePatientRecord(record);          
+        }
+      })
+  }
+
+
   const parsePatientRecord = async (record: PatientRecord, parsePromptText:string)=> {
+    // TODO: add OSS models and OCR support - #60, #59, #61
     const attachments = await convertAttachmentsToImages(record);
 
     chatContext.setChatOpen(true);
@@ -175,7 +197,7 @@ export default function PatientRecordItem({ record, displayAttachmentPreviews }:
   return (
     <div className="bg-zinc-100 dark:bg-zinc-800 p-4 rounded-md">
       <div className="flex items-center justify-between">
-        <div className="text-xs text-zinc-500 dark:text-zinc-400 font-medium">{record.type}</div>
+        <div className="text-xs text-zinc-500 dark:text-zinc-400 font-medium">{labels.patientRecordItemLabel(record.type, { record })}</div>
         <div className="text-xs text-zinc-500 dark:text-zinc-400">{record.createdAt}</div>
       </div>
       <div className="mt-5 rose text-sm text-muted-foreground"><Markdown className={styles.markdown} remarkPlugins={[remarkGfm]}>{record.description}</Markdown></div>
@@ -193,6 +215,7 @@ export default function PatientRecordItem({ record, displayAttachmentPreviews }:
             </div>        
           ): null }
         <PatientRecordItemJson record={record} />
+        <PatientRecordItemExtra record={record} />
       </div>
       <div className="mt-2 flex flex-wrap items-center gap-2 w-100">
         {record.attachments.map((attachment, index) => (
@@ -228,6 +251,9 @@ export default function PatientRecordItem({ record, displayAttachmentPreviews }:
         <Button size="icon" variant="ghost">
           <MessageCircleIcon className="w-4 h-4"  onClick={() => { sendHealthReacordToChat(record) }} />
         </Button>        
+        <Button size="icon" variant="ghost">
+          <Wand2Icon className="w-4 h-4"  onClick={() => { extraToRecord('remarks', prompts.patientRecordRemarks({ record }), record) }} />
+        </Button>                
         <AlertDialog>
           <AlertDialogTrigger>
             <Button size="icon" variant="ghost">

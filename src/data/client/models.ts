@@ -118,6 +118,11 @@ export class EncryptedAttachment {
     }
 }
 
+export const patientRecordExtraSchema = z.object({
+    type: z.string().min(1),
+    value: z.string().min(1).or(z.array(z.string().min(1))).or(z.object({}))
+});
+export type PatientRecordExtra = z.infer<typeof patientRecordExtraSchema>;
 
 export const patientRecordItemSchema = z.object({
     type: z.string().min(1),
@@ -139,13 +144,6 @@ export const patientRecordItemSchema = z.object({
   });
   
 export type PatientRecordItem = z.infer<typeof patientRecordItemSchema>;
-
-export const patientRecordExtraSchema = z.object({
-    name: z.string().optional(),
-    value: z.string().optional(),
-});
-export type PatientRecordExtra = z.infer<typeof patientRecordExtraSchema>;
-
 
 
 export class PatientRecord {
