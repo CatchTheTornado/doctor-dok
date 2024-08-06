@@ -6,11 +6,21 @@ import { PatientContext } from "@/contexts/patient-context";
 import DataLoader from "./data-loader";
 import { Alert, AlertDescription, AlertTitle } from "./ui/alert";
 import { sort } from "fast-sort";
+import { useEffectOnce } from "react-use";
+import { ConfigContext } from "@/contexts/config-context";
 
 export default function PatientRecordList({ patient }) {
   const patientRecordContext = useContext(PatientRecordContext);
   const patientContext = useContext(PatientContext);
   const [sortBy, setSortBy] = useState([ { desc: a => a.createdAt } ]);
+  const [displayAttachmentPreviews, setDisplayAttachmentPreviews] = useState(false);
+  const config = useContext(ConfigContext);
+
+  useEffectOnce(() => {
+    config?.getServerConfig('displayAttachmentPreviews').then((value) => {
+      setDisplayAttachmentPreviews(value as boolean);
+    });
+  });
 
   return (
     <div className="bg-white dark:bg-zinc-900 p-6 rounded-lg shadow-sm">
@@ -36,7 +46,7 @@ export default function PatientRecordList({ patient }) {
         { (patientRecordContext?.loaderStatus === "success" && patientRecordContext?.patientRecords.length > 0) ? (
           <div className="space-y-4">
             {sort(patientRecordContext?.patientRecords).by(sortBy).map((record, index) => (
-              <PatientRecordItem key={index} {...record} />
+              <PatientRecordItem key={index} record={record} displayAttachmentPreviews={displayAttachmentPreviews} />
             ))}
           </div>
         ) : (null) }

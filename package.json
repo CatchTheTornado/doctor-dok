@@ -47,7 +47,7 @@
     "react-dom": "^18",
     "react-dropzone": "^14.2.3",
     "react-hook-form": "^7.52.0",
-    "react-json-view": "^1.21.3",
+    "react-json-view-lite": "^1.4.0",
     "react-markdown": "^9.0.1",
     "react-no-ssr": "^1.1.0",
     "react-pdf": "^9.1.0",

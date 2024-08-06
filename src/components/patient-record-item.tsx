@@ -4,7 +4,7 @@ import { PaperclipIcon, Trash2Icon } from "./icons";
 import { PatientRecord } from "@/data/client/models";
 import { EncryptedAttachmentApiClient } from "@/data/client/encrypted-attachment-api-client";
 import { ConfigContext } from "@/contexts/config-context";
-import { useContext } from "react";
+import { useContext, useEffect, useState } from "react";
 import { PencilIcon } from "lucide-react";
 import { PatientRecordContext } from "@/contexts/patient-record-context";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "./ui/alert-dialog";
@@ -25,14 +25,28 @@ import { Accordion, AccordionTrigger, AccordionContent, AccordionItem } from "./
 import { EncryptedAttachmentDTO } from "@/data/dto";
 import styles from './patient-record-item.module.css'
 import { DatabaseContext } from "@/contexts/db-context";
+import ZoomableImage from './zoomable-image';
 
 
-export default function PatientRecordItem(record: PatientRecord) {
-
+export default function PatientRecordItem({ record, displayAttachmentPreviews }: { record: PatientRecord, displayAttachmentPreviews: boolean }) {
+  // TODO: refactor and extract business logic to a separate files
   const config = useContext(ConfigContext);
   const dbContext = useContext(DatabaseContext);
   const patientRecordContext = useContext(PatientRecordContext)
   const chatContext = useContext(ChatContext);
+  let displayableAttachmentsInProgress = false;
+
+  const [displayableAttachments, setDisplayableAttachments] = useState<Attachment[]>([]);
+
+  useEffect(() => {
+    if (displayAttachmentPreviews && !displayableAttachmentsInProgress) {
+      displayableAttachmentsInProgress = true;
+      convertAttachmentsToImages(record).then((attachments) => {
+        setDisplayableAttachments(attachments);
+        displayableAttachmentsInProgress = false;
+      });
+    }
+  }, [displayAttachmentPreviews, record]);
 
   const getAttachmentApiClient = async () => {
     const secretKey = dbContext?.masterKey;
@@ -42,15 +56,6 @@ export default function PatientRecordItem(record: PatientRecord) {
     })
     return apiClient;
   }
-
-  const getPatientRecordApiClient = async () => {
-    const secretKey = dbContext?.masterKey;
-    const apiClient = new PatientRecordApiClient('', dbContext, {
-      secretKey: secretKey,
-      useEncryption: secretKey ? true : false
-    })
-    return apiClient;
-  }  
 
   enum URLType {
     data = 'data',
@@ -81,7 +86,7 @@ export default function PatientRecordItem(record: PatientRecord) {
     await patientRecordContext?.deletePatientRecord(record);
   }
 
-  const parsePatientRecord = async (record: PatientRecord, parsePromptText:string)=> {
+  const convertAttachmentsToImages = async (record: PatientRecord): Promise<Attachment[]> => {
     const attachments = []
     for(const ea of record.attachments){
 
@@ -104,6 +109,11 @@ export default function PatientRecordItem(record: PatientRecord) {
         })
       }
     }
+    return attachments
+  }
+
+  const parsePatientRecord = async (record: PatientRecord, parsePromptText:string)=> {
+    const attachments = await convertAttachmentsToImages(record);
 
     chatContext.setChatOpen(true);
     chatContext.sendMessage({
@@ -189,8 +199,24 @@ export default function PatientRecordItem(record: PatientRecord) {
           <div key={index} className="text-sm inline-flex w-auto"><Button variant="outline" onClick={() => downloadAttachment(attachment)}><PaperclipIcon className="w-4 h-4 mr-2" /> {attachment.displayName}</Button></div>
         ))}
       </div>
+      {displayAttachmentPreviews && record.attachments.length > 0 ? (
+        displayableAttachments.length > 0 ? (
+          <div className="mt-2 flex-wrap flex items-center justify-left min-h-100">
+            {displayableAttachments.map((attachment, index) => (
+              <ZoomableImage
+                className='w-100 p-2'
+                width={100}
+                height={100}
+                key={`attachment-prv-${index}`}
+                src={attachment.url}
+                alt={attachment.name}
+              />
+            ))}
+          </div>
+        ): <div className="mt-2 text-sm text-muted-foreground flex h-4 content-center gap-2"><div className="animate-spin rounded-full h-3 w-3 border-t-2 border-b-2 border-white-900 pr-2" /> Loading previews ...</div>
+      ) : null}
       <div className="mt-2 flex items-center gap-2">
-      <Button size="icon" variant="ghost">
+        <Button size="icon" variant="ghost">
           <PencilIcon className="w-4 h-4" onClick={() => { patientRecordContext?.setCurrentPatientRecord(record);  patientRecordContext?.setPatientRecordEditMode(true); }} />
         </Button>        
         <Button size="icon" variant="ghost">

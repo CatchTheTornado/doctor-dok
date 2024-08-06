@@ -18,20 +18,24 @@ export function SettingsPopup() {
   
   const { handleSubmit, register, setError, getValues, setValue, formState: { errors,  } } = useForm({
       defaultValues: {
-        chatGptApiKey: ""
+        chatGptApiKey: "",
+        displayAttachmentPreviews: true
     }
   });
 
   useEffect(() => {  // load default configuration
     async function fetchDefaultConfig() {
       const chatGptKey = await config?.getServerConfig('chatGptApiKey');
+      const displayAttachmentPreviews = await config?.getServerConfig('displayAttachmentPreviews');
       setValue("chatGptApiKey", chatGptKey as string);
+      setValue("displayAttachmentPreviews", displayAttachmentPreviews as boolean);
     }
     fetchDefaultConfig();
   }, []);
 
   async function onSubmit(formData) {
     config?.setServerConfig('chatGptApiKey', formData['chatGptApiKey']);
+    config?.setServerConfig('displayAttachmentPreviews', formData['displayAttachmentPreviews']);
     config?.setConfigDialogOpen(false);
   }
 
@@ -46,16 +50,36 @@ export function SettingsPopup() {
       <CredenzaContent className="sm:max-w-[425px] bg-white dark:bg-zinc-950">
         <div className="p-4">
           <form onSubmit={handleSubmit(onSubmit)}>
-            <Tabs defaultValue="settings">
+            <Tabs defaultValue="ai-settings">
               <TabsList className="grid w-full grid-cols-2">
-                <TabsTrigger value="settings" className="dark:data-[state=active]:bg-zinc-900 data-[state=active]:bg-zinc-100">AI Settings</TabsTrigger>
+                <TabsTrigger value="ai-settings" className="dark:data-[state=active]:bg-zinc-900 data-[state=active]:bg-zinc-100">AI Settings</TabsTrigger>
+                <TabsTrigger value="general-settings" className="dark:data-[state=active]:bg-zinc-900 data-[state=active]:bg-zinc-100">General Settings</TabsTrigger>
             </TabsList>
-              <TabsContent value="settings">
+            <TabsContent value="general-settings">
+                <Card>
+                  <CardHeader>
+                    <CardTitle>General Settings</CardTitle>
+                    <CardDescription>
+                      Setup application settings here
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent className="space-y-2">
+                    <div className="flex items-center gap-2">
+                      <Input className="w-4 h-4" 
+                        type="checkbox"
+                        id="displayAttachmentPreviews"
+                        {...register("displayAttachmentPreviews")}/>
+                      <Label htmlFor="displayAttachmentPreviews">Display Attachment previews in records</Label>
+                    </div>  
+                  </CardContent>
+                </Card>
+              </TabsContent>
+              <TabsContent value="ai-settings">
                 <Card>
                   <CardHeader>
                     <CardTitle>Settings</CardTitle>
                     <CardDescription>
-                      Setup application settings here
+                      Setup AI related settings here
                     </CardDescription>
                   </CardHeader>
                   <CardContent className="space-y-2">

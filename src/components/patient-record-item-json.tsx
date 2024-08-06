@@ -5,12 +5,12 @@ import { PatientRecord } from '@/data/client/models';
 import { labels } from '@/data/ai/labels';
 import { formatString } from 'typescript-string-operations';
 import dynamic from 'next/dynamic';
+import { JsonView, allExpanded, darkStyles, defaultStyles } from 'react-json-view-lite';
+import 'react-json-view-lite/dist/index.css';
 
 interface Props {
     record: PatientRecord;
 }
-const DynamicReactJson = dynamic(import('react-json-view'), { ssr: false });
-
 const PatientRecordItemJson: React.FC<Props> = ({ record }) => {
     if (Array.isArray(record.json)) {
         return (
@@ -20,7 +20,7 @@ const PatientRecordItemJson: React.FC<Props> = ({ record }) => {
                         <AccordionItem key={index} value={'item-' + index}>
                             <AccordionTrigger>{formatString('{0} [{1}]', labels.patientRecordItemLabel(item.type, { record }), item.subtype)}</AccordionTrigger>
                             <AccordionContent>
-                                <DynamicReactJson theme="paraiso" src={item} />
+                                <JsonView data={item} style={defaultStyles}/>
                             </AccordionContent>
                         </AccordionItem>
                     ))}
@@ -34,7 +34,7 @@ const PatientRecordItemJson: React.FC<Props> = ({ record }) => {
                     <AccordionItem value="item-1">
                         <AccordionTrigger>Structured results</AccordionTrigger>
                         <AccordionContent>
-                            <DynamicReactJson src={record.json} />
+                            <JsonView data={record.json} style={defaultStyles}/>
                         </AccordionContent>
                     </AccordionItem>
                 </Accordion>

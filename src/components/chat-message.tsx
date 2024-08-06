@@ -8,7 +8,7 @@ import styles from './chat-message.module.css';
 import { useTheme } from 'next-themes';
 import dynamic from 'next/dynamic';
 
-const DynamicSyntaxHighlighter = dynamic(import('react-syntax-highlighter').Prism, { ssr: false });
+import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
 
 interface ChatMessageProps {
     message: MessageEx;
@@ -34,7 +34,7 @@ const ChatMessage: React.FC<ChatMessageProps> = ({ message, ref }) => {
                               const {children, className, node, ...rest} = props
                               const match = /language-(\w+)/.exec(className || '')
                               return match ? (
-                                <DynamicSyntaxHighlighter
+                                <SyntaxHighlighter
                                   {...rest}
                                   PreTag="div"
                                   wrapLines={true}
@@ -65,7 +65,7 @@ const ChatMessage: React.FC<ChatMessageProps> = ({ message, ref }) => {
                               const {children, className, node, ...rest} = props
                               const match = /language-(\w+)/.exec(className || '')
                               return match ? (
-                                <DynamicSyntaxHighlighter
+                                <SyntaxHighlighter
                                   {...rest}
                                   PreTag="div"
                                   wrapLines={true}
@@ -87,7 +87,7 @@ const ChatMessage: React.FC<ChatMessageProps> = ({ message, ref }) => {
                 </Accordion>
               </div>
             ) : (
-              <Markdown remarkPlugins={[remarkGfm]}>
+              <Markdown className={styles.markdown} remarkPlugins={[remarkGfm]}>
                 {message.content}
               </Markdown>
             ))}
