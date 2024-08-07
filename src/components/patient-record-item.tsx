@@ -105,16 +105,18 @@ export default function PatientRecordItem({ record, displayAttachmentPreviews }:
             <RefreshCwIcon className="w-4 h-4"  onClick={async () => { setParseInProgress(true);  await patientRecordContext?.sendHealthReacordToChat(record, true); setParseInProgress (false); } /* TODO: add prompt UI for altering the prompt */ } />
           )}
         </Button>       
-        <Button size="icon" variant="ghost" title="Insert into AI Chat">
-          {(record.json) ? (
-            <MessageCircleIcon className="w-4 h-4"  onClick={async () => {  patientRecordContext?.sendHealthReacordToChat(record, false);  }} />
+        {(record.json) ? (
+          <Button size="icon" variant="ghost" title="Insert into AI Chat">
+              <MessageCircleIcon className="w-4 h-4"  onClick={async () => {  patientRecordContext?.sendHealthReacordToChat(record, false);  }} />
+          </Button>        
           ) : (          
             null
           )}
-        </Button>        
-        <Button size="icon" variant="ghost" title="Analyze & Suggest by AI">
-          <Wand2Icon className="w-4 h-4"  onClick={() => { patientRecordContext?.extraToRecord('interpretation', prompts.patientRecordInterpretation({ record }), record) }} />
-        </Button>                
+        {(record.json) ? (
+          <Button size="icon" variant="ghost" title="Analyze & Suggest by AI">
+            <Wand2Icon className="w-4 h-4"  onClick={() => { patientRecordContext?.extraToRecord('interpretation', prompts.patientRecordInterpretation({ record }), record) }} />
+          </Button>                
+        ): (null) }
         <AlertDialog>
           <AlertDialogTrigger>
             <Button size="icon" variant="ghost" title="Delete record">

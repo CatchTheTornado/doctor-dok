@@ -1,9 +1,7 @@
 import { KeyDTO, DatabaseCreateRequestDTO, databaseCreateRequestSchema } from "@/data/dto";
 import { maintenance } from "@/data/server/db-provider";
 import ServerKeyRepository from "@/data/server/server-key-repository";
-import { authorizeDatabaseIdHash } from "@/lib/generic-api";
 import { getCurrentTS, getErrorMessage, getZedErrorMessage } from "@/lib/utils";
-import { Key } from "lucide-react";
 import { NextRequest, userAgent } from "next/server";
 
 

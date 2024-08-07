@@ -4,6 +4,7 @@ import { ZodError, ZodObject } from "zod";
 import { NextRequest, NextResponse } from "next/server";
 import { authorizeKey } from "@/data/server/server-key-helpers";
 import { jwtVerify } from "jose";
+import { KeyDTO } from "@/data/dto";
 
 export type ApiResult = {
     message: string;
@@ -13,14 +14,22 @@ export type ApiResult = {
     status: 200 | 400 | 500;
 }
 
-export async function authorizeDatabaseIdHash(request: Request, response?: NextResponse): Promise<string> {
+export type AuthorizedRequestContext = { 
+    databaseIdHash: string;
+    keyHash: string;
+    keyLocatorHash: string;
+    acl: any;
+    extra: any;
+}
+
+export async function authorizeRequestContext(request: Request, response?: NextResponse): Promise<AuthorizedRequestContext> {
     const authorizationHeader = request.headers.get('Authorization');
     const jwtToken = authorizationHeader?.replace('Bearer ', '');
 
     if (jwtToken) {
         const decoded = await jwtVerify(jwtToken as string, new TextEncoder().encode(process.env.PATIENT_PAD_TOKEN_SECRET || 'Jeipho7ahchue4ahhohsoo3jahmui6Ap'));
 
-        const authResult = authorizeKey({
+        const authResult = await authorizeKey({
             databaseIdHash: decoded.payload.databaseIdHash as string,
             keyHash: decoded.payload.keyHash as string,
             keyLocatorHash: decoded.payload.keyLocatorHash as string
@@ -29,7 +38,13 @@ export async function authorizeDatabaseIdHash(request: Request, response?: NextR
             NextResponse.json({ message: 'Unauthorized', status: 401 });
             throw new Error('Unauthorized. Wrong Key.');
         } else {
-            return decoded.payload.databaseIdHash as string;
+            return {
+                databaseIdHash: decoded.payload.databaseIdHash as string,
+                keyHash: decoded.payload.keyHash as string,
+                keyLocatorHash: decoded.payload.keyLocatorHash as string,
+                acl: (authResult as KeyDTO).acl,
+                extra: (authResult as KeyDTO).extra
+            }
         }
     } else {
         throw new Error('Unauthorized. No Token');

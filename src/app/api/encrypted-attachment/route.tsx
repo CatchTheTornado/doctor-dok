@@ -1,6 +1,6 @@
 import { EncryptedAttachmentDTO, EncryptedAttachmentDTOSchema } from "@/data/dto";
 import ServerEncryptedAttachmentRepository from "@/data/server/server-encryptedattachment-repository";
-import { genericGET, genericPUT, authorizeDatabaseIdHash } from "@/lib/generic-api";
+import { authorizeRequestContext, genericGET, genericPUT } from "@/lib/generic-api";
 import { StorageService } from "@/lib/storage-service";
 import { getErrorMessage } from "@/lib/utils";
 import { NextRequest, NextResponse } from "next/server";
@@ -8,7 +8,7 @@ import { NextRequest, NextResponse } from "next/server";
 
 // Rest of the code
 
-export async function PUT(request: Request, response: Response) {
+export async function PUT(request: NextRequest, response: NextResponse) {
     if (request.headers.get("Content-Type") === "application/json") {
         const inputJson = await request.json();
         return await handlePUTRequest(inputJson, request, response);
@@ -18,12 +18,14 @@ export async function PUT(request: Request, response: Response) {
     }
 }
 
-async function handlePUTRequest(inputJson: any, request: Request, response: Response, file?: File) {
-    const storageService = new StorageService(await authorizeDatabaseIdHash(request, response));
+async function handlePUTRequest(inputJson: any, request: NextRequest, response: NextResponse, file?: File) {
+    const requestContext = await authorizeRequestContext(request, response);
+
+    const storageService = new StorageService(requestContext.databaseIdHash);
     let apiResult = await genericPUT<EncryptedAttachmentDTO>(
         inputJson,
         EncryptedAttachmentDTOSchema,
-        new ServerEncryptedAttachmentRepository(await authorizeDatabaseIdHash(request, response)),
+        new ServerEncryptedAttachmentRepository(requestContext.databaseIdHash),
         'id'
     );
     if (apiResult.status === 200) { // validation went OK, now we can store the file
@@ -43,5 +45,5 @@ async function handlePUTRequest(inputJson: any, request: Request, response: Resp
 }
 
 export async function GET(request: NextRequest, response: NextResponse) {
-    return Response.json(await genericGET<EncryptedAttachmentDTO>(request, new ServerEncryptedAttachmentRepository(await authorizeDatabaseIdHash(request, response))));
+    return Response.json(await genericGET<EncryptedAttachmentDTO>(request, new ServerEncryptedAttachmentRepository(requestContext.databaseIdHash)));
 }

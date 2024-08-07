@@ -27,7 +27,7 @@ const PatientRecordItemExtra: React.FC<Props> = ({ record }) => {
                 </Accordion>
             </div>
         );
-    } else {
+    } else if (record.extra) {
         return (
             <div className="w-full">
                 <Accordion type="single" collapsible className="w-full">

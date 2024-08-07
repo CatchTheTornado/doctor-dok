@@ -181,7 +181,7 @@ export default function PatientRecordForm({ patient }: { patient?: Patient }) {
                 className="block w-full resize-none border-none focus:ring-0 h-auto"
                 placeholder="Add a new note..."
                 rows={5}
-                {...register("note", { required: true })}
+                {...register("note", { required: false })}
               />
             </div>
             {errors.note && <div className="text-red-500 text-sm">Note is required</div>}
