@@ -6,7 +6,7 @@ type LabelContext = {
     record?: PatientRecord;
     config?: ConfigContextType | null;
 }
-export const labels = {
+export const labels = { // TODO: add method to extend the labels list programmatically
     patientRecordItemLabel: (labelFor: string, context: LabelContext) => {
         switch(labelFor.trim().toLowerCase()) {
             case 'hospitalization': return 'Hospitalization';
@@ -18,6 +18,7 @@ export const labels = {
             case 'imaging': return 'Imaging';
             case 'radiology': return 'Radiology';
             case 'medical_record': return 'Medical record';
+            case 'remarks': return 'Remarks';
             default: return labelFor;
         }
     }

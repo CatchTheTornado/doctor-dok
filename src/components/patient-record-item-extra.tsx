@@ -18,9 +18,9 @@ const PatientRecordItemExtra: React.FC<Props> = ({ record }) => {
                 <Accordion type="single" collapsible className="w-full">
                     {(record.extra as any[]).map((item, index) => (
                         <AccordionItem key={index} value={'item-' + index}>
-                            <AccordionTrigger>{formatString('{0} [{1}]', labels.patientRecordItemLabel(item.type, { record }), item.subtype)}</AccordionTrigger>
+                            <AccordionTrigger>{formatString('{0}', labels.patientRecordItemLabel(item.type, { record }))}</AccordionTrigger>
                             <AccordionContent>
-                                <Markdown className={styles.markdown} remarkPlugins={[remarkGfm]}>{item}</Markdown>
+                                <Markdown className={styles.markdown} remarkPlugins={[remarkGfm]}>{item.value}</Markdown>
                             </AccordionContent>
                         </AccordionItem>
                     ))}
