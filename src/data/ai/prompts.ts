@@ -25,7 +25,7 @@ export const prompts = {
         return 'Below is my health result data in JSON format. Please describe the results in plain language. Note all exceptions from the norm and tell me what it could mean? Answer in the language of original document. Return text, no code. \r\n\r\n```json\
         \r\n' + JSON.stringify(context.record?.json) + '```'
     },
-    patientRecordRemarks: (context: PromptContext) => {
+    patientRecordInterpretation: (context: PromptContext) => {
         return 'Interpret the health result data below. What are the most important findings? What are the most important exceptions from the norm? What could they mean? What are the most important recommendations? Answer in the language of original document. Return text, no code. \r\n\r\n```json\
         \r\n' + JSON.stringify(context.record?.json) + '```'
     },

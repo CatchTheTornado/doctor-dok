@@ -21,16 +21,16 @@ export default function PatientPad() {
     <DatabaseContextProvider>
       <ConfigContextProvider>
         <AuthorizationGuard>
+        <ChatContextProvider>
           <PatientContextProvider>
               <PatientRecordContextProvider>
-                <ChatContextProvider>
-                  <div>
-                    <TopHeader />
-                    <PatientRecordsWrapper />
-                  </div>
-                </ChatContextProvider>
+                <div>
+                  <TopHeader />
+                  <PatientRecordsWrapper />
+                </div>
               </PatientRecordContextProvider>
             </PatientContextProvider>
+          </ChatContextProvider>
         </AuthorizationGuard> 
       </ConfigContextProvider>
     </DatabaseContextProvider>

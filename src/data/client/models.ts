@@ -67,6 +67,12 @@ export type AttachmentAssigment = {
     type: string;
 }
 
+export type DisplayableDataObject =  {
+    contentType?: string;
+    url: string;
+    name: string;
+}
+
 export class EncryptedAttachment {
     id?: number;
     assignedTo?: AttachmentAssigment[];

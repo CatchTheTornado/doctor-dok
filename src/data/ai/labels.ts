@@ -18,7 +18,7 @@ export const labels = { // TODO: add method to extend the labels list programmat
             case 'imaging': return 'Imaging';
             case 'radiology': return 'Radiology';
             case 'medical_record': return 'Medical record';
-            case 'remarks': return 'Remarks';
+            case 'interpretation': return 'Interpretation (AI)';
             default: return labelFor;
         }
     }
