@@ -7,16 +7,19 @@ import { CreateDatabaseForm } from "./create-database-form";
 import { useEffect, useState } from 'react';
 import DataLoader from './data-loader';
 
-export function AuthorizePopup() {
+export function AuthorizePopup({ autoLoginInProgress }: { autoLoginInProgress: boolean }) {
   const [applicationLoaded, setApplicationLoaded] = useState(false);
   useEffect(() => {
     setApplicationLoaded(true);
   },[]);
   return (
-    <div className="p-4 flex items-center justify-center h-screen">
-     {!applicationLoaded ? (<div className="w-96"><DataLoader /></div>):(
+    <div className="p-4 grid items-center justify-center h-screen">
+     {!applicationLoaded || autoLoginInProgress ? (<div className="w-96 flex items-center justify-center flex-col"><div className="flex-row h-40 w-40"><img src="/img/patient-pad-logo.svg" /></div><div><DataLoader /></div></div>):(
       <div>
-        <h1 className="text-5xl text-center p-8">Patient Pad</h1>
+        <div className="flex">
+          <img className="w-20" src="/img/patient-pad-logo.svg" />
+          <h1 className="text-5xl text-center p-8 pl-0">Patient Pad</h1>
+        </div>
         <Tabs defaultValue="authorize" className="w-96">
           <TabsList className="grid grid-cols-2">
             <TabsTrigger value="authorize" className="dark:data-[state=active]:bg-zinc-900 data-[state=active]:bg-zinc-100">Open database</TabsTrigger>

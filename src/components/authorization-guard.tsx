@@ -26,7 +26,7 @@ const AuthorizationGuard: React.FC<PropsWithChildren> = ({ children }) => {
         });
 
     return (dbContext?.authStatus === DatabaseAuthStatus.Authorized) ? (
-        <>{children}</>) : (keepLoggedIn ? (<KeepLoggedinLoader />) : (<AuthorizePopup />));
+        <>{children}</>) : (<AuthorizePopup autoLoginInProgress={keepLoggedIn} />);
 };
 
 export default AuthorizationGuard;

@@ -1,3 +1,4 @@
+import '@enhances/with-resolvers';
 import React, { createContext, useState, useEffect, useContext, PropsWithChildren } from 'react';
 import { EncryptedAttachmentDTO, PatientRecordDTO } from '@/data/dto';
 import { PatientRecordApiClient } from '@/data/client/patient-record-api-client';

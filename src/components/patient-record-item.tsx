@@ -1,4 +1,3 @@
-import '@enhances/with-resolvers';
 import { Button } from "@/components/ui/button";
 import { PaperclipIcon, Trash2Icon } from "./icons";
 import { PatientRecord } from "@/data/client/models";

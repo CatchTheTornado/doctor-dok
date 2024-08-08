@@ -24,6 +24,7 @@
     "@radix-ui/react-slot": "^1.0.2",
     "@radix-ui/react-tabs": "^1.1.0",
     "@react-pdf/renderer": "^3.4.4",
+    "@svgr/webpack": "^8.1.0",
     "ai": "^3.2.27",
     "argon2-browser": "^1.18.0",
     "axios": "^1.7.2",

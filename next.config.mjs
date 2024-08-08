@@ -9,6 +9,11 @@ const nextConfig = {
         loader: "base64-loader",
         type: "javascript/auto",
       });
+
+      config.module.rules.push({
+        test: /\.svg$/,
+        use: ['@svgr/webpack'],
+      });        
   
       config.module.noParse = /\.wasm$/;
   
@@ -38,6 +43,7 @@ const nextConfig = {
           // 'node:stream': 'commonjs stream',
           // 'node:buffer': 'commonjs buffer'
       });
+  
   
       // Important: return the modified config
       return config;

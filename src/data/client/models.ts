@@ -1,7 +1,8 @@
-import { EncryptedAttachmentDTO, PatientDTO, PatientRecordDTO } from "../dto";
+import { EncryptedAttachmentDTO, KeyDTO, PatientDTO, PatientRecordDTO } from "../dto";
 import { z } from "zod";
 
 import PasswordValidator from 'password-validator';
+import { getCurrentTS } from "@/lib/utils";
 
 
 export enum DataLoadingStatus {
@@ -209,6 +210,50 @@ export class PatientRecord {
       };
     }  
   }
+
+export class Key {
+    displayName: string;
+    keyLocatorHash: string;
+    keyHash: string;
+    keyHashParams: string;
+    databaseIdHash: string;
+    encryptedMasterKey: string;
+    acl: string | null;
+    extra: string | null;
+    expiryDate: string | null;
+    updatedAt: string;
+
+    constructor(keyDTO: KeyDTO) {
+        this.displayName = keyDTO.displayName;
+        this.keyLocatorHash = keyDTO.keyLocatorHash;
+        this.keyHash = keyDTO.keyHash;
+        this.keyHashParams = keyDTO.keyHashParams;
+        this.databaseIdHash = keyDTO.databaseIdHash;
+        this.encryptedMasterKey = keyDTO.encryptedMasterKey;
+        this.acl = keyDTO.acl ?? null;
+        this.extra = keyDTO.extra ?? null;
+        this.expiryDate = keyDTO.expiryDate ?? null;
+        this.updatedAt = keyDTO.updatedAt ?? getCurrentTS();
+    }
+
+    static fromDTO(keyDTO: KeyDTO): Key {
+        return new Key(keyDTO);
+    }
+
+    toDTO(): KeyDTO {
+        return {
+            keyLocatorHash: this.keyLocatorHash,
+            keyHash: this.keyHash,
+            keyHashParams: this.keyHashParams,
+            databaseIdHash: this.databaseIdHash,
+            encryptedMasterKey: this.encryptedMasterKey,
+            acl: this.acl,
+            extra: this.extra,
+            expiryDate: this.expiryDate,
+            updatedAt: this.updatedAt,
+        };
+    }
+}
 
 export class DatabaseCreateRequest {
     databaseId: string;

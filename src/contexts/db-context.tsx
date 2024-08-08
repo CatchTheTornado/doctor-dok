@@ -1,10 +1,9 @@
-import React, { createContext, useState, useEffect, useContext, PropsWithChildren } from 'react';
-import { DatabaseCreateRequestDTO, KeyHashParamsDTO, PatientRecordDTO } from '@/data/dto';
+import React, { createContext, useState,  PropsWithChildren } from 'react';
+import { KeyHashParamsDTO } from '@/data/dto';
 import { DatabaseAuthorizeRequest, DatabaseAuthStatus, DatabaseCreateRequest, DatabaseKeepLoggedInRequest, DatabaseRefreshRequest, DataLoadingStatus, Patient, PatientRecord } from '@/data/client/models';
-import { AuthorizeDbResponse, CreateDbResponse, DbApiClient, RefreshDbResponse } from '@/data/client/db-api-client';
+import { AuthorizeDbResponse, DbApiClient, RefreshDbResponse } from '@/data/client/db-api-client';
 import { ConfigContextType } from './config-context';
 import { EncryptionUtils, generateEncryptionKey, sha256 } from '@/lib/crypto';
-import getConfig from 'next/config';
 import { toast } from 'sonner';
 const argon2 = require("argon2-browser");
 

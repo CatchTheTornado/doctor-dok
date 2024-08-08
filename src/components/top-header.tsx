@@ -5,7 +5,6 @@ import PatientRecordForm from "./patient-record-form";
 import { PatientContext } from "@/contexts/patient-context";
 import { useContext } from "react";
 import { Chat } from "./chat";
-import { AuthorizePopup } from "./authorize-popup";
 import { LogOutIcon } from "lucide-react";
 import { DatabaseContext } from "@/contexts/db-context";
 import { toast } from "sonner";
@@ -15,7 +14,10 @@ export default function TopHeader() {
     const dbContext = useContext(DatabaseContext);
     return (
       <div className="sticky top-0 z-1000 flex items-center justify-between border-b border-zinc-200 dark:border-zinc-800 p-4 bg-zinc-200 dark:bg-zinc-800">
-        <div className="font-medium">Patient Pad {patientContext?.currentPatient ? (' for ' + patientContext.currentPatient.displayName()) : (null)}</div>
+        <div className="font-medium flex justify-center items-center">
+          <div><img className="h-10" src="/img/patient-pad-logo.svg" /></div>
+          <div>Patient Pad {patientContext?.currentPatient ? (' for ' + patientContext.currentPatient.displayName()) : (null)}</div>
+        </div>
         <div className="flex items-center gap-2">
           <PatientListPopup />
           <SettingsPopup />
