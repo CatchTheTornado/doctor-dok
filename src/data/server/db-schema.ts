@@ -19,6 +19,7 @@ export const config = sqliteTable('config', {
 
 export const keys = sqliteTable('keys', {
     keyLocatorHash: text('keyLocatorHash').primaryKey(),
+    displayName: text('displayName'),
     databaseIdHash: text('databaseIdHash', { mode: 'text' }).notNull(),
     keyHash: text('keyHash').notNull(),
     keyHashParams: text('keyHashParams').notNull(),
