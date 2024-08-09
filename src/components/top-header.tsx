@@ -9,6 +9,8 @@ import { LogOutIcon } from "lucide-react";
 import { DatabaseContext } from "@/contexts/db-context";
 import { toast } from "sonner";
 import { useTheme } from 'next-themes';
+import SharedKeysPopup from "./shared-keys-popup";
+import { KeyContextProvider } from "@/contexts/key-context";
 
 export default function TopHeader() {
     const patientContext = useContext(PatientContext);
@@ -24,6 +26,10 @@ export default function TopHeader() {
         </div>
         <div className="flex items-center gap-2">
           <PatientListPopup />
+          <KeyContextProvider>
+            <SharedKeysPopup />
+          </KeyContextProvider>
+
           <SettingsPopup />
           {(patientContext?.currentPatient !== null) ? (
             <PatientRecordForm patient={patientContext?.currentPatient} />
