@@ -33,8 +33,8 @@ export const keyDTOSchema = z.object({
   keyHashParams: z.string().min(1),
   databaseIdHash: z.string().min(64).max(64),
   encryptedMasterKey: z.string().min(1),
-  acl: z.string().nullable(),
-  extra: z.string().nullable(),
+  acl: z.string().nullable().optional(),
+  extra: z.string().nullable().optional(),
   expiryDate: z.string().nullable(),
   updatedAt: z.string().default(() => getCurrentTS()),
 });

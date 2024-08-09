@@ -7,6 +7,11 @@ import { EncryptionUtils, generateEncryptionKey, sha256 } from '@/lib/crypto';
 import { toast } from 'sonner';
 const argon2 = require("argon2-browser");
 
+// the salts are static as they're used as record locators in the DB - once changed the whole DB needs to be re-hashed
+// note: these salts ARE NOT used to hash passwords etc. (for this purpose we generate a dynamic per-user-key hash - below)
+export const defaultDatabaseIdHashSalt = process.env.NEXT_PUBLIC_DATABASE_ID_HASH_SALT || 'ooph9uD4cohN9Eechog0nohzoon9ahra';
+export const defaultKeyLocatorHashSalt = process.env.NEXT_PUBLIC_KEY_LOCATOR_HASH_SALT || 'daiv2aez4thiewaegahyohNgaeFe2aij';
+export const keepLoggedInKeyEncryptionKey = process.env.NEXT_PUBLIC_KEEP_LOGGED_IN_KEY_ENCRYPTION_KEY || 'aeghah9eeghah9eeghah9eeghah9eegh';
 
 export type AuthorizeDatabaseResult = {
     success: boolean;
@@ -67,12 +72,6 @@ export type DatabaseContextType = {
 export const DatabaseContext = createContext<DatabaseContextType | null>(null);
 
 export const DatabaseContextProvider: React.FC<PropsWithChildren> = ({ children }) => {
-
-    // the salts are static as they're used as record locators in the DB - once changed the whole DB needs to be re-hashed
-    // note: these salts ARE NOT used to hash passwords etc. (for this purpose we generate a dynamic per-user-key hash - below)
-    const defaultDatabaseIdHashSalt = process.env.NEXT_PUBLIC_DATABASE_ID_HASH_SALT || 'ooph9uD4cohN9Eechog0nohzoon9ahra';
-    const defaultKeyLocatorHashSalt = process.env.NEXT_PUBLIC_KEY_LOCATOR_HASH_SALT || 'daiv2aez4thiewaegahyohNgaeFe2aij';
-    const keepLoggedInKeyEncryptionKey = process.env.NEXT_PUBLIC_KEEP_LOGGED_IN_KEY_ENCRYPTION_KEY || 'aeghah9eeghah9eeghah9eeghah9eegh';
 
     const [databaseId, setDatabaseId] = useState<string>('');
     const [masterKey, setMasterKey] = useState<string>('');

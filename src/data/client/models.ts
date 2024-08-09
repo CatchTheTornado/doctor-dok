@@ -309,7 +309,7 @@ export const databaseIdValidator = (value:string) => {
 }
 export const userKeyValidator = (value:string) => {
     const passSchema = new PasswordValidator();
-    passSchema.is().min(8).has().not().spaces();
+    passSchema.is().min(6).has().not().spaces();
     return passSchema.validate(value);
 }
 

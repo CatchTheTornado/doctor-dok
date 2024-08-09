@@ -71,7 +71,7 @@ export default function PatientRecordItem({ record, displayAttachmentPreviews }:
           <div className="mt-2 flex-wrap flex items-center justify-left min-h-100">
             {displayableAttachments.map((attachment, index) => (
               <ZoomableImage
-                className='w-100 p-2'
+                className='w-100 pr-2 pb-2'
                 width={100}
                 height={100}
                 key={`attachment-prv-${index}`}

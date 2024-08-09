@@ -6,12 +6,12 @@ import { Input } from "@/components/ui/input"
 import { useForm } from "react-hook-form";
 import { databaseIdValidator, userKeyValidator } from "@/data/client/models";
 import { PasswordInput } from "./ui/password-input";
-import { CopyIcon, EyeIcon, EyeOffIcon, PrinterIcon, WandIcon } from "lucide-react";
 import { ReactElement, use, useContext, useEffect, useState } from "react"
 import { Checkbox } from "./ui/checkbox";
 import NoSSR  from "react-no-ssr"
 import { CreateDatabaseResult, DatabaseContext } from "@/contexts/db-context";
 import { generateEncryptionKey } from "@/lib/crypto";
+import { CopyIcon, EyeIcon, EyeOffIcon, PrinterIcon, WandIcon } from "lucide-react";
 import { KeyPrint } from "./key-print";
 import { pdf, Document, Page } from '@react-pdf/renderer';
 import { toast } from "sonner";

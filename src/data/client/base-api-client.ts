@@ -45,6 +45,7 @@ export class ApiClient {
       url: `${this.baseUrl}${endpoint}`,
       headers,
       responseType: 'blob',
+      validateStatus: (status) => status < 500,
     };
 
     try {
@@ -62,13 +63,14 @@ export class ApiClient {
         } else {
           this.dbContext?.logout();
           toast.error('Refresh token failed. Please try to log-in again.');
-          throw new Error('Request failed. Refresh token failed. Try log-in again.');
+          // throw new Error('Request failed. Refresh token failed. Try log-in again.');
+          return response;
         }
       }
 
-      if (response.status >= 400) {
-        throw new Error(response.statusText || 'Request failed');
-      }
+      // if (response.status >= 400) {
+      //   throw new Error(response.statusText || 'Request failed');
+      // } we're processing HTTP response errors in the calling party
       return (this.encryptionConfig?.useEncryption) ? this.encryptionUtils?.decryptArrayBuffer(response.data) : response.data;
       
     } catch (error) {
@@ -115,6 +117,7 @@ export class ApiClient {
       url: `${this.baseUrl}${endpoint}`,
       headers,
       data: formData ? formData : body ? JSON.stringify(body) : undefined,
+      validateStatus: (status) => status < 500,
     };
 
     try {
@@ -132,14 +135,15 @@ export class ApiClient {
         } else {
           this.dbContext?.logout();
           toast.error('Refresh token failed. Please try to log-in again.');
-          throw new Error('Request failed. Refresh token failed. Try log-in again.');
+          // throw new Error('Request failed. Refresh token failed. Try log-in again.');
+          return response;
         }
       }
 
-      if (response.status >= 400) {
+/*      if (response.status >= 400) {
         const errorData = response.data;
         throw new Error(errorData.message || 'Request failed');
-      }
+      }*/ // commented out bc. we're processing response statuses in the calling party
 
       const responseData = response.data;
 

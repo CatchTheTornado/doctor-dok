@@ -18,7 +18,11 @@ export default function PatientRecordList({ patient }) {
 
   useEffectOnce(() => {
     config?.getServerConfig('displayAttachmentPreviews').then((value) => {
-      setDisplayAttachmentPreviews(value as boolean);
+      if (typeof value === "boolean") {
+        setDisplayAttachmentPreviews(value as boolean);
+      } else {
+        setDisplayAttachmentPreviews(true); // default value
+      }
     });
   });
 
