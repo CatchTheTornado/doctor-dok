@@ -30,20 +30,6 @@ type Action =
   | { type: 'SET_SERVER_CONFIG'; key: string; value: ConfigSupportedValueType }
   | { type: 'LOAD_SERVER_CONFIG'; config: Record<string, ConfigSupportedValueType> };
 
-const initialState: ConfigContextType = {
-  localConfig: {},
-  serverConfig: {},
-  setLocalConfig: () => {},
-  getLocalConfig: () => null,
-  setServerConfig: async  () => Promise.resolve(true),
-  getServerConfig: async () => Promise.resolve(null),
-  setSaveToLocalStorage: () => {},
-  loadServerConfigOnce: async () => Promise.resolve({}),
-
-  isConfigDialogOpen: false,
-  setConfigDialogOpen: () => {},
-};
-
 function getConfigApiClient(encryptionKey: string, dbContext?: DatabaseContextType | null): ConfigApiClient {
   const encryptionConfig: ApiEncryptionConfig = {
     secretKey: encryptionKey, // TODO: for entities other than Config we should take the masterKey from server config
@@ -54,45 +40,15 @@ function getConfigApiClient(encryptionKey: string, dbContext?: DatabaseContextTy
 
 export const ConfigContext = React.createContext<ConfigContextType | null>(null);
 export const ConfigContextProvider: React.FC<PropsWithChildren> = ({ children }) => {
-const [serverConfigLoaded, setServerConfigLoaded] = React.useState(false);
+let serverConfigLoaded = false;
 const dbContext = useContext(DatabaseContext);
 const [isConfigDialogOpen, setConfigDialogOpen] = React.useState(false);
-
-  // load config from local storage
-const [state, dispatch] = useReducer((state: ConfigContextType, action: Action): ConfigContextType  => {
-    switch (action.type) {
-      case 'SET_LOCAL_CONFIG':{
-        if (typeof localStorage !== 'undefined'){ 
-            if(state.localConfig.saveToLocalStorage || (action.key === 'saveToLocalStorage')) {
-              localStorage.setItem(action.key, action.value as string);          
-            }
-        }
-        
-        return {
-          ...state,
-          localConfig: { ...state.localConfig, [action.key]: action.value },
-        };
-      }
-      case 'SET_SERVER_CONFIG': { // TODO: add API call to update server config
-        const client = getConfigApiClient(dbContext?.masterKey as string, dbContext);
-        client.put({ key: action.key, value: action.value as string, updatedAt: getCurrentTS() }); // update server config value
-        return {
-          ...state,
-          serverConfig: { ...state.serverConfig, [action.key]: action.value },
-        };
-      }
-      case 'LOAD_SERVER_CONFIG':
-        return {
-          ...state,
-          serverConfig: action.config,
-        };
-      default:
-        return state;
-    }
-  }, initialState);
+const [localConfig, setLocalConfig] = React.useState<Record<string, ConfigSupportedValueType>>({});
+const [serverConfig, setServerConfig] = React.useState<Record<string, ConfigSupportedValueType>>({});
 
   const loadServerConfig = async (forceReload: boolean = false): Promise<Record<string, ConfigSupportedValueType>>  => { 
     if((!serverConfigLoaded || forceReload) && dbContext?.authStatus === DatabaseAuthStatus.Authorized) {
+      serverConfigLoaded = true;
       const client = getConfigApiClient(dbContext?.masterKey as string, dbContext);
       let serverConfigData: Record<string, ConfigSupportedValueType> = {};
 
@@ -100,12 +56,11 @@ const [state, dispatch] = useReducer((state: ConfigContextType, action: Action):
       for (const config of configs) {
         serverConfigData[config.key] = config.value; // convert out from ConfigDTO to key=>value
       }
-      dispatch({ type: 'LOAD_SERVER_CONFIG', config: serverConfigData });
-      setServerConfigLoaded(true);
+      setServerConfig(serverConfigData);
   
       return serverConfigData
     } else {
-      return state.serverConfig;       // already loaded
+      return serverConfig;       // already loaded
     }
   }
 
@@ -114,14 +69,29 @@ const [state, dispatch] = useReducer((state: ConfigContextType, action: Action):
   });
   
     const value = {
-      ...state,
+      localConfig,
+      serverConfig,
       isConfigDialogOpen,
       setConfigDialogOpen,
       setLocalConfig: (key: string, value: ConfigSupportedValueType) =>
-        dispatch({ type: 'SET_LOCAL_CONFIG', key, value }),
-      getLocalConfig: (key: string) => state.localConfig[key],
+        {
+          if (typeof localStorage !== 'undefined'){ 
+            if(localConfig.saveToLocalStorage || (key === 'saveToLocalStorage')) {
+              localStorage.setItem(key, value as string);          
+            }
+          }
+          setLocalConfig({ ...localConfig, [key]: value });
+        },
+      getLocalConfig: (key: string) => localConfig[key],
       setServerConfig: (key: string, value: ConfigSupportedValueType) =>
-        dispatch({ type: 'SET_SERVER_CONFIG', key, value }),
+      {
+        if (dbContext?.authStatus === DatabaseAuthStatus.Authorized) {
+          const client = getConfigApiClient(dbContext.masterKey as string, dbContext);
+          return client.put({ key, value, updatedAt: getCurrentTS() });
+        } else {
+          return Promise.resolve(false);
+        }
+      },
       getServerConfig: async (key: string) => {
         const serverConfig  = await loadServerConfig();
         return serverConfig[key];

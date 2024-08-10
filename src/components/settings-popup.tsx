@@ -12,17 +12,121 @@ import React from "react"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "./ui/card";
 import { useForm } from "react-hook-form";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "./ui/select";
+import { set } from "react-hook-form";
 
+const ocrLlanguages = [
+  { name: "English", code: "eng" },
+  { name: "Polish", code: "pol" },
+  { name: "Portuguese", code: "por" },
+  { name: "Afrikaans", code: "afr" },
+  { name: "Albanian", code: "sqi" },
+  { name: "Amharic", code: "amh" },
+  { name: "Arabic", code: "ara" },
+  { name: "Assamese", code: "asm" },
+  { name: "Azerbaijani", code: "aze" },
+  { name: "Azerbaijani - Cyrillic", code: "aze_cyrl" },
+  { name: "Basque", code: "eus" },
+  { name: "Belarusian", code: "bel" },
+  { name: "Bengali", code: "ben" },
+  { name: "Bosnian", code: "bos" },
+  { name: "Bulgarian", code: "bul" },
+  { name: "Burmese", code: "mya" },
+  { name: "Catalan; Valencian", code: "cat" },
+  { name: "Cebuano", code: "ceb" },
+  { name: "Central Khmer", code: "khm" },
+  { name: "Cherokee", code: "chr" },
+  { name: "Chinese - Simplified", code: "chi_sim" },
+  { name: "Chinese - Traditional", code: "chi_tra" },
+  { name: "Croatian", code: "hrv" },
+  { name: "Czech", code: "ces" },
+  { name: "Danish", code: "dan" },
+  { name: "Dutch; Flemish", code: "nld" },
+  { name: "Dzongkha", code: "dzo" },
+  { name: "English, Middle (1100-1500)", code: "enm" },
+  { name: "Esperanto", code: "epo" },
+  { name: "Estonian", code: "est" },
+  { name: "Finnish", code: "fin" },
+  { name: "French", code: "fra" },
+  { name: "French, Middle (ca. 1400-1600)", code: "frm" },
+  { name: "Galician", code: "glg" },
+  { name: "Georgian", code: "kat" },
+  { name: "German", code: "deu" },
+  { name: "German Fraktur", code: "frk" },
+  { name: "Greek, Modern (1453-)", code: "ell" },
+  { name: "Greek, Ancient (-1453)", code: "grc" },
+  { name: "Gujarati", code: "guj" },
+  { name: "Haitian; Haitian Creole", code: "hat" },
+  { name: "Hebrew", code: "heb" },
+  { name: "Hindi", code: "hin" },
+  { name: "Hungarian", code: "hun" },
+  { name: "Icelandic", code: "isl" },
+  { name: "Indonesian", code: "ind" },
+  { name: "Inuktitut", code: "iku" },
+  { name: "Irish", code: "gle" },
+  { name: "Italian", code: "ita" },
+  { name: "Japanese", code: "jpn" },
+  { name: "Javanese", code: "jav" },
+  { name: "Kannada", code: "kan" },
+  { name: "Kazakh", code: "kaz" },
+  { name: "Kirghiz; Kyrgyz", code: "kir" },
+  { name: "Korean", code: "kor" },
+  { name: "Kurdish", code: "kur" },
+  { name: "Lao", code: "lao" },
+  { name: "Latin", code: "lat" },
+  { name: "Latvian", code: "lav" },
+  { name: "Lithuanian", code: "lit" },
+  { name: "Macedonian", code: "mkd" },
+  { name: "Malay", code: "msa" },
+  { name: "Malayalam", code: "mal" },
+  { name: "Maltese", code: "mlt" },
+  { name: "Marathi", code: "mar" },
+  { name: "Nepali", code: "nep" },
+  { name: "Norwegian", code: "nor" },
+  { name: "Oriya", code: "ori" },
+  { name: "Panjabi; Punjabi", code: "pan" },
+  { name: "Persian", code: "fas" },
+  { name: "Pushto; Pashto", code: "pus" },
+  { name: "Romanian; Moldavian; Moldovan", code: "ron" },
+  { name: "Russian", code: "rus" },
+  { name: "Sanskrit", code: "san" },
+  { name: "Serbian", code: "srp" },
+  { name: "Serbian - Latin", code: "srp_latn" },
+  { name: "Sinhala; Sinhalese", code: "sin" },
+  { name: "Slovak", code: "slk" },
+  { name: "Slovenian", code: "slv" },
+  { name: "Spanish; Castilian", code: "spa" },
+  { name: "Swahili", code: "swa" },
+  { name: "Swedish", code: "swe" },
+  { name: "Syriac", code: "syr" },
+  { name: "Tagalog", code: "tgl" },
+  { name: "Tajik", code: "tgk" },
+  { name: "Tamil", code: "tam" },
+  { name: "Telugu", code: "tel" },
+  { name: "Thai", code: "tha" },
+  { name: "Tibetan", code: "bod" },
+  { name: "Tigrinya", code: "tir" },
+  { name: "Turkish", code: "tur" },
+  { name: "Uighur; Uyghur", code: "uig" },
+  { name: "Ukrainian", code: "ukr" },
+  { name: "Urdu", code: "urd" },
+  { name: "Uzbek", code: "uzb" },
+  { name: "Uzbek - Cyrillic", code: "uzb_cyrl" },
+  { name: "Vietnamese", code: "vie" },
+  { name: "Welsh", code: "cym" },
+  { name: "Yiddish", code: "yid" },
+];
 
 export function SettingsPopup() {
   const config = useContext(ConfigContext);
   const [ocrProvider, setOcrProvider] = useState("chatgpt");
+  const [ocrLanguage, setOcrLanguage] = useState("eng");
 
   const { handleSubmit, register, setError, getValues, setValue, formState: { errors,  } } = useForm({
       defaultValues: {
         chatGptApiKey: "",
         displayAttachmentPreviews: true,
-        ocrProvider: "chatgpt"
+        ocrProvider: "chatgpt",
+        ocrLanguage: "eng"
 
     }
   });
@@ -32,11 +136,14 @@ export function SettingsPopup() {
       const chatGptKey = await config?.getServerConfig('chatGptApiKey');
       const displayAttachmentPreviews = await config?.getServerConfig('displayAttachmentPreviews');
       const ocr = await config?.getServerConfig('ocrProvider') as string      
+      const ocrLang = await config?.getServerConfig('ocrLanguage') as string
       setOcrProvider(ocr);
+      setOcrLanguage(ocrLang);
 
       setValue("chatGptApiKey", chatGptKey as string);
       setValue("displayAttachmentPreviews", displayAttachmentPreviews as boolean);
       setValue("ocrProvider", ocr);
+      setValue("ocrLanguage", "eng");
     }
     fetchDefaultConfig();
   }, []);
@@ -45,6 +152,7 @@ export function SettingsPopup() {
     config?.setServerConfig('chatGptApiKey', formData['chatGptApiKey']);
     config?.setServerConfig('ocrProvider', ocrProvider as string);
     config?.setServerConfig('displayAttachmentPreviews', formData['displayAttachmentPreviews']);
+    config?.setServerConfig('ocrLanguage', ocrLanguage as string);
     config?.setConfigDialogOpen(false);
   }
 
@@ -93,17 +201,31 @@ export function SettingsPopup() {
                   </CardHeader>
                   <CardContent className="space-y-2">
                     <div className="flex items-center gap-2">
-                      <Label htmlFor="useTesseractOcr">OCR Provider</Label>
-                      <Select id="ocrProvider" value={ocrProvider} onValueChange={ocrProvider}>
+                      <Label htmlFor="ocrProvider">OCR Provider</Label>
+                      <Select id="ocrProvider" value={ocrProvider} onValueChange={setOcrProvider}>
                         <SelectTrigger className="w-[180px]">
-                          <SelectValue placeholder="Forever" />
+                          <SelectValue placeholder="Default: Chat GPT" />
                         </SelectTrigger>
                         <SelectContent>
-                          <SelectItem value="chatgpt">Default: Chat GPT</SelectItem>
-                          <SelectItem value="tesseract">Tesseract</SelectItem>
+                          <SelectItem key="chatgpt" value="chatgpt">Default: Chat GPT</SelectItem>
+                          <SelectItem key="tesseract" value="tesseract">Tesseract</SelectItem>
                         </SelectContent>
                       </Select>
                     </div>
+                    <div className="flex items-center gap-2">
+                      <Label htmlFor="ocrLanguage">OCR Language</Label>
+                      <Select id="ocrProvider" value={ocrLanguage} onValueChange={setOcrLanguage}>
+                        <SelectTrigger className="w-[180px]">
+                          <SelectValue placeholder="Default: English" />
+                        </SelectTrigger>
+                        <SelectContent>
+                        {ocrLlanguages.map((lang) => (
+                            <SelectItem key={lang.code} value={lang.code}>{lang.name}</SelectItem>
+                          ))}                          
+                        </SelectContent>
+                      </Select>
+                    </div>
+
                   </CardContent>
                   <CardContent className="space-y-2">
                     <Label htmlFor="chatGptApiKey">ChatGPT API Key</Label>

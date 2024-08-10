@@ -216,6 +216,8 @@ export const PatientRecordContextProvider: React.FC<PropsWithChildren> = ({ chil
         setOperationStatus(DataLoadingStatus.Loading);
         const attachments = await convertAttachmentsToImages(record);
         setOperationStatus(DataLoadingStatus.Success);
+
+        const ocrProvider = config?.getServerConfig('ocrProvider') || 'chatgpt';
     
         chatContext.setChatOpen(true);
         chatContext.sendMessage({
