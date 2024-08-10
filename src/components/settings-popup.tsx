@@ -11,15 +11,19 @@ import { ConfigContext } from "@/contexts/config-context"
 import React from "react"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "./ui/card";
 import { useForm } from "react-hook-form";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "./ui/select";
 
 
 export function SettingsPopup() {
   const config = useContext(ConfigContext);
-  
+  const [ocrProvider, setOcrProvider] = useState("chatgpt");
+
   const { handleSubmit, register, setError, getValues, setValue, formState: { errors,  } } = useForm({
       defaultValues: {
         chatGptApiKey: "",
-        displayAttachmentPreviews: true
+        displayAttachmentPreviews: true,
+        ocrProvider: "chatgpt"
+
     }
   });
 
@@ -27,14 +31,19 @@ export function SettingsPopup() {
     async function fetchDefaultConfig() {
       const chatGptKey = await config?.getServerConfig('chatGptApiKey');
       const displayAttachmentPreviews = await config?.getServerConfig('displayAttachmentPreviews');
+      const ocr = await config?.getServerConfig('ocrProvider') as string      
+      setOcrProvider(ocr);
+
       setValue("chatGptApiKey", chatGptKey as string);
       setValue("displayAttachmentPreviews", displayAttachmentPreviews as boolean);
+      setValue("ocrProvider", ocr);
     }
     fetchDefaultConfig();
   }, []);
 
-  async function onSubmit(formData) {
+  async function onSubmit(formData) { // TODO: we probably need a method in the config-context to setup the config model - so all available server and local config variables  with default values
     config?.setServerConfig('chatGptApiKey', formData['chatGptApiKey']);
+    config?.setServerConfig('ocrProvider', ocrProvider as string);
     config?.setServerConfig('displayAttachmentPreviews', formData['displayAttachmentPreviews']);
     config?.setConfigDialogOpen(false);
   }
@@ -82,6 +91,20 @@ export function SettingsPopup() {
                       Setup AI related settings here
                     </CardDescription>
                   </CardHeader>
+                  <CardContent className="space-y-2">
+                    <div className="flex items-center gap-2">
+                      <Label htmlFor="useTesseractOcr">OCR Provider</Label>
+                      <Select id="ocrProvider" value={ocrProvider} onValueChange={ocrProvider}>
+                        <SelectTrigger className="w-[180px]">
+                          <SelectValue placeholder="Forever" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="chatgpt">Default: Chat GPT</SelectItem>
+                          <SelectItem value="tesseract">Tesseract</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  </CardContent>
                   <CardContent className="space-y-2">
                     <Label htmlFor="chatGptApiKey">ChatGPT API Key</Label>
                     <Input
