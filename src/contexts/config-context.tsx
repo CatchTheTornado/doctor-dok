@@ -25,11 +25,6 @@ export type ConfigContextType = {
     setConfigDialogOpen: (value: boolean) => void;
 }
 
-type Action =
-  | { type: 'SET_LOCAL_CONFIG'; key: string; value: ConfigSupportedValueType }
-  | { type: 'SET_SERVER_CONFIG'; key: string; value: ConfigSupportedValueType }
-  | { type: 'LOAD_SERVER_CONFIG'; config: Record<string, ConfigSupportedValueType> };
-
 function getConfigApiClient(encryptionKey: string, dbContext?: DatabaseContextType | null): ConfigApiClient {
   const encryptionConfig: ApiEncryptionConfig = {
     secretKey: encryptionKey, // TODO: for entities other than Config we should take the masterKey from server config
@@ -41,14 +36,14 @@ function getConfigApiClient(encryptionKey: string, dbContext?: DatabaseContextTy
 export const ConfigContext = React.createContext<ConfigContextType | null>(null);
 export const ConfigContextProvider: React.FC<PropsWithChildren> = ({ children }) => {
 let serverConfigLoaded = false;
+let serverConfig: Record<string, ConfigSupportedValueType> = {};
+let localConfig: Record<string, ConfigSupportedValueType> = {};
+
 const dbContext = useContext(DatabaseContext);
 const [isConfigDialogOpen, setConfigDialogOpen] = React.useState(false);
-const [localConfig, setLocalConfig] = React.useState<Record<string, ConfigSupportedValueType>>({});
-const [serverConfig, setServerConfig] = React.useState<Record<string, ConfigSupportedValueType>>({});
 
   const loadServerConfig = async (forceReload: boolean = false): Promise<Record<string, ConfigSupportedValueType>>  => { 
     if((!serverConfigLoaded || forceReload) && dbContext?.authStatus === DatabaseAuthStatus.Authorized) {
-      serverConfigLoaded = true;
       const client = getConfigApiClient(dbContext?.masterKey as string, dbContext);
       let serverConfigData: Record<string, ConfigSupportedValueType> = {};
 
@@ -56,8 +51,9 @@ const [serverConfig, setServerConfig] = React.useState<Record<string, ConfigSupp
       for (const config of configs) {
         serverConfigData[config.key] = config.value; // convert out from ConfigDTO to key=>value
       }
-      setServerConfig(serverConfigData);
-  
+      serverConfig = serverConfigData;
+      serverConfigLoaded = true;
+
       return serverConfigData
     } else {
       return serverConfig;       // already loaded
@@ -80,7 +76,7 @@ const [serverConfig, setServerConfig] = React.useState<Record<string, ConfigSupp
               localStorage.setItem(key, value as string);          
             }
           }
-          setLocalConfig({ ...localConfig, [key]: value });
+          localConfig = ({ ...localConfig, [key]: value });
         },
       getLocalConfig: (key: string) => localConfig[key],
       setServerConfig: (key: string, value: ConfigSupportedValueType) =>

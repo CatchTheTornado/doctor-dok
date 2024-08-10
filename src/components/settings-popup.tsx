@@ -214,7 +214,7 @@ export function SettingsPopup() {
                     </div>
                     <div className="flex items-center gap-2">
                       <Label htmlFor="ocrLanguage">OCR Language</Label>
-                      <Select id="ocrProvider" value={ocrLanguage} onValueChange={setOcrLanguage}>
+                      <Select id="ocrLanguage" value={ocrLanguage} onValueChange={setOcrLanguage}>
                         <SelectTrigger className="w-[180px]">
                           <SelectValue placeholder="Default: English" />
                         </SelectTrigger>

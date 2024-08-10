@@ -13,9 +13,9 @@ import { ChatContext } from './chat-context';
 import { convertDataContentToBase64String } from "ai";
 import { convert } from '@/lib/pdf2js'
 import { pdfjs } from 'react-pdf'
-import { findCodeBlocks } from "@/lib/utils";
 import { prompts } from "@/data/ai/prompts";
-
+import { parse as chatgptParseRecord } from '@/ocr/ocr-chatgpt-provider';
+import { parse as tesseractParseRecord } from '@/ocr/ocr-tesseract-provider';
 
 export enum URLType {
     data = 'data',
@@ -217,47 +217,16 @@ export const PatientRecordContextProvider: React.FC<PropsWithChildren> = ({ chil
         const attachments = await convertAttachmentsToImages(record);
         setOperationStatus(DataLoadingStatus.Success);
 
-        const ocrProvider = config?.getServerConfig('ocrProvider') || 'chatgpt';
-    
-        chatContext.setChatOpen(true);
-        chatContext.sendMessage({
-          message: {
-            role: 'user',
-            createdAt: new Date(),
-            content: parsePromptText,
-            experimental_attachments: attachments
-          },
-          onResult: (resultMessage, result) => {
-            if(result.text.indexOf('```json') > -1){
-              const codeBlocks = findCodeBlocks(result.text.trimEnd().endsWith('```') ? result.text : result.text + '```', false);
-              let recordJSON = [];
-              let recordMarkdown = ""
-              if(codeBlocks.blocks.length > 0) {
-                for (const block of codeBlocks.blocks) {
-                  if (block.syntax === 'json') {
-                    const jsonObject = JSON.parse(block.code);
-                    if(Array.isArray(jsonObject)) {
-                      for (const record of jsonObject) {
-                        recordJSON.push(record);
-                      }
-                    } else recordJSON.push(jsonObject);
-                  }
-    
-                  if (block.syntax === 'markdown') {
-                    recordMarkdown += block.code;
-                  }
-                }
-    
-                if (record) {
-                  const discoveredType = recordJSON.length > 0 ? recordJSON.map(item => item.type).join(", ") : 'note';
-                  record = new PatientRecord({ ...record, json: recordJSON, text: recordMarkdown, type: discoveredType });
-                  updatePatientRecord(record);
-                }            
-                console.log('JSON repr: ', recordJSON);
-              }
-            }        
-          }
-        })    
+
+        // Parsing is two or thre stage operation: 1. OCR, 2. <optional> sensitive data removal, 3. LLM
+        const ocrProvider = await config?.getServerConfig('ocrProvider') || 'chatgpt';
+        console.log('Using OCR provider:', ocrProvider);
+
+        if (ocrProvider === 'chatgpt') {
+          chatgptParseRecord(record, chatContext, parsePromptText, attachments, updatePatientRecord);
+        } else if (ocrProvider === 'tesseract') {
+          toast('Tesseract OCR is not supported yet');
+        }
       }
     
       const sendHealthReacordToChat = async (record: PatientRecord, forceRefresh: boolean = false) => {

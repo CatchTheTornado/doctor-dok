@@ -86,7 +86,7 @@ export const ChatContextProvider: React.FC<PropsWithChildren> = ({ children }) =
 
     const config = useContext(ConfigContext);
     const checkApiConfig = async () => {
-        const apiKey = await config?.serverConfig['chatGptApiKey'] as string;
+        const apiKey = await config?.getServerConfig('chatGptApiKey') as string;
         if (!apiKey) {
             config?.setConfigDialogOpen(true);
             toast.info('Please enter Chat GPT API Key first');
@@ -96,7 +96,7 @@ export const ChatContextProvider: React.FC<PropsWithChildren> = ({ children }) =
     const aiProvider = async () => {
         await checkApiConfig();
         const aiProvider = createOpenAI({
-            apiKey: await config?.serverConfig['chatGptApiKey'] as string
+            apiKey: await config?.getServerConfig('chatGptApiKey') as string
         })
         return aiProvider.chat('gpt-4o')   //gpt-4o-2024-05-13
     }
