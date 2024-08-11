@@ -13,9 +13,9 @@ import { ChatContext } from './chat-context';
 import { convertDataContentToBase64String } from "ai";
 import { convert } from '@/lib/pdf2js'
 import { pdfjs } from 'react-pdf'
-import { findCodeBlocks } from "@/lib/utils";
 import { prompts } from "@/data/ai/prompts";
-
+import { parse as chatgptParseRecord } from '@/ocr/ocr-chatgpt-provider';
+import { parse as tesseractParseRecord } from '@/ocr/ocr-tesseract-provider';
 
 export enum URLType {
     data = 'data',
@@ -36,7 +36,7 @@ export type PatientRecordContextType = {
 
     getAttachmentDataURL: (attachmentDTO: EncryptedAttachmentDTO, type: URLType) => Promise<string>;
     downloadAttachment: (attachment: EncryptedAttachmentDTO) => void;
-    convertAttachmentsToImages: (record: PatientRecord) => Promise<DisplayableDataObject[]>;
+    convertAttachmentsToImages: (record: PatientRecord, statusUpdates: boolean) => Promise<DisplayableDataObject[]>;
     extraToRecord: (type: string, promptText: string, record: PatientRecord) => void;
     parsePatientRecord: (record: PatientRecord, parsePromptText:string) => void;
     sendHealthReacordToChat: (record: PatientRecord, forceRefresh: boolean) => void;
@@ -165,13 +165,16 @@ export const PatientRecordContextProvider: React.FC<PropsWithChildren> = ({ chil
         window.open(url);    
       };
     
-      const convertAttachmentsToImages = async (record: PatientRecord): Promise<DisplayableDataObject[]> => {
+      const convertAttachmentsToImages = async (record: PatientRecord, statusUpdates: boolean = true): Promise<DisplayableDataObject[]> => {
         const attachments = []
         for(const ea of record.attachments){
     
           if (ea.mimeType === 'application/pdf') {
+            if (statusUpdates) toast.info('Downloading file ' + ea.displayName);
             const pdfBase64Content = await getAttachmentDataURL(ea.toDTO(), URLType.data); // convert to images otherwise it's not supported by vercel ai sdk
+            if (statusUpdates) toast.info('Converting file  ' + ea.displayName + ' to images ...');
             const imagesArray = await convert(pdfBase64Content, { base64: true }, pdfjs)
+            if (statusUpdates) toast.info('File converted to ' + imagesArray.length + ' images');  
             for (let i = 0; i < imagesArray.length; i++){
               attachments.push({
                 name: ea.displayName + ' page ' + (i+1),
@@ -211,56 +214,27 @@ export const PatientRecordContextProvider: React.FC<PropsWithChildren> = ({ chil
       }
     
     
-      const parsePatientRecord = async (record: PatientRecord, parsePromptText:string)=> {
+      const parsePatientRecord = async (record: PatientRecord)=> {
         // TODO: add OSS models and OCR support - #60, #59, #61
         setOperationStatus(DataLoadingStatus.Loading);
         const attachments = await convertAttachmentsToImages(record);
         setOperationStatus(DataLoadingStatus.Success);
-    
-        chatContext.setChatOpen(true);
-        chatContext.sendMessage({
-          message: {
-            role: 'user',
-            createdAt: new Date(),
-            content: parsePromptText,
-            experimental_attachments: attachments
-          },
-          onResult: (resultMessage, result) => {
-            if(result.text.indexOf('```json') > -1){
-              const codeBlocks = findCodeBlocks(result.text.trimEnd().endsWith('```') ? result.text : result.text + '```', false);
-              let recordJSON = [];
-              let recordMarkdown = ""
-              if(codeBlocks.blocks.length > 0) {
-                for (const block of codeBlocks.blocks) {
-                  if (block.syntax === 'json') {
-                    const jsonObject = JSON.parse(block.code);
-                    if(Array.isArray(jsonObject)) {
-                      for (const record of jsonObject) {
-                        recordJSON.push(record);
-                      }
-                    } else recordJSON.push(jsonObject);
-                  }
-    
-                  if (block.syntax === 'markdown') {
-                    recordMarkdown += block.code;
-                  }
-                }
-    
-                if (record) {
-                  const discoveredType = recordJSON.length > 0 ? recordJSON.map(item => item.type).join(", ") : 'note';
-                  record = new PatientRecord({ ...record, json: recordJSON, text: recordMarkdown, type: discoveredType });
-                  updatePatientRecord(record);
-                }            
-                console.log('JSON repr: ', recordJSON);
-              }
-            }        
-          }
-        })    
+
+
+        // Parsing is two or thre stage operation: 1. OCR, 2. <optional> sensitive data removal, 3. LLM
+        const ocrProvider = await config?.getServerConfig('ocrProvider') || 'chatgpt';
+        console.log('Using OCR provider:', ocrProvider);
+
+        if (ocrProvider === 'chatgpt') {
+          return  await chatgptParseRecord(record, chatContext, config, attachments, updatePatientRecord);
+        } else if (ocrProvider === 'tesseract') {
+          return await tesseractParseRecord(record, chatContext, config, attachments, updatePatientRecord);
+        }
       }
     
       const sendHealthReacordToChat = async (record: PatientRecord, forceRefresh: boolean = false) => {
         if (!record.json || forceRefresh) {  // first: parse the record
-          await parsePatientRecord(record, prompts.patientRecordParse({ record, config }));
+          await parsePatientRecord(record);
         } else {
           chatContext.setChatOpen(true);
           chatContext.sendMessage({

@@ -86,7 +86,7 @@ export const ChatContextProvider: React.FC<PropsWithChildren> = ({ children }) =
 
     const config = useContext(ConfigContext);
     const checkApiConfig = async () => {
-        const apiKey = await config?.serverConfig['chatGptApiKey'] as string;
+        const apiKey = await config?.getServerConfig('chatGptApiKey') as string;
         if (!apiKey) {
             config?.setConfigDialogOpen(true);
             toast.info('Please enter Chat GPT API Key first');
@@ -96,7 +96,7 @@ export const ChatContextProvider: React.FC<PropsWithChildren> = ({ children }) =
     const aiProvider = async () => {
         await checkApiConfig();
         const aiProvider = createOpenAI({
-            apiKey: await config?.serverConfig['chatGptApiKey'] as string
+            apiKey: await config?.getServerConfig('chatGptApiKey') as string
         })
         return aiProvider.chat('gpt-4o')   //gpt-4o-2024-05-13
     }
@@ -157,8 +157,9 @@ export const ChatContextProvider: React.FC<PropsWithChildren> = ({ children }) =
             newMessages.push(newlyCreatedOne);
         }
 
+        // TODO: Add multi LLM support - messages hould be sent to different LLMs based on the message llm model - so the messages should be grouped in threads
+
         // removing attachments from previously sent messages
-        // TODO: remove the workaround with "prev_sent_attachments" by extending the MessageEx type with our own to save space for it
         aiApiCall([...messages.map(msg => {
             return Object.assign(msg, { experimental_attachments: null, prev_sent_attachments: msg.experimental_attachments })
         }), ...newMessages], envelope.onResult);        
