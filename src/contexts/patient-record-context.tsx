@@ -36,7 +36,7 @@ export type PatientRecordContextType = {
 
     getAttachmentDataURL: (attachmentDTO: EncryptedAttachmentDTO, type: URLType) => Promise<string>;
     downloadAttachment: (attachment: EncryptedAttachmentDTO) => void;
-    convertAttachmentsToImages: (record: PatientRecord) => Promise<DisplayableDataObject[]>;
+    convertAttachmentsToImages: (record: PatientRecord, statusUpdates: boolean) => Promise<DisplayableDataObject[]>;
     extraToRecord: (type: string, promptText: string, record: PatientRecord) => void;
     parsePatientRecord: (record: PatientRecord, parsePromptText:string) => void;
     sendHealthReacordToChat: (record: PatientRecord, forceRefresh: boolean) => void;
@@ -165,13 +165,16 @@ export const PatientRecordContextProvider: React.FC<PropsWithChildren> = ({ chil
         window.open(url);    
       };
     
-      const convertAttachmentsToImages = async (record: PatientRecord): Promise<DisplayableDataObject[]> => {
+      const convertAttachmentsToImages = async (record: PatientRecord, statusUpdates: boolean = true): Promise<DisplayableDataObject[]> => {
         const attachments = []
         for(const ea of record.attachments){
     
           if (ea.mimeType === 'application/pdf') {
+            if (statusUpdates) toast.info('Downloading file ' + ea.displayName);
             const pdfBase64Content = await getAttachmentDataURL(ea.toDTO(), URLType.data); // convert to images otherwise it's not supported by vercel ai sdk
+            if (statusUpdates) toast.info('Converting file  ' + ea.displayName + ' to images ...');
             const imagesArray = await convert(pdfBase64Content, { base64: true }, pdfjs)
+            if (statusUpdates) toast.info('File converted to ' + imagesArray.length + ' images');  
             for (let i = 0; i < imagesArray.length; i++){
               attachments.push({
                 name: ea.displayName + ' page ' + (i+1),
@@ -211,7 +214,7 @@ export const PatientRecordContextProvider: React.FC<PropsWithChildren> = ({ chil
       }
     
     
-      const parsePatientRecord = async (record: PatientRecord, parsePromptText:string)=> {
+      const parsePatientRecord = async (record: PatientRecord)=> {
         // TODO: add OSS models and OCR support - #60, #59, #61
         setOperationStatus(DataLoadingStatus.Loading);
         const attachments = await convertAttachmentsToImages(record);
@@ -223,15 +226,15 @@ export const PatientRecordContextProvider: React.FC<PropsWithChildren> = ({ chil
         console.log('Using OCR provider:', ocrProvider);
 
         if (ocrProvider === 'chatgpt') {
-          chatgptParseRecord(record, chatContext, parsePromptText, attachments, updatePatientRecord);
+          return  await chatgptParseRecord(record, chatContext, config, attachments, updatePatientRecord);
         } else if (ocrProvider === 'tesseract') {
-          toast('Tesseract OCR is not supported yet');
+          return await tesseractParseRecord(record, chatContext, config, attachments, updatePatientRecord);
         }
       }
     
       const sendHealthReacordToChat = async (record: PatientRecord, forceRefresh: boolean = false) => {
         if (!record.json || forceRefresh) {  // first: parse the record
-          await parsePatientRecord(record, prompts.patientRecordParse({ record, config }));
+          await parsePatientRecord(record);
         } else {
           chatContext.setChatOpen(true);
           chatContext.sendMessage({

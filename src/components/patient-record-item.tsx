@@ -30,7 +30,7 @@ export default function PatientRecordItem({ record, displayAttachmentPreviews }:
   useEffect(() => {
     if (displayAttachmentPreviews && !displayableAttachmentsInProgress) {
       displayableAttachmentsInProgress = true;
-      patientRecordContext?.convertAttachmentsToImages(record).then((attachments) => {
+      patientRecordContext?.convertAttachmentsToImages(record, false).then((attachments) => {
         setDisplayableAttachments(attachments);
         displayableAttachmentsInProgress = false;
       });

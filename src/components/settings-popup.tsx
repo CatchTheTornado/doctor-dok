@@ -120,13 +120,16 @@ export function SettingsPopup() {
   const config = useContext(ConfigContext);
   const [ocrProvider, setOcrProvider] = useState("chatgpt");
   const [ocrLanguage, setOcrLanguage] = useState("eng");
+  const [llmProvider, setLlmProvider] = useState("chatgpt")
+  const [llmMode, setLlmMode] = useState("both")
 
   const { handleSubmit, register, setError, getValues, setValue, formState: { errors,  } } = useForm({
       defaultValues: {
         chatGptApiKey: "",
         displayAttachmentPreviews: true,
         ocrProvider: "chatgpt",
-        ocrLanguage: "eng"
+        ocrLanguage: "eng",
+        ollamaUrl: ""
 
     }
   });
@@ -137,13 +140,20 @@ export function SettingsPopup() {
       const displayAttachmentPreviews = await config?.getServerConfig('displayAttachmentPreviews');
       const ocr = await config?.getServerConfig('ocrProvider') as string      
       const ocrLang = await config?.getServerConfig('ocrLanguage') as string
+      const ollamaUrl = await config?.getServerConfig('ollamaUrl') as string
+      const llmMode = await config?.getServerConfig('llmMode') as string
+      const llmProvider = await config?.getServerConfig('llmProvider') as string;
       setOcrProvider(ocr);
       setOcrLanguage(ocrLang);
+      setLlmProvider(llmProvider);
+      setLlmMode(llmMode);
 
       setValue("chatGptApiKey", chatGptKey as string);
       setValue("displayAttachmentPreviews", displayAttachmentPreviews as boolean);
       setValue("ocrProvider", ocr);
       setValue("ocrLanguage", "eng");
+      setValue("llmProvider", "chatgpt");
+      setValue("ollamaUrl", ollamaUrl);
     }
     fetchDefaultConfig();
   }, []);
@@ -153,6 +163,9 @@ export function SettingsPopup() {
     config?.setServerConfig('ocrProvider', ocrProvider as string);
     config?.setServerConfig('displayAttachmentPreviews', formData['displayAttachmentPreviews']);
     config?.setServerConfig('ocrLanguage', ocrLanguage as string);
+    config?.setServerConfig('llmProvider', llmProvider as string);
+    config?.setServerConfig('ollamaUrl', formData['ollamaUrl']);
+    config?.setServerConfig('llmMode', llmMode as string);
     config?.setConfigDialogOpen(false);
   }
 
@@ -193,40 +206,79 @@ export function SettingsPopup() {
               </TabsContent>
               <TabsContent value="ai-settings">
                 <Card>
-                  <CardHeader>
-                    <CardTitle>Settings</CardTitle>
-                    <CardDescription>
-                      Setup AI related settings here
-                    </CardDescription>
-                  </CardHeader>
+                  <CardHeader>Local AI Models & OCR</CardHeader>
                   <CardContent className="space-y-2">
-                    <div className="flex items-center gap-2">
-                      <Label htmlFor="ocrProvider">OCR Provider</Label>
-                      <Select id="ocrProvider" value={ocrProvider} onValueChange={setOcrProvider}>
-                        <SelectTrigger className="w-[180px]">
-                          <SelectValue placeholder="Default: Chat GPT" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem key="chatgpt" value="chatgpt">Default: Chat GPT</SelectItem>
-                          <SelectItem key="tesseract" value="tesseract">Tesseract</SelectItem>
-                        </SelectContent>
-                      </Select>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <Label htmlFor="ocrLanguage">OCR Language</Label>
-                      <Select id="ocrLanguage" value={ocrLanguage} onValueChange={setOcrLanguage}>
-                        <SelectTrigger className="w-[180px]">
-                          <SelectValue placeholder="Default: English" />
-                        </SelectTrigger>
-                        <SelectContent>
-                        {ocrLlanguages.map((lang) => (
-                            <SelectItem key={lang.code} value={lang.code}>{lang.name}</SelectItem>
-                          ))}                          
-                        </SelectContent>
-                      </Select>
-                    </div>
+                    <div className="grid grid-cols-1 gap-3">
+                    <div className="grid gap-2">
+                      <div className="flex items-center gap-2">
+                        <Label htmlFor="ocrProvider">OCR Provider</Label>
+                        <Select id="ocrProvider" value={ocrProvider} onValueChange={setOcrProvider}>
+                          <SelectTrigger className="w-[180px]">
+                            <SelectValue placeholder="Default: Chat GPT" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem key="chatgpt" value="chatgpt">Default: Chat GPT</SelectItem>
+                            <SelectItem key="tesseract" value="tesseract">Tesseract</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <Label htmlFor="ocrLanguage">OCR Language</Label>
+                        <Select id="ocrLanguage" value={ocrLanguage} onValueChange={setOcrLanguage}>
+                          <SelectTrigger className="w-[180px]">
+                            <SelectValue placeholder="Default: English" />
+                          </SelectTrigger>
+                          <SelectContent>
+                          {ocrLlanguages.map((lang) => (
+                              <SelectItem key={lang.code} value={lang.code}>{lang.name}</SelectItem>
+                            ))}                          
+                          </SelectContent>
+                        </Select>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <Label htmlFor="llmProvider">LLM Provider</Label>
+                        <Select id="llmProvider" value={llmProvider} onValueChange={setLlmProvider}>
+                          <SelectTrigger className="w-[180px]">
+                            <SelectValue placeholder="Default: Chat GPT" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem key="chatgpt" value="chatgpt">Default: Chat GPT</SelectItem>
+                            <SelectItem key="ollama" value="ollama">Ollama</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <Label htmlFor="llmMode">LLM Mode</Label>
+                        <Select id="llmMode" value={llmMode} onValueChange={setLlmMode}>
+                          <SelectTrigger className="w-[180px]">
+                            <SelectValue placeholder="Default: Cloud Parse + Chat" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem key="cloud_parse_cloud_chat" value="cloud_parse_cloud_chat">Cloud Parse + Chat</SelectItem>
+                            <SelectItem key="local_parse_local_caht" value="local_parse_local_chat">Local Parse + Chat</SelectItem>
+                            <SelectItem key="local_parse_cloud_chat" value="local_parse_cloud_chat">Local Parse + Cloud Chat</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>     
 
+                      <div>
+                        <Label htmlFor="ollamaUrl">Ollama URL:</Label>
+                        <Input
+                          type="text"
+                          id="ollamaUrl"
+                          {...register("ollamaUrl", { required: false, validate: {
+                            ollamaUrlValidator: (value) => true
+                          }} )}
+                        />
+                      </div>
+                    </div>
+                    <div className="text-xs">
+                        Local models are used for processing data on local server where it IS NOT STORED. You can use Local models to remove personal information from attachments before sending it to Cloud AI providers or used it for all purposes (Local Parse + Cloud Chat mode).
+                      </div>
+
+                  </div>               
                   </CardContent>
+                  <CardHeader>Cloud AI providers:</CardHeader>
                   <CardContent className="space-y-2">
                     <Label htmlFor="chatGptApiKey">ChatGPT API Key</Label>
                     <Input

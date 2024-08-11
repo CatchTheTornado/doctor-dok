@@ -1,19 +1,56 @@
     
 import { DataLoadingStatus, DisplayableDataObject, EncryptedAttachment, Patient, PatientRecord } from '@/data/client/models';
 import { findCodeBlocks } from "@/lib/utils";
+import { createWorker, OEM, PSM } from 'tesseract.js';
 import { ChatContextType } from '@/contexts/chat-context';
+import { toast } from 'sonner';
+import { ConfigContextType } from '@/contexts/config-context';
+import { prompts } from '@/data/ai/prompts';
 
-export function parse(record: PatientRecord, chatContext: ChatContextType, parsePromptText: string, sourceImages: DisplayableDataObject[], updatePatientRecord: (record: PatientRecord) => void) {
+export type ImageData = {
+    base64Content: string;
+    displayName: string;
+  };
+
+const processFiles = async (files: DisplayableDataObject[], selectedLanguage: string) => {
+
+    return await (async () => {
+      toast.info('Loading Tesseract OCR engine ...');
+      const worker = await createWorker(selectedLanguage, OEM.TESSERACT_LSTM_COMBINED, {
+        logger: m => console.log(m),
+        errorHandler: e => console.error(e),
+        workerPath: 'https://cdn.jsdelivr.net/npm/tesseract.js@v5.0.0/dist/worker.min.js',
+        langPath: 'https://tessdata.projectnaptha.com/4.0.0',
+        corePath: 'https://cdn.jsdelivr.net/npm/tesseract.js-core@v5.0.0',
+      });
+      let imagesArray: ImageData[] = []
+      
+        let textBuffer = ''
+        for(const file of files) {
+          toast.info('Recognizing file ' + file.name + ' page: ' + (files.indexOf(file) + 1) + ' of ' + files.length);
+          const ret = await worker.recognize(file.url, {}, {text: true});
+          textBuffer+= ret.data.text;
+        }
+        await worker.terminate();
+        return textBuffer
+    })();    
+
+  }
+
+export async function parse(record: PatientRecord, chatContext: ChatContextType, configContext: ConfigContextType, sourceImages: DisplayableDataObject[], updatePatientRecord: (record: PatientRecord) => void) {
     // TODO: add Tesseract parsing logic - then LLM - it should be configurable whichh LLM is being used for data parsing from tesseract text
+    toast.info('Sending images to Tesseract for OCR processing...');
 
     chatContext.setChatOpen(true);
 
-    chatContext.sendMessage({
+    let textAfterOcr = await processFiles(sourceImages, (await configContext?.getServerConfig('ocrLanguage') as string) || 'en');
+    console.log(textAfterOcr);
+
+    chatContext.sendMessage({ // still using chatgpt only - add support for other LLMS
         message: {
             role: 'user',
             createdAt: new Date(),
-            content: parsePromptText,
-            experimental_attachments: sourceImages
+            content: prompts.patientRecordParseOCR({ record, config: configContext }, textAfterOcr)
         },
         onResult: (resultMessage, result) => {
             if (result.text.indexOf('```json') > -1) {
