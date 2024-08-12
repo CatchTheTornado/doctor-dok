@@ -90,18 +90,24 @@ export async function parse(record: PatientRecord, chatContext: ChatContextType,
     };
 
     if (removePIIMode === 'replace') {
+        // TODO: add programmatical data removal removing all patient personal data - extend patient to store more personal data to be removed
     
     } else if(removePIIMode === 'ollama') {
-        toast.info('Sending OCR text to Ollama for PII removal...');
-        chatContext.sendMessage({ // still using chatgpt only - add support for other LLMS
-            message: {
-                role: 'user',
-                createdAt: new Date(),
-                content: prompts.patientRecordRemovePII({ record, config: configContext }, textAfterOcr)
-            },
-            onResult: (resultMessage, result) => {
-                parseRequest(result.text);
-            }
-        }, 'ollama');
+        const ollamaUrl = await configContext?.getServerConfig('ollamaUrl') as string;
+        if (!ollamaUrl) {
+            toast.error('Please configure the Ollama URL in the Settings first in order to remove PII using Ollama')
+        } else {
+            toast.info('Sending OCR text to Ollama for PII removal...');
+            chatContext.sendMessage({ // still using chatgpt only - add support for other LLMS
+                message: {
+                    role: 'user',
+                    createdAt: new Date(),
+                    content: prompts.patientRecordRemovePII({ record, config: configContext }, textAfterOcr)
+                },
+                onResult: (resultMessage, result) => {
+                    parseRequest(result.text);
+                }
+            }, 'ollama');
+        }
     }    
 }    

@@ -192,9 +192,10 @@ export function SettingsPopup() {
       <CredenzaContent className="sm:max-w-[425px] bg-white dark:bg-zinc-950">
         <div className="p-4">
           <form onSubmit={handleSubmit(onSubmit)}>
-            <Tabs defaultValue="ai-settings">
-              <TabsList className="grid w-full grid-cols-2">
-                <TabsTrigger value="ai-settings" className="dark:data-[state=active]:bg-zinc-900 data-[state=active]:bg-zinc-100">AI Settings</TabsTrigger>
+            <Tabs defaultValue="cloud-ai-settings">
+              <TabsList className="grid w-full grid-cols-3">
+                <TabsTrigger value="cloud-ai-settings" className="dark:data-[state=active]:bg-zinc-900 data-[state=active]:bg-zinc-100">Cloud AI</TabsTrigger>
+                <TabsTrigger value="local-ai-settings" className="dark:data-[state=active]:bg-zinc-900 data-[state=active]:bg-zinc-100">Local AI & GDPR</TabsTrigger>
                 <TabsTrigger value="general-settings" className="dark:data-[state=active]:bg-zinc-900 data-[state=active]:bg-zinc-100">General Settings</TabsTrigger>
             </TabsList>
             <TabsContent value="general-settings">
@@ -216,7 +217,7 @@ export function SettingsPopup() {
                   </CardContent>
                 </Card>
               </TabsContent>
-              <TabsContent value="ai-settings">
+              <TabsContent value="local-ai-settings">
                 <Card>
                   <CardHeader>Local AI Models & OCR</CardHeader>
                   <CardContent className="space-y-2">
@@ -283,9 +284,7 @@ export function SettingsPopup() {
                             <SelectItem key="replace" value="replace">Basic: Replace strings</SelectItem>
                           </SelectContent>
                         </Select>
-                      </div>                      
-
-
+                      </div>                     
                       <div>
                         <Label htmlFor="ollamaUrl">Ollama URL:</Label>
                         <Input
@@ -314,6 +313,10 @@ export function SettingsPopup() {
 
                   </div>               
                   </CardContent>
+                </Card>
+              </TabsContent>
+              <TabsContent value="cloud-ai-settings">
+                <Card>
                   <CardHeader>Cloud AI providers:</CardHeader>
                   <CardContent className="space-y-2">
                     <Label htmlFor="chatGptApiKey">ChatGPT API Key</Label>

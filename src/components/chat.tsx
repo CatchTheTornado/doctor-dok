@@ -26,10 +26,13 @@ import { useContext, useEffect, useRef, useState } from "react"
 import { ChatContext } from "@/contexts/chat-context"
 import ChatMessage from "./chat-message"
 import DataLoader from "./data-loader"
+import { SettingsIcon } from "lucide-react"
+import { ConfigContext } from "@/contexts/config-context"
 
 
 export function Chat() {
 
+  const config = useContext(ConfigContext);
   const chatContext = useContext(ChatContext);
   const [currentMessage, setCurrentMessage] = useState('');
   const messageTextArea = useRef<HTMLTextAreaElement | null>(null);
@@ -59,7 +62,7 @@ export function Chat() {
       </DrawerTrigger>
       <DrawerContent className="sm:max-w-[825px] bg-white dark:bg-zinc-950">
         <DrawerHeader>
-          <DrawerTitle>Chat with AI</DrawerTitle>
+          <DrawerTitle>Chat with AI <Button variant="ghost" onClick={(e) => { config?.setConfigDialogOpen(true); }}><SettingsIcon className="w-4 h-4" /></Button></DrawerTitle>
         </DrawerHeader>
         <div className="flex flex-col h-[500px] overflow-y-auto">
           <div className="flex-1 p-4 space-y-4">
