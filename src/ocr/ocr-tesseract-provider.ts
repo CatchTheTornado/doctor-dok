@@ -46,41 +46,62 @@ export async function parse(record: PatientRecord, chatContext: ChatContextType,
     let textAfterOcr = await processFiles(sourceImages, (await configContext?.getServerConfig('ocrLanguage') as string) || 'en');
     console.log(textAfterOcr);
 
-    chatContext.sendMessage({ // still using chatgpt only - add support for other LLMS
-        message: {
-            role: 'user',
-            createdAt: new Date(),
-            content: prompts.patientRecordParseOCR({ record, config: configContext }, textAfterOcr)
-        },
-        onResult: (resultMessage, result) => {
-            if (result.text.indexOf('```json') > -1) {
-                const codeBlocks = findCodeBlocks(result.text.trimEnd().endsWith('```') ? result.text : result.text + '```', false);
-                let recordJSON = [];
-                let recordMarkdown = "";
-                if (codeBlocks.blocks.length > 0) {
-                    for (const block of codeBlocks.blocks) {
-                        if (block.syntax === 'json') {
-                            const jsonObject = JSON.parse(block.code);
-                            if (Array.isArray(jsonObject)) {
-                                for (const record of jsonObject) {
-                                    recordJSON.push(record);
-                                }
-                            } else recordJSON.push(jsonObject);
+    const removePIIMode = await configContext?.getServerConfig('llmProviderRemovePII') as string;
+    const chatAIProvider = await configContext?.getServerConfig('llmProviderChat') as string;
+
+    const parseRequest = async (text:string) => {
+        return chatContext.sendMessage({ // still using chatgpt only - add support for other LLMS
+            message: {
+                role: 'user',
+                createdAt: new Date(),
+                content: prompts.patientRecordParseOCR({ record, config: configContext }, text)
+            },
+            onResult: (resultMessage, result) => {
+                if (result.text.indexOf('```json') > -1) {
+                    const codeBlocks = findCodeBlocks(result.text.trimEnd().endsWith('```') ? result.text : result.text + '```', false);
+                    let recordJSON = [];
+                    let recordMarkdown = "";
+                    if (codeBlocks.blocks.length > 0) {
+                        for (const block of codeBlocks.blocks) {
+                            if (block.syntax === 'json') {
+                                const jsonObject = JSON.parse(block.code);
+                                if (Array.isArray(jsonObject)) {
+                                    for (const record of jsonObject) {
+                                        recordJSON.push(record);
+                                    }
+                                } else recordJSON.push(jsonObject);
+                            }
+
+                            if (block.syntax === 'markdown') {
+                                recordMarkdown += block.code;
+                            }
                         }
 
-                        if (block.syntax === 'markdown') {
-                            recordMarkdown += block.code;
+                        if (record) {
+                            const discoveredType = recordJSON.length > 0 ? recordJSON.map(item => item.type).join(", ") : 'note';
+                            record = new PatientRecord({ ...record, json: recordJSON, text: recordMarkdown, type: discoveredType });
+                            updatePatientRecord(record);
                         }
+                        console.log('JSON repr: ', recordJSON);
                     }
-
-                    if (record) {
-                        const discoveredType = recordJSON.length > 0 ? recordJSON.map(item => item.type).join(", ") : 'note';
-                        record = new PatientRecord({ ...record, json: recordJSON, text: recordMarkdown, type: discoveredType });
-                        updatePatientRecord(record);
-                    }
-                    console.log('JSON repr: ', recordJSON);
                 }
             }
-        }
-    });
+        }, chatAIProvider);
+    };
+
+    if (removePIIMode === 'replace') {
+    
+    } else if(removePIIMode === 'ollama') {
+        toast.info('Sending OCR text to Ollama for PII removal...');
+        chatContext.sendMessage({ // still using chatgpt only - add support for other LLMS
+            message: {
+                role: 'user',
+                createdAt: new Date(),
+                content: prompts.patientRecordRemovePII({ record, config: configContext }, textAfterOcr)
+            },
+            onResult: (resultMessage, result) => {
+                parseRequest(result.text);
+            }
+        }, 'ollama');
+    }    
 }    

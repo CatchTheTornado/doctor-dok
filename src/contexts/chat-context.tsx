@@ -2,6 +2,7 @@ import React, { createContext, PropsWithChildren, useContext, useState } from 'r
 import { CreateMessage, Message, Attachment } from 'ai/react';
 import { nanoid } from 'nanoid';
 import { createOpenAI, openai } from '@ai-sdk/openai';
+import { ollama, createOllama } from 'ollama-ai-provider';
 import { CallWarning, convertToCoreMessages, FinishReason, streamText } from 'ai';
 import { ConfigContext } from './config-context';
 import { toast } from 'sonner';
@@ -42,16 +43,19 @@ type OnResultCallback = (result: MessageEx, eventData: AIResultEventType) => voi
 
 export type CreateMessageEnvelope = {
     message: CreateMessageEx;
+    providerName?: string;
     onResult?: OnResultCallback
 }
 export type CreateMessagesEnvelope = {
     messages: CreateMessageEx[];
+    providerName?: string;
     onResult?: OnResultCallback
 }
 
 type ChatContextType = {
     messages: MessageEx[];
     lastMessage: MessageEx | null;
+    providerName?: string;
     sendMessage: (msg: CreateMessageEnvelope) => void;
     sendMessages: (msg: CreateMessagesEnvelope) => void;
     chatOpen: boolean,
@@ -63,6 +67,7 @@ type ChatContextType = {
 export const ChatContext = createContext<ChatContextType>({
     messages: [],
     lastMessage: null,
+    providerName: '',
     sendMessage: (msg: CreateMessageEnvelope) => {},
     sendMessages: (msg: CreateMessagesEnvelope) => {},
     chatOpen: false,
@@ -81,6 +86,7 @@ export const ChatContextProvider: React.FC<PropsWithChildren> = ({ children }) =
 //        { role: 'assistant', name: 'AI', content: 'Sure! I will do my best to answer all your questions specifically to your records' }
     ] as MessageEx[]);
     const [lastMessage, setLastMessage] = useState<MessageEx | null>(null);
+    const [providerName, setProviderName] = useState('');
     const [chatOpen, setChatOpen] = useState(false);
     const [isStreaming, setIsStreaming] = useState(false);
 
@@ -93,15 +99,45 @@ export const ChatContextProvider: React.FC<PropsWithChildren> = ({ children }) =
         }
     }
 
-    const aiProvider = async () => {
+    const aiProvider = async (providerName:string = '') => {
         await checkApiConfig();
-        const aiProvider = createOpenAI({
-            apiKey: await config?.getServerConfig('chatGptApiKey') as string
-        })
-        return aiProvider.chat('gpt-4o')   //gpt-4o-2024-05-13
+
+        if (!providerName) {
+            providerName = await config?.getServerConfig('llmProviderChat') as string;
+        }
+
+        setProviderName(providerName);
+
+        if (providerName === 'ollama') {
+            let ollamaBaseUrl = await config?.getServerConfig('ollamaUrl') as string;
+            let ollamaCredentials:string[] = []
+            const urlSchema = ollamaBaseUrl.indexOf('https://') > -1 ? 'https://' : 'http://';
+            ollamaBaseUrl = ollamaBaseUrl.replace(urlSchema, '');
+
+            if (ollamaBaseUrl.indexOf('@') > -1) {
+                const urlArray = ollamaBaseUrl.split('@')
+                ollamaBaseUrl = urlArray[1];
+                ollamaCredentials = urlArray[0].split(':');
+            }
+            const aiProvider = createOllama({
+                baseURL: urlSchema + ollamaBaseUrl,
+                headers: ollamaCredentials.length > 0 ? {
+                    Authorization: `Basic ${btoa(ollamaCredentials[0] + ':' + ollamaCredentials[1])}`
+                }: {}
+            });
+            return aiProvider.chat(await config?.getServerConfig('ollamaModel') as string);
+        } else if (providerName === 'chatgpt'){
+            const aiProvider = createOpenAI({
+                apiKey: await config?.getServerConfig('chatGptApiKey') as string
+            })
+            return aiProvider.chat('gpt-4o')   //gpt-4o-2024-05-13
+        } else {
+            toast.error('Unknown AI provider ' + providerName);
+            throw new Error('Unknown AI provider ' + providerName);
+        }
     }
 
-    const aiApiCall = async (messages: MessageEx[], onResult?: OnResultCallback) => {
+    const aiApiCall = async (messages: MessageEx[], onResult?: OnResultCallback, providerName?: string) => {
         
         setIsStreaming(true);
         const resultMessage:MessageEx = {
@@ -111,7 +147,7 @@ export const ChatContextProvider: React.FC<PropsWithChildren> = ({ children }) =
             role: 'assistant'
         }        
         const result = await streamText({
-            model: await aiProvider(),
+            model: await aiProvider(providerName),
             messages: convertToCoreMessages(messages),
             onFinish: (e) =>  {
                 e.text.indexOf('```json') > -1 ? resultMessage.displayMode = MessageDisplayMode.InternalJSONResponse : resultMessage.displayMode = MessageDisplayMode.Text
@@ -147,7 +183,7 @@ export const ChatContextProvider: React.FC<PropsWithChildren> = ({ children }) =
         // TODO: remove the workaround with "prev_sent_attachments" by extending the MessageEx type with our own to save space for it
         aiApiCall([...messages.map(msg => {
             return Object.assign(msg, { experimental_attachments: null, prev_sent_attachments: msg.experimental_attachments })
-        }), newlyCreatedOne], envelope.onResult);
+        }), newlyCreatedOne], envelope.onResult, envelope.providerName);
     }
 
     const sendMessages = (envelope: CreateMessagesEnvelope) => {
@@ -162,12 +198,13 @@ export const ChatContextProvider: React.FC<PropsWithChildren> = ({ children }) =
         // removing attachments from previously sent messages
         aiApiCall([...messages.map(msg => {
             return Object.assign(msg, { experimental_attachments: null, prev_sent_attachments: msg.experimental_attachments })
-        }), ...newMessages], envelope.onResult);        
+        }), ...newMessages], envelope.onResult, envelope.providerName);        
     }
 
     const value = { 
         messages,
         lastMessage,
+        providerName,
         sendMessage,
         sendMessages,
         chatOpen,

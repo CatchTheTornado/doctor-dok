@@ -32,6 +32,9 @@ export const prompts = {
                 JSON.stringify(itemSchema) + '```\r\n\r\n Original text: ' + ocrText;
     }, // [ { type: "blood_results", subtype: "morphology", findings: [], ... }, {type: "mri", subtype: "head mri", ...}]
 
+    patientRecordRemovePII: (context: PromptContext, ocrText: string) => {
+        return 'Please remove Personal Data (names, first names, last names, company names, emails, id numbers, phone numbers, addresses), fix language errors and format markdown from the text ' + ocrText
+    },
     patientRecordIntoChat: (context: PromptContext) => {
         return 'Below is my health result data in JSON format. Please describe the results in plain language. Note all exceptions from the norm and tell me what it could mean? Answer in the language of original document. Return text, no code. \r\n\r\n```json\
         \r\n' + JSON.stringify(context.record?.json) + '```'

@@ -67,7 +67,7 @@ export function Chat() {
               <ChatMessage key={index} message={message} />
             ))}
             {chatContext.isStreaming ? (
-              <div className="ml-2 h-4 w-4 animate-spin rounded-full border-4 border-primary border-t-transparent" />
+              <div className="flex"><div className="ml-2 h-4 w-4 animate-spin rounded-full border-4 border-primary border-t-transparent" /> <span className="text-xs">provider: {chatContext?.providerName}</span></div>
             ):null}
             <div id="last-message" ref={lastMessageRef}></div>
           {/* <div className="flex items-start gap-4 justify-end">
