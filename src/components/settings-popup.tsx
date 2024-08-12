@@ -260,7 +260,7 @@ export function SettingsPopup() {
                           </SelectContent>
                         </Select>
                       </div>
-                      {/* <div className="grid grid-cols-2 items-center gap-2">
+                      <div className="grid grid-cols-2 items-center gap-2">
                         <Label htmlFor="llmProviderParse">LLM for Parse</Label>
                         <Select id="llmProviderParse" value={llmProviderParse} onValueChange={setLlmProviderParse}>
                           <SelectTrigger className="w-[180px]">
@@ -271,7 +271,7 @@ export function SettingsPopup() {
                             <SelectItem key="ollama" value="ollama">Local: Ollama</SelectItem>
                           </SelectContent>
                         </Select>
-                      </div> */}
+                      </div>
                       <div className="grid grid-cols-2 items-center gap-2">
                         <Label htmlFor="llmProviderRemovePII">LLM for removing PII</Label>
                         <Select id="llmProviderRemovePII" value={llmProviderRemovePII} onValueChange={setLlmProviderRemovePII}>

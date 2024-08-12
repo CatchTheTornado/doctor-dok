@@ -47,7 +47,7 @@ export async function parse(record: PatientRecord, chatContext: ChatContextType,
     console.log(textAfterOcr);
 
     const removePIIMode = await configContext?.getServerConfig('llmProviderRemovePII') as string;
-    const chatAIProvider = await configContext?.getServerConfig('llmProviderChat') as string;
+    const parseAIProvider = await configContext?.getServerConfig('llmProviderChat') as string;
 
     const parseRequest = async (text:string) => {
         return chatContext.sendMessage({ // still using chatgpt only - add support for other LLMS
@@ -86,7 +86,7 @@ export async function parse(record: PatientRecord, chatContext: ChatContextType,
                     }
                 }
             }
-        }, chatAIProvider);
+        }, parseAIProvider);
     };
 
     if (removePIIMode === 'replace') {
