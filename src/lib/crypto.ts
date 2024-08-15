@@ -22,7 +22,7 @@ export class EncryptionUtils {
     this.key = await crypto.subtle.importKey(
       'raw',
       keyData,
-      { name: 'AES-CBC' },
+      { name: 'AES-GCM' },
       false,
       ['encrypt', 'decrypt']
     );
@@ -58,7 +58,7 @@ export class EncryptionUtils {
     const iv = crypto.getRandomValues(new Uint8Array(16)); // Initialization vector
     const encryptedData = await crypto.subtle.encrypt(
         {
-            name: 'AES-CBC',
+            name: 'AES-GCM',
             iv: iv,
         },
         this.key,
@@ -92,7 +92,7 @@ async blobToArrayBuffer (blob: Blob): Promise<ArrayBuffer> {
   
       return await crypto.subtle.decrypt(
           {
-              name: 'AES-CBC',
+              name: 'AES-GCM',
               iv: iv,
           },
           this.key,
@@ -110,7 +110,7 @@ async blobToArrayBuffer (blob: Blob): Promise<ArrayBuffer> {
     const data = encoder.encode(text);
     const iv = crypto.getRandomValues(new Uint8Array(16));
     const encryptedData = await crypto.subtle.encrypt(
-      { name: 'AES-CBC', iv },
+      { name: 'AES-GCM', iv },
       this.key,
       data
     );
@@ -131,7 +131,7 @@ async blobToArrayBuffer (blob: Blob): Promise<ArrayBuffer> {
         const encryptedArray = new Uint8Array(encryptedHex.match(/.{1,2}/g).map(byte => parseInt(byte, 16)));
 
         const decryptedData = await crypto.subtle.decrypt(
-          { name: 'AES-CBC', iv },
+          { name: 'AES-GCM', iv },
           this.key,
           encryptedArray
         );

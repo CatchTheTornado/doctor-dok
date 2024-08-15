@@ -6,6 +6,7 @@ export const patients = sqliteTable('patients', {
     firstName: text('firstName'),
     lastName: text('lastName'),     
     email: text('email'),
+    json: text('json', { mode: 'json' }),
     dateOfBirth: text('dateOfBirth'),   
     updatedAt: text('updatedAt').notNull().default(sql`CURRENT_TIMESTAMP`)
 });
