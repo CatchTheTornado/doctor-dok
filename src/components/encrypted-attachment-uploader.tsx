@@ -29,6 +29,7 @@ import { EncryptedAttachmentApiClient } from "@/data/client/encrypted-attachment
 import { ConfigContext } from "@/contexts/config-context";
 import { DTOEncryptionFilter, EncryptionUtils } from "@/lib/crypto";
 import { DatabaseContext } from "@/contexts/db-context";
+import internal from "stream";
 
 type DirectionOptions = "rtl" | "ltr" | undefined;
 
@@ -57,16 +58,30 @@ export type UploadedFile = {
     id: number | string;
     file: File;
     uploaded: boolean;
-    status: string;
+    status: FileUploadStatus;
     index: number;
     dto: EncryptedAttachmentDTO | null;
 }
 
+export enum FileUploadStatus {
+  UPLOADING = 'uploading',
+  SUCCESS = 'success',
+  ERROR = 'error',
+  ENCRYPTING = 'encrypting'
+}
+
+export type UploadQueueStatus = {
+  files: UploadedFile[],
+  queueSize: number
+}
+
+let internalFiles: UploadedFile[] = []
+
 type FileUploaderProps = {
   value: UploadedFile[] | null;
   reSelect?: boolean;
-  onUploadSuccess?: (value: UploadedFile | null) => void;
-  onUploadError?: (value: UploadedFile | null) => void;
+  onUploadSuccess?: (value: UploadedFile | null, uploadStatus: UploadQueueStatus) => void;
+  onUploadError?: (value: UploadedFile | null, uploadStatus: UploadQueueStatus) => void;
   onAllUploadsComplete?: (value: UploadedFile[] | null) => void;
   onValueChange: (value: UploadedFile[] | null) => void;
   dropzoneOptions: DropzoneOptions;
@@ -111,10 +126,17 @@ export const EncryptedAttachmentUploader = forwardRef<
     const reSelectAll = maxFiles === 1 ? true : reSelect;
     const direction: DirectionOptions = dir === "rtl" ? "rtl" : "ltr";
 
+    const updateFile = (file: UploadedFile) => {
+      console.log(internalFiles, file);
+      const newFiles = internalFiles ? [...internalFiles] : [];
+      internalFiles = newFiles.map((f) => (f.index === file.index ? file : f));
+      onValueChange(newFiles);
+    }
+
     const removeFileFromSet = useCallback(
       (i: number) => {
         if (!value) return;
-        const fileToRemove = value.find((_, index) => index === i);
+        const fileToRemove = internalFiles.find((_, index) => index === i);
         if (fileToRemove) {
           const apiClient = new EncryptedAttachmentApiClient('', dbContext, {
             useEncryption: false  // for FormData we're encrypting records by ourselves - above
@@ -122,7 +144,8 @@ export const EncryptedAttachmentUploader = forwardRef<
           if(fileToRemove.dto) apiClient.delete(fileToRemove.dto); // remove file from storage
 
         }
-        const newFiles = value.filter((_, index) => index !== i);
+        const newFiles = internalFiles.filter((_, index) => index !== i);
+        internalFiles = newFiles;
         onValueChange(newFiles);
       },
       [value, onValueChange]
@@ -198,7 +221,8 @@ export const EncryptedAttachmentUploader = forwardRef<
     }
     const onInternalUpload = useCallback(async (fileToUpload:UploadedFile | null) => {
         if (fileToUpload){
-          fileToUpload.status = 'uploading ...';
+          fileToUpload.status = FileUploadStatus.UPLOADING;
+          updateFile(fileToUpload);
           const formData = new FormData();
           const masterKey = await dbContext?.masterKey;
           if(fileToUpload && fileToUpload.file) 
@@ -220,7 +244,8 @@ export const EncryptedAttachmentUploader = forwardRef<
               createdAt: getCurrentTS(),
               updatedAt: getCurrentTS(),            
             };
-            fileToUpload.status = 'encrypting ...';
+            fileToUpload.status = FileUploadStatus.ENCRYPTING;
+            updateFile(fileToUpload);
             attachmentDTO = encFilter ? await encFilter.encrypt(attachmentDTO, EncryptedAttachmentDTOEncSettings) : attachmentDTO;
 
             formData.append("attachmentDTO", JSON.stringify(attachmentDTO));
@@ -230,29 +255,34 @@ export const EncryptedAttachmentUploader = forwardRef<
               })
               const result = await apiClient.put(formData);
               if (result.status === 200) {
-                const decryptedAttachmentDTO: EncryptedAttachmentDTO = (encFilter ? await encFilter.decrypt(result.data) : result.data) as EncryptedAttachmentDTO;
-                console.log(decryptedAttachmentDTO);
-                fileToUpload.status = 'success';
+                const decryptedAttachmentDTO: EncryptedAttachmentDTO = (encFilter ? await encFilter.decrypt(result.data, EncryptedAttachmentDTOEncSettings) : result.data) as EncryptedAttachmentDTO;
+                console.log('Attachment saved', decryptedAttachmentDTO);
+                fileToUpload.status = FileUploadStatus.SUCCESS;
+                updateFile(fileToUpload);
                 fileToUpload.uploaded = true;
                 fileToUpload.dto = decryptedAttachmentDTO;
-                setQueueSize(uploadQueueSize+1)
-                setActiveIndex(fileToUpload.index)
-                // TODO: add file processing - like extracting preview from PDF etc.
-                if(onUploadSuccess)  onUploadSuccess(fileToUpload);
-              } else {
-                console.log("File upload error " + result.message);
-                fileToUpload.status = 'error!';
                 setQueueSize(uploadQueueSize-1)
                 setActiveIndex(fileToUpload.index)
-                if(onUploadError) onUploadError(fileToUpload);
+                // TODO: add file processing - like extracting preview from PDF etc.
+                if(onUploadSuccess)  onUploadSuccess(fileToUpload, { files: value as UploadedFile[], queueSize: uploadQueueSize });
+              } else {
+                console.log("File upload error " + result.message);
+                toast.error("File upload error " + result.message);
+                fileToUpload.status = FileUploadStatus.ERROR;
+                updateFile(fileToUpload);
+                setQueueSize(uploadQueueSize-1)
+                setActiveIndex(fileToUpload.index)
+                if(onUploadError) onUploadError(fileToUpload, { files: value as UploadedFile[], queueSize: uploadQueueSize });
               }
             } catch (error) {
               console.log("File upload error " + error);
               toast('File upload error ' + error);
-              fileToUpload.status = 'error!';
+              toast.error('File upload error ' + error);
+              fileToUpload.status = FileUploadStatus.ERROR;
+              updateFile(fileToUpload);
               setQueueSize(uploadQueueSize-1)
               setActiveIndex(fileToUpload.index)
-              if(onUploadError) onUploadError(fileToUpload);
+              if(onUploadError) onUploadError(fileToUpload, { files: value as UploadedFile[], queueSize: uploadQueueSize-1 });
             }
           }
         }
@@ -262,6 +292,7 @@ export const EncryptedAttachmentUploader = forwardRef<
 
     const onDrop = useCallback(
       (acceptedFiles: File[], rejectedFiles: FileRejection[]) => {
+        internalFiles = value ? [...value] : [];
         const files = acceptedFiles;
 
         if (!files) {
@@ -269,28 +300,28 @@ export const EncryptedAttachmentUploader = forwardRef<
           return;
         }
 
-        const newValues: UploadedFile[] = value ? [...value] : [];
+        const newValues: UploadedFile[] = internalFiles ? [...internalFiles] : [];
 
         if (reSelectAll) {
-          newValues.splice(0, newValues.length);
+          internalFiles.splice(0, internalFiles.length);
         }
 
         files.forEach((file) => {
-          if (newValues.length < maxFiles) {
+          if (newValues.length < maxFiles && internalFiles.find((f) => f.file.name === file.name) === undefined) {
             let uploadedFile:UploadedFile = {
                 id: '',
                 file: file,
                 uploaded: false,
-                status: 'preparing ...',
+                status: FileUploadStatus.UPLOADING,
                 index: newValues.length
             }
+            setQueueSize(uploadQueueSize+1)
             newValues.push(uploadedFile);
             onInternalUpload(uploadedFile);
-            setQueueSize(uploadQueueSize+1)
           }
         });
-
-        onValueChange(newValues);
+        internalFiles = newValues
+        onValueChange(internalFiles);
 
         if (rejectedFiles.length > 0) {
           for (let i = 0; i < rejectedFiles.length; i++) {

@@ -189,8 +189,9 @@ export default function PatientRecordForm({ patient }: { patient?: Patient }) {
               <EncryptedAttachmentUploader
                 value={files}
                 onValueChange={setFiles}
-                onUploadSuccess={() => { setDialogOpen(true)}}
-                onUploadError={() => { setDialogOpen(true)}}
+                
+                onUploadSuccess={(file, queue) => { console.log('OK', file, queue) }}
+                onUploadError={(file, queue) => {  console.log('FAIL', file, queue) }}
                 dropzoneOptions={dropZoneConfig}
                 className="relative bg-background rounded-lg p-2 w-full h-max"
               >

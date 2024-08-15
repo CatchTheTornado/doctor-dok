@@ -31,9 +31,9 @@ export class EncryptedAttachmentApiClient extends ApiClient {
   
     async put(inputObject:PutEncryptedAttachmentRequest): Promise<PutEncryptedAttachmentResponse> {
       if (inputObject instanceof FormData) {
-        return this.request<PutEncryptedAttachmentResponse>('/api/encrypted-attachment', 'PUT', null, null, inputObject as FormData) as Promise<PutEncryptedAttachmentResponse>;
+        return this.request<PutEncryptedAttachmentResponse>('/api/encrypted-attachment', 'PUT', { ecnryptedFields: [] }, null, inputObject as FormData) as Promise<PutEncryptedAttachmentResponse>;
       } else {
-        return this.request<PutEncryptedAttachmentResponse>('/api/encrypted-attachment', 'PUT', null, inputObject as EncryptedAttachmentDTO) as Promise<PutEncryptedAttachmentResponse>;
+        return this.request<PutEncryptedAttachmentResponse>('/api/encrypted-attachment', 'PUT', { ecnryptedFields: [] }, inputObject as EncryptedAttachmentDTO) as Promise<PutEncryptedAttachmentResponse>;
       }
     }
 
