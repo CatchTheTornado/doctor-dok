@@ -24,6 +24,7 @@ export default class ServerPatientRepository extends BaseRepository<PatientDTO> 
             existingPatient.lastName = item.lastName
             existingPatient.dateOfBirth = item.dateOfBirth
             existingPatient.email = item.email
+            existingPatient.json = item.json
             db.update(patients).set(existingPatient).where(eq(patients.id, query.id)).run();
         }
         return Promise.resolve(existingPatient as PatientDTO)   
@@ -42,7 +43,8 @@ export default class ServerPatientRepository extends BaseRepository<PatientDTO> 
             lastName: patients.lastName,
             dateOfBirth: patients.dateOfBirth,
             email: patients.email,
-            updatedAt: patients.updatedAt
+            updatedAt: patients.updatedAt,
+            json: patients.json
         }).from(patients).all() as PatientDTO[])
     }
 

@@ -11,6 +11,7 @@ export const patientDTOSchema = z.object({
   lastName: z.string().min(1),
   email: z.string().optional(),
   dateOfBirth: z.string().optional(),
+  json: z.string().optional().nullable(), // all additional fields are located in JSON field
   updatedAt: z.string().default(() => getCurrentTS()),
 });
 

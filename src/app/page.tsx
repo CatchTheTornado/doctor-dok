@@ -21,7 +21,7 @@ export default function PatientPad() {
     <DatabaseContextProvider>
       <ConfigContextProvider>
         <AuthorizationGuard>
-        <ChatContextProvider>
+         <ChatContextProvider>
           <PatientContextProvider>
               <PatientRecordContextProvider>
                 <div>

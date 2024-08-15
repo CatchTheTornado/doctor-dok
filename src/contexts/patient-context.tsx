@@ -7,13 +7,19 @@ import { ApiEncryptionConfig } from '@/data/client/base-api-client';
 import { DataLoadingStatus, Patient } from '@/data/client/models';
 import { ConfigContext, ConfigContextType } from './config-context';
 import { DatabaseContext } from './db-context';
+import { toast } from 'sonner';
 
 
 export type PatientContextType = {
     patients: Patient[];
     currentPatient: Patient | null; 
-    addPatient: (patient: Patient) => Promise<Patient>;
-    editPatient: (patient: Patient) => Promise<Patient>;
+    addingNewPatient: boolean;
+    setAddingNewPatient: (adding: boolean) => void;
+    patientEditOpen: boolean;
+    setPatientEditOpen: (editMode: boolean) => void;
+    patientListPopup: boolean;
+    setPatientListPopup: (open: boolean) => void;
+    updatePatient: (patient: Patient) => Promise<Patient>;
     deletePatient: (id: number) => Promise<boolean>;
     listPatients: () => Promise<Patient[]>;
     setCurrentPatient: (patient: Patient | null) => void; // new method
@@ -25,7 +31,10 @@ export const PatientContext = createContext<PatientContextType | null>(null);
 export const PatientContextProvider: React.FC<PropsWithChildren> = ({ children }) => {
     const [patients, setPatients] = useState<Patient[]>([]);
     const [loaderStatus, setLoaderStatus] = useState<DataLoadingStatus>(DataLoadingStatus.Idle);
+    const [patientListPopup, setPatientListPopup] = useState<boolean>(false);
+    const [patientEditOpen, setPatientEditOpen] = useState<boolean>(false);
     const [currentPatient, setCurrentPatient] = useState<Patient | null>(null); // new state
+    const [addingNewPatient, setAddingNewPatient] = useState<boolean>(false);
     const config = useContext(ConfigContext);
     const dbContext = useContext(DatabaseContext);
 
@@ -40,76 +49,67 @@ export const PatientContextProvider: React.FC<PropsWithChildren> = ({ children }
         };
         const client = new PatientApiClient('', dbContext, encryptionConfig);
         return client;
-    }
-    
-    const addPatient = async (patient: Patient) => {
-        const client = await setupApiClient(config);
-        const patientDTO = patient.toDTO(); // DTOs are common ground between client and server
-        client.put(patientDTO).then((response) => {
+    }    
+
+    const updatePatient = async (patient: Patient): Promise<Patient> => {
+        try {
+            const client = await setupApiClient(config);
+            const patientDTO = patient.toDTO(); // DTOs are common ground between client and server
+            const response = await client.put(patientDTO);
+            const newRecord = typeof patient?.id  === 'undefined'
             if (response.status !== 200) {
                 console.error('Error adding patient:', response.message);
+                toast.error('Error adding patient');
+
+                return patient;
             } else {
                 const updatedPatient = Object.assign(patient, { id: response.data.id });
-                setPatients([...patients, updatedPatient]);
-                return Promise.resolve(patient);
+                setPatients(
+                    newRecord ? [...patients, updatedPatient] :
+                    patients.map(pr => pr.id === patient.id ?  patient : pr)
+                )
+                return updatedPatient;
             }
-        });
-    };
-    
-
-    // TODO: Implement the editPatient and deletePatient functions
-    const editPatient = async (patient: Patient) => {
-        // // Call the API to edit the patient
-        // PatientApiClient.editPatient(patient)
-        //     .then((updatedPatient) => {
-        //         const updatedPatients = patients.map((p) =>
-        //             p.id === updatedPatient.id ? updatedPatient : p
-        //         );
-        //         setPatients(updatedPatients);
-        //     })
-        //     .catch((error) => {
-        //         console.error('Error editing patient:', error);
-        //     });
+        } catch (error) {
+            console.error('Error adding patient record:', error);
+            toast.error('Error adding patient record');
+            return patient;
+        }
     };
 
-    const deletePatient = async (id: number) => {
-        // // Call the API to delete the patient
-        // PatientApiClient.deletePatient(id)
-        //     .then(() => {
-        //         const updatedPatients = patients.filter((p) => p.id !== id);
-        //         setPatients(updatedPatients);
-        //     })
-        //     .catch((error) => {
-        //         console.error('Error deleting patient:', error);
-        //     });
-    };
+    const deletePatient = async (record: Patient): Promise <boolean> => {
+        const apiClient = await setupApiClient(config);
+        const result = await apiClient.delete(record.toDTO())
+        if(result.status !== 200) {
+            toast.error('Error removing patient: ' + result.message)
+            return Promise.resolve(false);
+        } else {
+            toast.success('Patient removed successfully!')
+            const updatedPatients = patients.filter((pr) => pr.id !== record.id);
+            setPatients(updatedPatients);            
+            return Promise.resolve(true);
+        }
+    }
 
-    const listPatients = async () => {
+    const listPatients = async ():Promise<Patient[]>  => {
         const client = await setupApiClient(config);
         setLoaderStatus(DataLoadingStatus.Loading);
-        client.get().then((response) => {
-            const fetchedPatients = response.map((patientDTO: PatientDTO) => Patient.fromDTO(patientDTO));
+        try {
+            const apiResponse = await client.get();
+            const fetchedPatients = apiResponse.map((patientDTO: PatientDTO) => Patient.fromDTO(patientDTO));
             setPatients(fetchedPatients);
             setLoaderStatus(DataLoadingStatus.Success);
             setCurrentPatient(fetchedPatients.length > 0 ? fetchedPatients[0] : null)
-            return Promise.resolve(fetchedPatients);
-        }).catch((error) => {   
+            return fetchedPatients;
+        } catch(error) {
             setLoaderStatus(DataLoadingStatus.Error);
-            return Promise.reject(error);
-        });
-        // // Call the API to list all patients
-        // PatientApiClient.listPatients()
-        //     .then((fetchedPatients) => {
-        //         setPatients(fetchedPatients);
-        //     })
-        //     .catch((error) => {
-        //         console.error('Error listing patients:', error);
-        //     });
+            throw (error)
+        };
     };
 
     return (
         <PatientContext.Provider
-            value={{ patients, addPatient, editPatient, deletePatient, listPatients, loaderStatus, setCurrentPatient, currentPatient }}
+            value={{ addingNewPatient, setAddingNewPatient, patients, patientListPopup, setPatientListPopup, patientEditOpen, setPatientEditOpen, updatePatient, deletePatient, listPatients, loaderStatus, setCurrentPatient, currentPatient }}
         >
             {children}
         </PatientContext.Provider>

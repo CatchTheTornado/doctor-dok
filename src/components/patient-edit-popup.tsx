@@ -25,19 +25,27 @@ import { useForm } from "react-hook-form"
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from "zod"
 import { PatientContext } from "@/contexts/patient-context"
-import { useContext, useState } from "react"
-import { Patient } from "@/data/client/models"
+import { use, useContext, useEffect, useState } from "react"
+import { Patient, PatientRecord } from "@/data/client/models"
 import { Credenza, CredenzaClose, CredenzaContent, CredenzaDescription, CredenzaFooter, CredenzaHeader, CredenzaTitle, CredenzaTrigger } from "./credenza"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "./ui/card"
+import { JsonEditor } from 'json-edit-react'
+import { useTheme } from "next-themes"
+import { or } from "drizzle-orm"
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@radix-ui/react-tabs"
+import { Popover, PopoverContent, PopoverTrigger } from "./ui/popover"
+import { CalendarIcon } from "lucide-react"
+import { Calendar } from '@/components/ui/calendar'
+import { cn } from "@/lib/utils"
 
 export function PatientEditPopup() {
   const patientContext = useContext(PatientContext);
-  const [open, setOpen] = useState(false)
-
+  const { theme, systemTheme } = useTheme();
+  const currentTheme = (theme === 'system' ? systemTheme : theme)
   const {
     register,
     handleSubmit,
     reset,
+    setValue,
     formState: { errors },
   } = useForm({
     resolver: zodResolver(
@@ -45,53 +53,135 @@ export function PatientEditPopup() {
         firstName: z.string().min(2, "First name is required"),
         lastName: z.string().min(2, "Last name is required"),
         dateOfBirth: z.date("Date of birth is required"),
-        email: z.string().email("Invalid email address"),
+        email: z.string().email("Invalid email address").optional(),
+        json: z.string().optional(),
       }),
     ),
   })
+  const defaultJsonData = {
+    "Personal ID Number": "",
+    "Address": "",
+    "Gender": "M",
+    "City": "",
+    "Zip Code": ""        
+  };
+  const [jsonData, setJsonData] = useState(defaultJsonData);
+  const [dateOfBirth, setDateOfBirth] = useState<Date>()
+
+
+  useEffect(() => {
+      if(patientContext?.currentPatient && patientContext?.patientEditOpen && !patientContext?.addingNewPatient) {
+        setJsonData(patientContext?.currentPatient.json);
+        setValue('firstName', patientContext?.currentPatient.firstName);
+        setValue('lastName', patientContext?.currentPatient.lastName);
+        setDateOfBirth(new Date(patientContext?.currentPatient.dateOfBirth as string));
+        setValue('email', patientContext?.currentPatient.email);
+      }
+  }, [patientContext?.currentPatient, patientContext?.patientEditOpen]);
+
   const onSubmit = (data) => {
-    patientContext.addPatient(new Patient(data));
-    setOpen(false);
+    let pr: Patient;
+    if (patientContext?.currentPatient  && patientContext?.patientEditOpen && !patientContext?.addingNewPatient) {
+      pr = new Patient(patientContext?.currentPatient);
+      pr.json = jsonData;
+      pr.firstName = data.firstName;
+      pr.lastName = data.lastName;
+      pr.dateOfBirth = dateOfBirth?.toISOString();
+      pr.email = data.email;
+      pr.updatedAt = new Date().toISOString();
+    } else {
+      pr = new Patient({
+        firstName: data.firstName,
+        lastName: data.lastName,
+        dateOfBirth: dateOfBirth?.toISOString(),
+        email: data.email,
+        json: JSON.stringify(jsonData),
+        updatedAt: new Date().toISOString()
+      });
+    }
+    patientContext?.updatePatient(pr);
+    patientContext?.setPatientEditOpen(false);
+    patientContext?.setAddingNewPatient(false);
     reset();
+    setJsonData(defaultJsonData);
   }
   return (
-    <Credenza open={open} onOpenChange={setOpen}>
-      <CredenzaTrigger asChild>
-        <Button variant="outline" className="absolute right-10" size="icon">
+    <Credenza open={patientContext?.patientEditOpen} onOpenChange={(e) => { patientContext?.setPatientEditOpen(e); if(!e) patientContext?.setAddingNewPatient(false); }}>
+      <div>
+      <Button variant="outline" className="absolute right-5 top-7" size="icon" onClick={(e) => {
+        patientContext?.setAddingNewPatient(true);
+        patientContext?.setPatientEditOpen(true);
+      }}>
           <PlusIcon className="w-6 h-6" />
         </Button>
-      </CredenzaTrigger>
+      </div>
       <CredenzaContent className="sm:max-w-[500px] bg-white dark:bg-zinc-950" side="top">
-          <CredenzaHeader>
-            <CredenzaTitle>Add/Edit patient</CredenzaTitle>
-            <CredenzaDescription>
-              Modify patient details in the form below
-            </CredenzaDescription>
-          </CredenzaHeader>
-          <div className="p-4">
+          <div className="p-4 overflow-y-scroll max-h-svh">
             <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label htmlFor="firstName">First Name</Label>
-                  <Input id="firstName" autoFocus error={errors.firstName?.message} {...register("firstName")} />
-                  {errors.firstName && <p className="text-red-500 text-sm">{errors.firstName.message}</p>}
+              <Tabs defaultValue="general">
+                <TabsList className="grid w-full grid-cols-2">
+                  <TabsTrigger value="general" className="dark:data-[state=active]:bg-zinc-900 data-[state=active]:bg-zinc-100">General</TabsTrigger>
+                  <TabsTrigger value="additional" className="dark:data-[state=active]:bg-zinc-900 data-[state=active]:bg-zinc-100">Additional</TabsTrigger>
+              </TabsList>
+              <TabsContent value="general" className="p-4">
+                <div className="grid grid-cols-2 gap-4 mb-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="firstName">First Name</Label>
+                    <Input id="firstName" autoFocus error={errors.firstName?.message} {...register("firstName")} />
+                    {errors.firstName && <p className="text-red-500 text-sm">{errors.firstName.message}</p>}
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="lastName">Last Name</Label>
+                    <Input id="lastName" error={errors.lastName?.message} {...register("lastName")}/>
+                    {errors.lastName && <p className="text-red-500 text-sm">{errors.lastName.message}</p>}
+                  </div>
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="lastName">Last Name</Label>
-                  <Input id="lastName" error={errors.lastName?.message} {...register("lastName")}/>
-                  {errors.lastName && <p className="text-red-500 text-sm">{errors.lastName.message}</p>}
+                  <Label htmlFor="dateOfBirth">Date of Birth</Label>
+
+                  <div>
+                    <Popover>
+                      <PopoverTrigger asChild>
+                        <Button
+                          variant={"outline"}
+                          className={cn(
+                            "w-[180px] justify-start text-left font-normal",
+                            !dateOfBirth && "text-muted-foreground"
+                          )}
+                        >
+                          <CalendarIcon className="mr-2 h-4 w-4" />
+                          {dateOfBirth ? dateOfBirth.toLocaleDateString() : <span>Pick a date</span>}
+                        </Button>
+                      </PopoverTrigger>
+                      <PopoverContent className="w-auto p-0 z-[1000]">
+                        <Calendar
+                          mode="single"
+                          selected={dateOfBirth}
+                          onSelect={setDateOfBirth}
+                          initialFocus
+                          className="z-[1000]"
+                        />
+                      </PopoverContent>
+                    </Popover>
+                  </div>
                 </div>
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="dateOfBirth">Date of Birth</Label>
-                <Input id="dateOfBirth" type="date" error={errors.dateOfBirth?.message} {...register("dateOfBirth", { valueAsDate: true })} />
-                {errors.dateOfBirth && <p className="text-red-500 text-sm">{errors.dateOfBirth.message}</p>}
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="email">Email</Label>
-                <Input id="email" type="email" error={errors.email?.message} {...register("email")} />
-                {errors.email && <p className="text-red-500 text-sm">{errors.email.message}</p>}
-              </div>
+                <div className="space-y-2">
+                  <Label htmlFor="email">Email</Label>
+                  <Input id="email" type="email" error={errors.email?.message} {...register("email")} />
+                  {errors.email && <p className="text-red-500 text-sm">{errors.email.message}</p>}
+                </div>
+              </TabsContent>
+              <TabsContent value="additional" className="p-4">
+                <div className="space-y-2">
+                  <Label htmlFor="json">Additional Information</Label>
+                  <JsonEditor
+                    theme={currentTheme === 'dark' ? 'githubDark' : 'githubLight'}
+                    data={jsonData}
+                    setData={setJsonData}
+                  />
+                  </div>
+                </TabsContent>
+              </Tabs>
               <CredenzaFooter>
                 <div className="flex gap-2 place-content-end">
                   <Button type="submit">Save</Button>

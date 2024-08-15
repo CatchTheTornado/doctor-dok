@@ -195,7 +195,7 @@ export function SettingsPopup() {
             <Tabs defaultValue="cloud-ai-settings">
               <TabsList className="grid w-full grid-cols-3">
                 <TabsTrigger value="cloud-ai-settings" className="dark:data-[state=active]:bg-zinc-900 data-[state=active]:bg-zinc-100">Cloud AI</TabsTrigger>
-                <TabsTrigger value="local-ai-settings" className="dark:data-[state=active]:bg-zinc-900 data-[state=active]:bg-zinc-100">Local AI & GDPR</TabsTrigger>
+                <TabsTrigger value="local-ai-settings" className="dark:data-[state=active]:bg-zinc-900 data-[state=active]:bg-zinc-100">Local AI</TabsTrigger>
                 <TabsTrigger value="general-settings" className="dark:data-[state=active]:bg-zinc-900 data-[state=active]:bg-zinc-100">General Settings</TabsTrigger>
             </TabsList>
             <TabsContent value="general-settings">

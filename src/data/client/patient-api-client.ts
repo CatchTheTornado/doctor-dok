@@ -18,6 +18,11 @@ export type PutPatientResponseError = {
   issues?: any[];
 };
 
+export type DeletePatientResponse = {
+  message: string;
+  status: 200;
+};
+
 export type PutPatientResponse = PutPatientResponseSuccess | PutPatientResponseError;
 
 export class PatientApiClient extends ApiClient {
@@ -32,4 +37,8 @@ export class PatientApiClient extends ApiClient {
     async put(patient: PutPatientRequest): Promise<PutPatientResponse> {
       return this.request<PutPatientResponse>('/api/patient', 'PUT', PatientDTOEncSettings, patient) as Promise<PutPatientResponse>;
     }
+
+    async delete(patient: PatientDTO): Promise<DeletePatientResponse> {
+      return this.request<DeletePatientResponse>('/api/patient/' + patient.id, 'DELETE') as Promise<DeletePatientResponse>;
+    }      
   }

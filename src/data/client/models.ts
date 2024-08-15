@@ -27,14 +27,20 @@ export class Patient {
     email?: string;
     dateOfBirth?: string;
     updatedAt?: string;
+    json?: Record<string, any>;
 
-    constructor(patientDTO: PatientDTO) {
+    constructor(patientDTO: PatientDTO | Patient) {
         this.id = patientDTO.id;
         this.firstName = patientDTO.firstName;
         this.lastName = patientDTO.lastName;
         this.email = patientDTO.email;
         this.dateOfBirth = patientDTO.dateOfBirth;
         this.updatedAt = patientDTO.updatedAt;
+        if (patientDTO instanceof Patient) {
+            this.json = patientDTO.json;
+        } else {
+            this.json = patientDTO.json ? (typeof patientDTO.json === 'string' ? JSON.parse(patientDTO.json) : patientDTO.json) : null;
+        }   
     }
 
     static fromDTO(patientDTO: PatientDTO): Patient {
@@ -49,6 +55,7 @@ export class Patient {
             email: this.email,
             dateOfBirth: this.dateOfBirth,
             updatedAt: this.updatedAt ? this.updatedAt : new Date().toISOString(),
+            json: JSON.stringify(this.json),
         };
     }
 

@@ -14,13 +14,11 @@ import { NoRecordsAlert } from "./shared/no-records-alert";
 import { DatabaseContext } from "@/contexts/db-context";
 
 export default function PatientListPopup() {
-  const configContext = useContext(ConfigContext);
   const dbContext = useContext(DatabaseContext);
   const patientsContext = useContext(PatientContext)
-  const [open, setOpen] = useState(false)
 
   return (
-    <Credenza open={open} onOpenChange={setOpen}>
+    <Credenza open={patientsContext?.patientListPopup} onOpenChange={patientsContext?.setPatientListPopup}>
       <CredenzaTrigger asChild>
         <Button variant="outline" size="icon">
           <ListIcon className="w-6 h-6" />
@@ -48,7 +46,7 @@ export default function PatientListPopup() {
                 ) : (
                   (patientsContext?.patients.length > 0) ?
                     patientsContext?.patients.map((patient, index) => (
-                      <PatientItem onClick={(e) => { e.preventDefault(); setOpen(false); patientsContext.setCurrentPatient(patient); }} key={index} patient={patient} selected={patientsContext?.currentPatient?.id === patient.id} />
+                      <PatientItem onClick={(e) => { e.preventDefault(); patientsContext?.setPatientListPopup(false); patientsContext.setCurrentPatient(patient); }} key={index} patient={patient} selected={patientsContext?.currentPatient?.id === patient.id} />
                     ))
                     : (
                       <NoRecordsAlert title="No patients found">

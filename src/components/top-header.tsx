@@ -22,7 +22,7 @@ export default function TopHeader() {
       <div className="sticky top-0 z-1000 flex items-center justify-between border-b border-zinc-200 dark:border-zinc-800 p-4 bg-zinc-200 dark:bg-zinc-800">
         <div className="font-medium flex justify-center items-center">
           <div><img className="h-10" src={currentTheme === 'dark' ? `/img/patient-pad-logo-white.svg` : `/img/patient-pad-logo.svg`} /></div>
-          <div>Patient Pad {patientContext?.currentPatient ? (' for ' + patientContext.currentPatient.displayName()) : (null)}</div>
+          <div>Patient Pad {patientContext?.currentPatient ? (' for ' + patientContext.currentPatient.displayName()) : (null)}{patientContext?.currentPatient ? <Button className="ml-3" variant="outline" onClick={(e) => { patientContext?.setPatientListPopup(true); patientContext?.setPatientEditOpen(true); }}>Edit patient</Button> : null}</div>
         </div>
         <div className="flex items-center gap-2">
           <PatientListPopup />
