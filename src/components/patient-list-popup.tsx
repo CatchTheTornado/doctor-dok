@@ -46,7 +46,7 @@ export default function PatientListPopup() {
                 ) : (
                   (patientsContext?.patients.length > 0) ?
                     patientsContext?.patients.map((patient, index) => (
-                      <PatientItem onClick={(e) => { e.preventDefault(); patientsContext?.setPatientListPopup(false); patientsContext.setCurrentPatient(patient); }} key={index} patient={patient} selected={patientsContext?.currentPatient?.id === patient.id} />
+                      <PatientItem key={index} patient={patient} selected={patientsContext?.currentPatient?.id === patient.id} />
                     ))
                     : (
                       <NoRecordsAlert title="No patients found">

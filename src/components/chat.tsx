@@ -46,7 +46,7 @@ export function Chat() {
 
   useEffect(()=> {
     if (chatContext.lastMessage) {
-      lastMessageRef.current?.scrollIntoView({ behavior: 'smooth' });
+      lastMessageRef.current?.scrollIntoView({ behavior: 'instant' });
     }
     async function loadConfig() {
       setDefaultChatProvider(await config?.getServerConfig('llmProviderChat') as string);

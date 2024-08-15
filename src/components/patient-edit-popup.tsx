@@ -32,10 +32,7 @@ import { JsonEditor } from 'json-edit-react'
 import { useTheme } from "next-themes"
 import { or } from "drizzle-orm"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@radix-ui/react-tabs"
-import { Popover, PopoverContent, PopoverTrigger } from "./ui/popover"
-import { CalendarIcon } from "lucide-react"
-import { Calendar } from '@/components/ui/calendar'
-import { cn } from "@/lib/utils"
+import { useHookFormMask } from 'use-mask-input';
 
 export function PatientEditPopup() {
   const patientContext = useContext(PatientContext);
@@ -52,12 +49,14 @@ export function PatientEditPopup() {
       z.object({
         firstName: z.string().min(2, "First name is required"),
         lastName: z.string().min(2, "Last name is required"),
-        dateOfBirth: z.date("Date of birth is required"),
+        dateOfBirth: z.string().date("Date of birth is required"),
         email: z.string().email("Invalid email address").optional(),
         json: z.string().optional(),
       }),
     ),
   })
+  const registerWithMask = useHookFormMask(register);
+
   const defaultJsonData = {
     "Personal ID Number": "",
     "Address": "",
@@ -66,15 +65,13 @@ export function PatientEditPopup() {
     "Zip Code": ""        
   };
   const [jsonData, setJsonData] = useState(defaultJsonData);
-  const [dateOfBirth, setDateOfBirth] = useState<Date>()
-
 
   useEffect(() => {
       if(patientContext?.currentPatient && patientContext?.patientEditOpen && !patientContext?.addingNewPatient) {
         setJsonData(patientContext?.currentPatient.json);
         setValue('firstName', patientContext?.currentPatient.firstName);
         setValue('lastName', patientContext?.currentPatient.lastName);
-        setDateOfBirth(new Date(patientContext?.currentPatient.dateOfBirth as string));
+        setValue('dateOfBirth', patientContext?.currentPatient.dateOfBirth as string);
         setValue('email', patientContext?.currentPatient.email);
       }
   }, [patientContext?.currentPatient, patientContext?.patientEditOpen]);
@@ -86,14 +83,14 @@ export function PatientEditPopup() {
       pr.json = jsonData;
       pr.firstName = data.firstName;
       pr.lastName = data.lastName;
-      pr.dateOfBirth = dateOfBirth?.toISOString();
+      pr.dateOfBirth = data.dateOfBirth;
       pr.email = data.email;
       pr.updatedAt = new Date().toISOString();
     } else {
       pr = new Patient({
         firstName: data.firstName,
         lastName: data.lastName,
-        dateOfBirth: dateOfBirth?.toISOString(),
+        dateOfBirth: data.dateOfBirth,
         email: data.email,
         json: JSON.stringify(jsonData),
         updatedAt: new Date().toISOString()
@@ -138,32 +135,10 @@ export function PatientEditPopup() {
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="dateOfBirth">Date of Birth</Label>
-
-                  <div>
-                    <Popover>
-                      <PopoverTrigger asChild>
-                        <Button
-                          variant={"outline"}
-                          className={cn(
-                            "w-[180px] justify-start text-left font-normal",
-                            !dateOfBirth && "text-muted-foreground"
-                          )}
-                        >
-                          <CalendarIcon className="mr-2 h-4 w-4" />
-                          {dateOfBirth ? dateOfBirth.toLocaleDateString() : <span>Pick a date</span>}
-                        </Button>
-                      </PopoverTrigger>
-                      <PopoverContent className="w-auto p-0 z-[1000]">
-                        <Calendar
-                          mode="single"
-                          selected={dateOfBirth}
-                          onSelect={setDateOfBirth}
-                          initialFocus
-                          className="z-[1000]"
-                        />
-                      </PopoverContent>
-                    </Popover>
-                  </div>
+                  <Input id="dateOfBirth" error={errors.dateOfBirth?.message} {...registerWithMask("dateOfBirth", "datetime", {
+                      inputFormat: "yyyy-mm-dd",
+                    })} />
+                  {errors.dateOfBirth && <p className="text-red-500 text-sm">{errors.dateOfBirth.message}</p>}
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="email">Email</Label>
