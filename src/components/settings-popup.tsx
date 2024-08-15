@@ -192,9 +192,10 @@ export function SettingsPopup() {
       <CredenzaContent className="sm:max-w-[425px] bg-white dark:bg-zinc-950">
         <div className="p-4">
           <form onSubmit={handleSubmit(onSubmit)}>
-            <Tabs defaultValue="ai-settings">
-              <TabsList className="grid w-full grid-cols-2">
-                <TabsTrigger value="ai-settings" className="dark:data-[state=active]:bg-zinc-900 data-[state=active]:bg-zinc-100">AI Settings</TabsTrigger>
+            <Tabs defaultValue="cloud-ai-settings">
+              <TabsList className="grid w-full grid-cols-3">
+                <TabsTrigger value="cloud-ai-settings" className="dark:data-[state=active]:bg-zinc-900 data-[state=active]:bg-zinc-100">Cloud AI</TabsTrigger>
+                <TabsTrigger value="local-ai-settings" className="dark:data-[state=active]:bg-zinc-900 data-[state=active]:bg-zinc-100">Local AI & GDPR</TabsTrigger>
                 <TabsTrigger value="general-settings" className="dark:data-[state=active]:bg-zinc-900 data-[state=active]:bg-zinc-100">General Settings</TabsTrigger>
             </TabsList>
             <TabsContent value="general-settings">
@@ -216,16 +217,16 @@ export function SettingsPopup() {
                   </CardContent>
                 </Card>
               </TabsContent>
-              <TabsContent value="ai-settings">
+              <TabsContent value="local-ai-settings">
                 <Card>
                   <CardHeader>Local AI Models & OCR</CardHeader>
                   <CardContent className="space-y-2">
-                    <div className="grid grid-cols-1 w-[355px]">
+                    <div className="grid grid-cols-1 w-[305px]">
                     <div className="grid gap-2">
                       <div className="grid grid-cols-2 items-center gap-2">
                         <Label htmlFor="ocrProvider">OCR Provider</Label>
                         <Select id="ocrProvider" value={ocrProvider} onValueChange={setOcrProvider}>
-                          <SelectTrigger className="w-[180px]">
+                          <SelectTrigger className="w-[140px]">
                             <SelectValue placeholder="Default: Chat GPT" />
                           </SelectTrigger>
                           <SelectContent>
@@ -237,7 +238,7 @@ export function SettingsPopup() {
                       <div className="grid grid-cols-2 items-center gap-2">
                         <Label htmlFor="ocrLanguage">OCR Language</Label>
                         <Select id="ocrLanguage" value={ocrLanguage} onValueChange={setOcrLanguage}>
-                          <SelectTrigger className="w-[180px]">
+                          <SelectTrigger className="w-[140px]">
                             <SelectValue placeholder="Default: English" />
                           </SelectTrigger>
                           <SelectContent>
@@ -250,7 +251,7 @@ export function SettingsPopup() {
                       <div className="grid grid-cols-2 items-center gap-2">
                         <Label htmlFor="llmProviderChat">LLM for Chat</Label>
                         <Select id="llmProviderChat" value={llmProviderChat} onValueChange={setLlmProviderChat}>
-                          <SelectTrigger className="w-[180px]">
+                          <SelectTrigger className="w-[140px]">
                             <SelectValue placeholder="Default: Chat GPT" />
                           </SelectTrigger>
                           <SelectContent>
@@ -259,10 +260,10 @@ export function SettingsPopup() {
                           </SelectContent>
                         </Select>
                       </div>
-                      {/* <div className="grid grid-cols-2 items-center gap-2">
+                      <div className="grid grid-cols-2 items-center gap-2">
                         <Label htmlFor="llmProviderParse">LLM for Parse</Label>
                         <Select id="llmProviderParse" value={llmProviderParse} onValueChange={setLlmProviderParse}>
-                          <SelectTrigger className="w-[180px]">
+                          <SelectTrigger className="w-[140px]">
                             <SelectValue placeholder="Default: Chat GPT" />
                           </SelectTrigger>
                           <SelectContent>
@@ -270,11 +271,11 @@ export function SettingsPopup() {
                             <SelectItem key="ollama" value="ollama">Local: Ollama</SelectItem>
                           </SelectContent>
                         </Select>
-                      </div> */}
+                      </div>
                       <div className="grid grid-cols-2 items-center gap-2">
                         <Label htmlFor="llmProviderRemovePII">LLM for removing PII</Label>
                         <Select id="llmProviderRemovePII" value={llmProviderRemovePII} onValueChange={setLlmProviderRemovePII}>
-                          <SelectTrigger className="w-[180px]">
+                          <SelectTrigger className="w-[140px]">
                             <SelectValue placeholder="Default: None" />
                           </SelectTrigger>
                           <SelectContent>
@@ -283,9 +284,7 @@ export function SettingsPopup() {
                             <SelectItem key="replace" value="replace">Basic: Replace strings</SelectItem>
                           </SelectContent>
                         </Select>
-                      </div>                      
-
-
+                      </div>                     
                       <div>
                         <Label htmlFor="ollamaUrl">Ollama URL:</Label>
                         <Input
@@ -299,7 +298,7 @@ export function SettingsPopup() {
                       <div className="grid grid-cols-2 items-center gap-2">
                         <Label htmlFor="llmProviderParse">Ollama model</Label>
                         <Select id="llmProviderParse" value={ollamaModel} onValueChange={setOllamaModel}>
-                          <SelectTrigger className="w-[180px]">
+                          <SelectTrigger className="w-[140px]">
                             <SelectValue placeholder="Default: Llama 3.1" />
                           </SelectTrigger>
                           <SelectContent>
@@ -314,6 +313,10 @@ export function SettingsPopup() {
 
                   </div>               
                   </CardContent>
+                </Card>
+              </TabsContent>
+              <TabsContent value="cloud-ai-settings">
+                <Card>
                   <CardHeader>Cloud AI providers:</CardHeader>
                   <CardContent className="space-y-2">
                     <Label htmlFor="chatGptApiKey">ChatGPT API Key</Label>

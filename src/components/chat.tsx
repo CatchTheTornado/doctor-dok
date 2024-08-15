@@ -26,26 +26,43 @@ import { useContext, useEffect, useRef, useState } from "react"
 import { ChatContext } from "@/contexts/chat-context"
 import ChatMessage from "./chat-message"
 import DataLoader from "./data-loader"
+import { SettingsIcon } from "lucide-react"
+import { ConfigContext } from "@/contexts/config-context"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "./ui/select"
 
 
 export function Chat() {
 
+  const config = useContext(ConfigContext);
   const chatContext = useContext(ChatContext);
   const [currentMessage, setCurrentMessage] = useState('');
+  const [llmProvider, setLlmProvider] = useState('chatgpt');
   const messageTextArea = useRef<HTMLTextAreaElement | null>(null);
   const lastMessageRef = useRef<HTMLDivElement | null>(null);
+
+  const [defaultChatProvider, setDefaultChatProvider] = useState('');
+  const [ollamaUrl, setOllamaUrl] = useState('');
+  const [showProviders, setShowProviders] = useState(false);
 
   useEffect(()=> {
     if (chatContext.lastMessage) {
       lastMessageRef.current?.scrollIntoView({ behavior: 'smooth' });
     }
+    async function loadConfig() {
+      setDefaultChatProvider(await config?.getServerConfig('llmProviderChat') as string);
+      const configOllamaUrl = await config?.getServerConfig('ollamaUrl') as string
+      setOllamaUrl(configOllamaUrl);
+      setShowProviders(configOllamaUrl !== null && typeof configOllamaUrl === 'string' && configOllamaUrl.startsWith('http'));
+    }; 
+    loadConfig();
+
     messageTextArea.current?.focus();
   }, [chatContext.messages, chatContext.lastMessage, chatContext.isStreaming]);
   
 
   const handleSubmit = () => {
     if (currentMessage) {
-      chatContext.sendMessage({ message: { role: 'user', name: 'You', content: currentMessage }});
+      chatContext.sendMessage({ message: { role: 'user', name: 'You', content: currentMessage}, providerName: llmProvider ?? defaultChatProvider  });
       setCurrentMessage('');
     }
   }
@@ -59,7 +76,7 @@ export function Chat() {
       </DrawerTrigger>
       <DrawerContent className="sm:max-w-[825px] bg-white dark:bg-zinc-950">
         <DrawerHeader>
-          <DrawerTitle>Chat with AI</DrawerTitle>
+          <DrawerTitle>Chat with AI <Button variant="ghost" onClick={(e) => { config?.setConfigDialogOpen(true); }}><SettingsIcon className="w-4 h-4" /></Button></DrawerTitle>
         </DrawerHeader>
         <div className="flex flex-col h-[500px] overflow-y-auto">
           <div className="flex-1 p-4 space-y-4">
@@ -176,12 +193,26 @@ export function Chat() {
               }}
               className="min-h-[48px] rounded-2xl resize-none p-4 border border-neutral-400 shadow-sm pr-16"
             />
-            <Button type="submit" size="icon" className="absolute w-8 h-8 top-3 right-3" onClick={() => {
-              handleSubmit();
-            }}>
-              <ArrowUpIcon className="w-4 h-4" />
-              <span className="sr-only">Send</span>
-            </Button>
+            <div className="absolute flex top-3 right-3 gap-2">
+              <Select id="llmProvider" className="h-8" value={llmProvider} onValueChange={setLlmProvider}>
+                  <SelectTrigger className="w-[180px]">
+                    <SelectValue placeholder="Default: Chat GPT" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem key="chatgpt" value="chatgpt">Cloud: Chat GPT</SelectItem>
+                    {showProviders ? (
+                      <SelectItem key="ollama" value="ollama">Local: Ollama</SelectItem>
+                    ): null}
+                  </SelectContent>
+                </Select>
+
+              <Button type="submit" size="icon" className="w-8 h-8" onClick={() => {
+                handleSubmit();
+              }}>
+                <ArrowUpIcon className="w-4 h-4" />
+                <span className="sr-only">Send</span>
+              </Button>
+              </div>     
           </div>
         </DrawerFooter>
       </DrawerContent>
