@@ -87,8 +87,9 @@ export async function parse(record: PatientRecord, chatContext: ChatContextType,
                         console.log('JSON repr: ', recordJSON);
                     }
                 }
-            }
-        }, parseAIProvider);
+            },
+            providerName: parseAIProvider
+        });
     };
 
     if (removePIIMode === 'replace' || removePIIMode === 'both') {
@@ -127,8 +128,9 @@ export async function parse(record: PatientRecord, chatContext: ChatContextType,
                 },
                 onResult: (resultMessage, result) => {
                     parseRequest(result.text);
-                }
-            }, 'ollama');
+                },
+                providerName: 'ollama'
+            });
         }
     }  else {
         parseRequest(textAfterOcr);
