@@ -52,7 +52,7 @@ export type CreateMessagesEnvelope = {
     onResult?: OnResultCallback
 }
 
-type ChatContextType = {
+export type ChatContextType = {
     messages: MessageEx[];
     lastMessage: MessageEx | null;
     providerName?: string;

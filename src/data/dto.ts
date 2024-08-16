@@ -20,7 +20,7 @@ export type PatientDTO = z.infer<typeof patientDTOSchema>;
 
 export const configDTOSchema = z.object({
   key: z.string().min(1),
-  value: z.string().min(1),
+  value: z.string().nullable(),
   updatedAt: z.string().default(() => getCurrentTS()),
 });
 

@@ -6,6 +6,8 @@ import { ChatContextType } from '@/contexts/chat-context';
 import { toast } from 'sonner';
 import { ConfigContextType } from '@/contexts/config-context';
 import { prompts } from '@/data/ai/prompts';
+import { removePII } from '@/lib/removePII';
+import { PatientContextType } from '@/contexts/patient-context';
 
 export type ImageData = {
     base64Content: string;
@@ -37,7 +39,7 @@ const processFiles = async (files: DisplayableDataObject[], selectedLanguage: st
 
   }
 
-export async function parse(record: PatientRecord, chatContext: ChatContextType, configContext: ConfigContextType, sourceImages: DisplayableDataObject[], updatePatientRecord: (record: PatientRecord) => void) {
+export async function parse(record: PatientRecord, chatContext: ChatContextType, configContext: ConfigContextType, patientContext: PatientContextType, sourceImages: DisplayableDataObject[], updatePatientRecord: (record: PatientRecord) => void) {
     // TODO: add Tesseract parsing logic - then LLM - it should be configurable whichh LLM is being used for data parsing from tesseract text
     toast.info('Sending images to Tesseract for OCR processing...');
 
@@ -91,7 +93,24 @@ export async function parse(record: PatientRecord, chatContext: ChatContextType,
 
     if (removePIIMode === 'replace' || removePIIMode === 'both') {
         // TODO: add programmatical data removal removing all patient personal data - extend patient to store more personal data to be removed
-    
+        const piiTokens:string[] = []
+        if (patientContext?.currentPatient) {
+            const patientJsonData = patientContext?.currentPatient.json;
+            if (patientJsonData) {
+                Object.keys(patientJsonData).forEach((key) => {
+                    const piiToken = patientJsonData[key] as string;
+                    if (piiToken && piiToken.length > 3) piiTokens.push(patientJsonData[key]);
+                });
+            }
+            piiTokens.push(patientContext?.currentPatient.firstName);
+            piiTokens.push(patientContext?.currentPatient.lastName);
+            if (patientContext?.currentPatient.email) piiTokens.push(patientContext?.currentPatient.email);
+            if (patientContext?.currentPatient.dateOfBirth) piiTokens.push(patientContext?.currentPatient.dateOfBirth);
+            const piiGeneralData: string = (await configContext?.getServerConfig('piiGeneralData') as string) || '';
+            if (piiGeneralData) piiTokens.push(...piiGeneralData.split("\n"));    
+        }
+        console.log('Removing PII Tokens: ', piiTokens)
+        textAfterOcr = removePII(textAfterOcr, piiTokens, '***');
     } 
     
     if(removePIIMode === 'ollama' || removePIIMode === 'both') {

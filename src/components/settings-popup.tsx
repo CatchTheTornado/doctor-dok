@@ -13,6 +13,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "./ui/
 import { useForm } from "react-hook-form";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "./ui/select";
 import { set } from "react-hook-form";
+import { Textarea } from "./ui/textarea";
 
 const ocrLlanguages = [
   { name: "English", code: "eng" },
@@ -131,7 +132,8 @@ export function SettingsPopup() {
         displayAttachmentPreviews: true,
         ocrProvider: "chatgpt",
         ocrLanguage: "eng",
-        ollamaUrl: ""
+        ollamaUrl: "",
+        piiGeneralData: ""
 
     }
   });
@@ -147,6 +149,7 @@ export function SettingsPopup() {
       const llmProviderChat = await config?.getServerConfig('llmProviderChat') as string;
       const llmProviderParse = await config?.getServerConfig('llmProviderParse') as string;
       const llmProviderRemovePII = await config?.getServerConfig('llmProviderRemovePII') as string;
+      const piiGeneralData = await config?.getServerConfig('piiGeneralData') as string;
       setOcrProvider(ocr);
       setOcrLanguage(ocrLang);
       setLlmProviderChat(llmProviderChat);
@@ -156,14 +159,11 @@ export function SettingsPopup() {
     
 
       setValue("chatGptApiKey", chatGptKey as string);
-      setValue("displayAttachmentPreviews", displayAttachmentPreviews);
+      setValue("displayAttachmentPreviews", displayAttachmentPreviews as boolean);
       setValue("ocrProvider", ocr);
       setValue("ocrLanguage", "eng");
-      setValue("llmProviderChat", "chatgpt");
-      setValue("llmProviderParse", "chatgpt");
-      setValue("ollamaModel", "llama3.1");
       setValue("ollamaUrl", ollamaUrl);
-      setValue("llmProviderRemovePII", llmProviderRemovePII);
+      setValue("piiGeneralData", piiGeneralData);
     }
     fetchDefaultConfig();
   }, []);
@@ -178,6 +178,7 @@ export function SettingsPopup() {
     config?.setServerConfig('llmProviderRemovePII', llmProviderRemovePII as string || 'skip');
     config?.setServerConfig('ollamaUrl', formData['ollamaUrl']);
     config?.setServerConfig('ollamaModel', ollamaModel as string || 'llama3.1');
+    config?.setServerConfig('piiGeneralData', formData['piiGeneralData'] as string);
     config?.setConfigDialogOpen(false);
   }
 
@@ -213,7 +214,30 @@ export function SettingsPopup() {
                         id="displayAttachmentPreviews"
                         {...register("displayAttachmentPreviews")}/>
                       <Label htmlFor="displayAttachmentPreviews">Display Attachment previews in records</Label>
-                    </div>  
+                    </div>
+                    <div className="grid grid-cols-2 items-center gap-2">
+                        <Label htmlFor="llmProviderRemovePII">Remove PII mode</Label>
+                        <Select id="llmProviderRemovePII" value={llmProviderRemovePII} onValueChange={setLlmProviderRemovePII}>
+                          <SelectTrigger className="w-[140px]">
+                            <SelectValue placeholder="Default: None" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem key="skip" value="skip">Don't remove personal data</SelectItem>
+                            <SelectItem key="ollama" value="ollama">Local: Ollama</SelectItem>
+                            <SelectItem key="replace" value="replace">Basic: Replace strings</SelectItem>
+                            <SelectItem key="both" value="both">Both: Replace strings + Ollama</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>                     
+                      <div className="text-xs">
+                        Personaly Identifable Information (PII) removal works only when OCR (eg. Tesseract) is enabled. It removes personal data from attachments before sending it to Cloud AI providers.
+                      </div>
+                      <div className="grid grid-cols-1 items-center gap-2">
+                        <Label htmlFor="piiGeneralData">PII data to be removed (1 line = 1 token)</Label>
+                        <Textarea id="piiGeneralData" {...register("piiGeneralData", { required: false, validate: {
+                            piiGeneralData: (value) => true
+                          }} )}></Textarea>
+                      </div>
                   </CardContent>
                 </Card>
               </TabsContent>
@@ -272,23 +296,6 @@ export function SettingsPopup() {
                           </SelectContent>
                         </Select>
                       </div> */}
-                      <div className="grid grid-cols-2 items-center gap-2">
-                        <Label htmlFor="llmProviderRemovePII">LLM for removing PII</Label>
-                        <Select id="llmProviderRemovePII" value={llmProviderRemovePII} onValueChange={setLlmProviderRemovePII}>
-                          <SelectTrigger className="w-[140px]">
-                            <SelectValue placeholder="Default: None" />
-                          </SelectTrigger>
-                          <SelectContent>
-                            <SelectItem key="skip" value="skip">Don't remove personal data</SelectItem>
-                            <SelectItem key="ollama" value="ollama">Local: Ollama</SelectItem>
-                            <SelectItem key="replace" value="replace">Basic: Replace strings</SelectItem>
-                            <SelectItem key="both" value="both">Both: Replace strings + Ollama</SelectItem>
-                          </SelectContent>
-                        </Select>
-                      </div>                     
-                      <div className="text-xs">
-                        Personaly Identifable Information (PII) removal works only when OCR is enabled. It removes personal data from attachments before sending it to Cloud AI providers.
-                      </div>
                       <div>
                         <Label htmlFor="ollamaUrl">Ollama URL:</Label>
                         <Input

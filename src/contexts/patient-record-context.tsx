@@ -16,6 +16,7 @@ import { pdfjs } from 'react-pdf'
 import { prompts } from "@/data/ai/prompts";
 import { parse as chatgptParseRecord } from '@/ocr/ocr-chatgpt-provider';
 import { parse as tesseractParseRecord } from '@/ocr/ocr-tesseract-provider';
+import { PatientContext } from './patient-context';
 
 export enum URLType {
     data = 'data',
@@ -57,6 +58,7 @@ export const PatientRecordContextProvider: React.FC<PropsWithChildren> = ({ chil
     const config = useContext(ConfigContext);
     const dbContext = useContext(DatabaseContext)
     const chatContext = useContext(ChatContext);
+    const patientContext = useContext(PatientContext)
 
 
     const updatePatientRecord = async (patientRecord: PatientRecord): Promise<PatientRecord> => {
@@ -231,9 +233,9 @@ export const PatientRecordContextProvider: React.FC<PropsWithChildren> = ({ chil
         console.log('Using OCR provider:', ocrProvider);
 
         if (ocrProvider === 'chatgpt') {
-          return  await chatgptParseRecord(record, chatContext, config, attachments, updatePatientRecord);
+          return  await chatgptParseRecord(record, chatContext, config, patientContext, attachments, updatePatientRecord);
         } else if (ocrProvider === 'tesseract') {
-          return await tesseractParseRecord(record, chatContext, config, attachments, updatePatientRecord);
+          return await tesseractParseRecord(record, chatContext, config, patientContext, attachments, updatePatientRecord);
         }
       }
     

@@ -3,9 +3,10 @@ import { DataLoadingStatus, DisplayableDataObject, EncryptedAttachment, Patient,
 import { findCodeBlocks } from "@/lib/utils";
 import { ChatContextType } from '@/contexts/chat-context';
 import { ConfigContextType } from '@/contexts/config-context';
+import { PatientContextType } from '@/contexts/patient-context';
 import { prompts } from '@/data/ai/prompts';
 
-export async function parse(record: PatientRecord, chatContext: ChatContextType, configContext: ConfigContextType,  sourceImages: DisplayableDataObject[], updatePatientRecord: (record: PatientRecord) => void) {
+export async function parse(record: PatientRecord, chatContext: ChatContextType, configContext: ConfigContextType | null, patientContext: PatientContextType,  sourceImages: DisplayableDataObject[], updatePatientRecord: (record: PatientRecord) => void) {
     chatContext.setChatOpen(true);
 
     chatContext.sendMessage({
