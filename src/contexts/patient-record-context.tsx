@@ -43,6 +43,7 @@ export type PatientRecordContextType = {
     extraToRecord: (type: string, promptText: string, record: PatientRecord) => void;
     parsePatientRecord: (record: PatientRecord, parsePromptText:string) => void;
     sendHealthReacordToChat: (record: PatientRecord, forceRefresh: boolean) => void;
+    sendAllRecordsToChat: () => void;
 }
 
 export const PatientRecordContext = createContext<PatientRecordContextType | null>(null);
@@ -285,6 +286,23 @@ export const PatientRecordContextProvider: React.FC<PropsWithChildren> = ({ chil
           return await tesseractParseRecord(record, chatContext, config, patientContext, updateRecordFromText, attachments);
         }
       }
+
+      const sendAllRecordsToChat = async () => {
+        chatContext.setChatOpen(true);
+        chatContext.sendMessages({
+            messages: [{
+              role: 'user',
+              createdAt: new Date(),
+              content: prompts.patientRecordsToChat({ patientRecords, config }),
+            }, ...patientRecords.map((record) => {
+              return {
+                role: 'user',
+                createdAt: new Date(),
+                content: record.text
+              }
+          })]
+        })
+      }
     
       const sendHealthReacordToChat = async (record: PatientRecord, forceRefresh: boolean = false) => {
         if (!record.json || forceRefresh) {  // first: parse the record
@@ -321,7 +339,8 @@ export const PatientRecordContextProvider: React.FC<PropsWithChildren> = ({ chil
                  convertAttachmentsToImages,
                  extraToRecord,
                  parsePatientRecord,
-                 sendHealthReacordToChat
+                 sendHealthReacordToChat,
+                 sendAllRecordsToChat
                 }}
         >
             {children}

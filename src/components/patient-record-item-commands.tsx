@@ -10,7 +10,7 @@ import remarkGfm from 'remark-gfm'
 import { Command, CommandDialog, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList, CommandSeparator } from './ui/command';
 import { PatientRecordContext } from '@/contexts/patient-record-context';
 import { prompts } from '@/data/ai/prompts';
-import { LanguagesIcon, TextQuoteIcon, Wand2Icon } from 'lucide-react';
+import { ClipboardPasteIcon, LanguagesIcon, MoveRight, TextQuoteIcon, Wand2Icon } from 'lucide-react';
 import { ChatContext } from '@/contexts/chat-context';
 
 interface Props {
@@ -118,6 +118,17 @@ const PatientRecordItemCommands: React.FC<Props> = ({ record, patient, open, set
             <CommandGroup heading="Suggestions">
                 <CommandItem className="text-xs" onSelect={(v) => { patientRecordContext?.extraToRecord('interpretation', prompts.patientRecordInterpretation({ record }), record) }}><Wand2Icon /> AI Interpretation</CommandItem>
                 <CommandItem className="text-xs" onSelect={(v) => { patientRecordContext?.extraToRecord('summary', prompts.patientRecordSummary({ record }), record) }}><TextQuoteIcon /> Summary in one sentence</CommandItem>
+                <CommandItem className="text-xs" onSelect={(v) => { patientRecordContext?.sendAllRecordsToChat() }}><ClipboardPasteIcon /> Add all records to chat context</CommandItem>
+                <CommandItem className="text-xs" onSelect={(v) => { 
+                        chatContext.setChatOpen(true);
+                        chatContext.sendMessage({
+                          message: {
+                            role: 'user',
+                            createdAt: new Date(),
+                            content: prompts.bestNextSteps({ record }),
+                          }
+                        });                    
+                 }}><MoveRight /> What are best next steps?</CommandItem>
             </CommandGroup>
             <CommandSeparator />
             <CommandGroup heading="Translations">

@@ -49,6 +49,12 @@ export const prompts = {
     patientRecordSummary: (context: PromptContext) => {
         return 'Summarize the health result data below in one sentence: ' + context.record?.text
     },
+    patientRecordsToChat: (context: PromptContext) => {
+        return 'OK. Now I will send you all my health records. Answer for now just with the number of records you received. Then I will ask more questions'
+    },
+    bestNextSteps: (context: PromptContext) => {
+        return 'Based on the health result data below, what are the best next steps? What are the most important recommendations? '+ context.record?.text
+    },
     patientRecordInterpretation: (context: PromptContext) => {
         return 'Interpret the health result data below. What are the most important findings? What are the most important exceptions from the norm? What could they mean? What are the most important recommendations? Answer in the language of original document. Return text, no code. \r\n\r\n```json\
         \r\n' + JSON.stringify(context.record?.json) + '```'
