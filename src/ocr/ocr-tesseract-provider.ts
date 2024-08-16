@@ -130,5 +130,7 @@ export async function parse(record: PatientRecord, chatContext: ChatContextType,
                 }
             }, 'ollama');
         }
-    }    
+    }  else {
+        parseRequest(textAfterOcr);
+    }   
 }    
