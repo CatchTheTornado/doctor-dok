@@ -65,7 +65,7 @@ export type UploadedFile = {
 
 export enum FileUploadStatus {
   UPLOADING = 'uploading',
-  SUCCESS = 'success',
+  SUCCESS = 'ok',
   ERROR = 'error',
   ENCRYPTING = 'encrypting'
 }
@@ -141,21 +141,10 @@ export const EncryptedAttachmentUploader = forwardRef<
         if (!value) return;
         internalFiles.current = value ? [...value] : [];
         const fileToRemove = internalFiles.current.find((_, index) => index === i);
-        if (fileToRemove) {
-          const apiClient = new EncryptedAttachmentApiClient('', dbContext, {
-            useEncryption: false  // for FormData we're encrypting records by ourselves - above
-          })
-          try {
-            if(fileToRemove.dto) await apiClient.delete(fileToRemove.dto); // TODO: in case user last seconds cancels record save AFTER attachment removal it may cause problems that attachments are still attached to the record but not existient on the storage
-          } catch (error) {
-            toast.error('Error removing file from storage ' + error);
-            console.error(error);
-          }
-          if (onFileRemove) onFileRemove(fileToRemove);
-        }
         const newFiles = internalFiles.current.filter((_, index) => index !== i);
         internalFiles.current = newFiles;
         onValueChange(newFiles);
+        if (onFileRemove && fileToRemove) onFileRemove(fileToRemove);          
       },
       [value, onValueChange]
     );

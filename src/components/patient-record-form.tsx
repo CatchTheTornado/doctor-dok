@@ -11,7 +11,7 @@ import {
   EncryptedAttachmentUploader,
   FileUploadStatus,
 } from "@/components/encrypted-attachment-uploader";
-import { use, useContext, useEffect, useState } from "react";
+import { use, useCallback, useContext, useEffect, useState } from "react";
 import { EncryptedAttachment, Patient, PatientRecord } from "@/data/client/models";
 import { Credenza, CredenzaContent, CredenzaDescription, CredenzaHeader, CredenzaTitle, CredenzaTrigger } from "./credenza";
 import { PlusIcon } from "lucide-react";
@@ -63,6 +63,7 @@ export default function PatientRecordForm({ patient }: { patient?: Patient }) {
   const dbContext = useContext(DatabaseContext);
   const patientRecordContext = useContext(PatientRecordContext);
   const [files, setFiles] = useState<UploadedFile[] | null>(null);
+  const [removeFiles, setRemoveFiles] = useState<UploadedFile[]>([]);
   const [dialogOpen, setDialogOpen] = useState(false);
 
   const dropZoneConfig = {
@@ -150,6 +151,18 @@ export default function PatientRecordForm({ patient }: { patient?: Patient }) {
           attachmentToUpdate.assignedTo = [{ id: savedPatientRecord.id as number, type: "patient_record" }, { id: patientContext?.currentPatient?.id as number, type: "patient" }];
           await eaac.put(attachmentToUpdate.toDTO());
         }); 
+        console.log('Clearing removed attachments', removeFiles);
+        removeFiles.forEach(async (attachmentToRemove) => {
+          if (attachmentToRemove) {
+            try {
+              if(attachmentToRemove.dto) await eaac.delete(attachmentToRemove.dto); // TODO: in case user last seconds cancels record save AFTER attachment removal it may cause problems that attachments are still attached to the record but not existient on the storage
+            } catch (error) {
+              toast.error('Error removing file from storage ' + error);
+              console.error(error);
+            }  
+          }
+        });
+
         setFiles([]); // clear form
         reset(); 
         toast.success("Patient record saved successfully");
@@ -191,7 +204,7 @@ export default function PatientRecordForm({ patient }: { patient?: Patient }) {
                 value={files}
                 onValueChange={setFiles}
                 onFileRemove={(file) => {
-                  onSubmit(getValues());
+                  setRemoveFiles([...removeFiles, file]);
                 }}
                 onUploadSuccess={(file, queue) => { console.log('OK', file, queue) }}
                 onUploadError={(file, queue) => {  console.log('FAIL', file, queue) }}
@@ -209,7 +222,7 @@ export default function PatientRecordForm({ patient }: { patient?: Patient }) {
                     files.map((file, i) => (
                       <FileUploaderItem key={i} index={i}>
                         <PaperclipIcon className="h-4 w-4 stroke-current" />
-                        <div className="flex">{file.file.name} - {file.status}{file.status !== 'uploaded' && file.status !== 'success'  ? ( <div className="ml-2 h-4 w-4 animate-spin rounded-full border-4 border-primary border-t-transparent" />) : null}</div>
+                        <div className="flex">{file.file.name.substring(0, 50) + (file.file.name.length > 50 ? '...' : '') } - {file.status}{file.status !== FileUploadStatus.SUCCESS  ? ( <div className="ml-2 h-4 w-4 animate-spin rounded-full border-4 border-primary border-t-transparent" />) : null}</div>
                       </FileUploaderItem>
                     ))}
                 </FileUploaderContent>
