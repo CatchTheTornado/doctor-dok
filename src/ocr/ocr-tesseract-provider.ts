@@ -39,7 +39,7 @@ const processFiles = async (files: DisplayableDataObject[], selectedLanguage: st
 
   }
 
-export async function parse(record: PatientRecord, chatContext: ChatContextType, configContext: ConfigContextType, patientContext: PatientContextType, sourceImages: DisplayableDataObject[], updatePatientRecord: (record: PatientRecord) => void) {
+export async function parse(record: PatientRecord, chatContext: ChatContextType, configContext: ConfigContextType | null, patientContext: PatientContextType | null, sourceImages: DisplayableDataObject[], updatePatientRecord: (record: PatientRecord) => void) {
     // TODO: add Tesseract parsing logic - then LLM - it should be configurable whichh LLM is being used for data parsing from tesseract text
     toast.info('Sending images to Tesseract for OCR processing...');
 

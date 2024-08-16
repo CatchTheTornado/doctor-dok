@@ -162,7 +162,7 @@ export default function PatientRecordForm({ patient }: { patient?: Patient }) {
             }  
           }
         });
-
+        setRemoveFiles([]); // clear form
         setFiles([]); // clear form
         reset(); 
         toast.success("Patient record saved successfully");

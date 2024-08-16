@@ -33,7 +33,7 @@ export class ApiClient {
   ): Promise<ArrayBuffer | null | undefined> {
     const headers: Record<string, string> = {};
 
-    if (this.dbContext?.accessToken) {
+    if (this.dbContext?.accessToken || temporaryAccessToken) {
       headers['Authorization'] = `Bearer ${temporaryAccessToken ? temporaryAccessToken : this.dbContext?.accessToken}`;
     }
 
@@ -64,7 +64,7 @@ export class ApiClient {
         } else {
           this.dbContext?.logout();
           toast.error('Refresh token failed. Please try to log-in again.');
-          return null;
+          throw new Error('Request failed. Refresh token failed. Try log-in again.');
         }
       }
 
@@ -88,7 +88,7 @@ export class ApiClient {
   ): Promise<T | T[]> {
     const headers: Record<string, string> = {};
 
-    if (this.dbContext?.accessToken) {
+    if (this.dbContext?.accessToken || temporaryAccessToken) {
       headers['Authorization'] = `Bearer ${temporaryAccessToken ? temporaryAccessToken : this.dbContext?.accessToken}`;
     }
 
@@ -136,8 +136,7 @@ export class ApiClient {
         } else {
           this.dbContext?.logout();
           toast.error('Refresh token failed. Please try to log-in again.');
-          // throw new Error('Request failed. Refresh token failed. Try log-in again.');
-          return response;
+          throw new Error('Request failed. Refresh token failed. Try log-in again.');
         }
       }
 

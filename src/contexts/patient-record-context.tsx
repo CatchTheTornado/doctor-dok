@@ -163,8 +163,12 @@ export const PatientRecordContextProvider: React.FC<PropsWithChildren> = ({ chil
       }
     
       const downloadAttachment = async (attachment: EncryptedAttachmentDTO) => {
-        const url = await getAttachmentDataURL(attachment, URLType.blob);
-        window.open(url);    
+        try {
+          const url = await getAttachmentDataURL(attachment, URLType.blob);
+          window.open(url);    
+        } catch (error) {
+          toast.error('Error downloading attachment ' + error);
+        }
       };
     
       const convertAttachmentsToImages = async (record: PatientRecord, statusUpdates: boolean = true): Promise<DisplayableDataObject[]> => {

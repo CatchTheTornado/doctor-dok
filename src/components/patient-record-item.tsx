@@ -17,13 +17,17 @@ import ZoomableImage from './zoomable-image';
 import { labels } from '@/data/ai/labels';
 import PatientRecordItemExtra from './patient-record-item-extra';
 import DataLoader from './data-loader';
+import PatientRecordItemCommands from "./patient-record-item-commands";
+import { PatientContext } from "@/contexts/patient-context";
 
 
 export default function PatientRecordItem({ record, displayAttachmentPreviews }: { record: PatientRecord, displayAttachmentPreviews: boolean }) {
   // TODO: refactor and extract business logic to a separate files
   const patientRecordContext = useContext(PatientRecordContext)
+  const patientContext = useContext(PatientContext)
   const [parseInProgress, setParseInProgress] = useState(false);
   const [displayableAttachmentsInProgress, setDisplayableAttachmentsInProgress] = useState(false)
+  const [commandsOpen, setCommandsOpen] = useState(false);
 
   const [displayableAttachments, setDisplayableAttachments] = useState<Attachment[]>([]);
 
@@ -107,15 +111,16 @@ export default function PatientRecordItem({ record, displayAttachmentPreviews }:
           )}
         </Button>       
         {(record.json) ? (
-          <Button size="icon" variant="ghost" title="Insert into AI Chat">
-              <MessageCircleIcon className="w-4 h-4"  onClick={async () => {  patientRecordContext?.sendHealthReacordToChat(record, false);  }} />
-          </Button>        
-          ) : (          
-            null
-          )}
+        <Button size="icon" variant="ghost" title="Insert into AI Chat">
+            <MessageCircleIcon className="w-4 h-4"  onClick={async () => {  patientRecordContext?.sendHealthReacordToChat(record, false);  }} />
+        </Button>        
+        ) : (          
+          null
+        )}
         {(record.json) ? (
-          <Button size="icon" variant="ghost" title="Analyze & Suggest by AI">
-            <Wand2Icon className="w-4 h-4"  onClick={() => { patientRecordContext?.extraToRecord('interpretation', prompts.patientRecordInterpretation({ record }), record) }} />
+          <Button size="icon" variant="ghost" title="AI features">
+            <Wand2Icon className="w-4 h-4"  onClick={() => { setCommandsOpen(true) }} />
+              <PatientRecordItemCommands record={record} patient={patientContext?.currentPatient} open={commandsOpen} setOpen={setCommandsOpen} />
           </Button>                
         ): (null) }
         <AlertDialog>
