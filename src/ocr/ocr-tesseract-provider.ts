@@ -50,7 +50,7 @@ export async function parse(record: PatientRecord, chatContext: ChatContextType,
     const parseAIProvider = await configContext?.getServerConfig('llmProviderChat') as string;
 
     const parseRequest = async (text:string) => {
-        return chatContext.sendMessage({ // still using chatgpt only - add support for other LLMS
+        return chatContext.sendMessage({ 
             message: {
                 role: 'user',
                 createdAt: new Date(),
@@ -89,10 +89,12 @@ export async function parse(record: PatientRecord, chatContext: ChatContextType,
         }, parseAIProvider);
     };
 
-    if (removePIIMode === 'replace') {
+    if (removePIIMode === 'replace' || removePIIMode === 'both') {
         // TODO: add programmatical data removal removing all patient personal data - extend patient to store more personal data to be removed
     
-    } else if(removePIIMode === 'ollama') {
+    } 
+    
+    if(removePIIMode === 'ollama' || removePIIMode === 'both') {
         const ollamaUrl = await configContext?.getServerConfig('ollamaUrl') as string;
         if (!ollamaUrl) {
             toast.error('Please configure the Ollama URL in the Settings first in order to remove PII using Ollama')

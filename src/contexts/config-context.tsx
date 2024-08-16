@@ -7,6 +7,10 @@ import React, { PropsWithChildren, useContext, useReducer } from 'react';
 import { DatabaseContext, DatabaseContextType } from './db-context';
 import { DatabaseAuthStatus } from '@/data/client/models';
 
+function isNumber(value:any){
+  return !isNaN(value);
+}
+
 type ConfigSupportedValueType = string | number | boolean | null | undefined;
 
 export type ConfigContextType = {
@@ -83,14 +87,18 @@ const [isConfigDialogOpen, setConfigDialogOpen] = React.useState(false);
       {
         if (dbContext?.authStatus === DatabaseAuthStatus.Authorized) {
           const client = getConfigApiClient(dbContext.masterKey as string, dbContext);
-          return client.put({ key, value, updatedAt: getCurrentTS() });
+          return client.put({ key, value: `${value}`, updatedAt: getCurrentTS() });
         } else {
           return Promise.resolve(false);
         }
       },
       getServerConfig: async (key: string) => {
         const serverConfig  = await loadServerConfig();
-        return serverConfig[key];
+        const val = serverConfig[key];
+        if (val === 'true') return true; // booleans are not supported by sqlite so we're converting them on input and outputse
+        if (val === 'false') return false;
+        if (isNumber(val)) return Number(val);
+        return val;
       },
     };
   

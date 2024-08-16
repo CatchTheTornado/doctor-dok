@@ -156,7 +156,7 @@ export function SettingsPopup() {
     
 
       setValue("chatGptApiKey", chatGptKey as string);
-      setValue("displayAttachmentPreviews", displayAttachmentPreviews as boolean);
+      setValue("displayAttachmentPreviews", displayAttachmentPreviews);
       setValue("ocrProvider", ocr);
       setValue("ocrLanguage", "eng");
       setValue("llmProviderChat", "chatgpt");
@@ -170,9 +170,9 @@ export function SettingsPopup() {
 
   async function onSubmit(formData) { // TODO: we probably need a method in the config-context to setup the config model - so all available server and local config variables  with default values
     config?.setServerConfig('chatGptApiKey', formData['chatGptApiKey']);
-    config?.setServerConfig('ocrProvider', ocrProvider as string);
-    config?.setServerConfig('displayAttachmentPreviews', formData['displayAttachmentPreviews']);
-    config?.setServerConfig('ocrLanguage', ocrLanguage as string);
+    config?.setServerConfig('ocrProvider', ocrProvider as string || 'chatgpt');
+    config?.setServerConfig('displayAttachmentPreviews', formData['displayAttachmentPreviews'] as string);
+    config?.setServerConfig('ocrLanguage', ocrLanguage as string || "eng");
     config?.setServerConfig('llmProviderChat', llmProviderChat as string || 'chatgpt');
     config?.setServerConfig('llmProviderParse', llmProviderParse as string || 'chatgpt');
     config?.setServerConfig('llmProviderRemovePII', llmProviderRemovePII as string || 'skip');
@@ -260,7 +260,7 @@ export function SettingsPopup() {
                           </SelectContent>
                         </Select>
                       </div>
-                      <div className="grid grid-cols-2 items-center gap-2">
+                      {/* <div className="grid grid-cols-2 items-center gap-2">
                         <Label htmlFor="llmProviderParse">LLM for Parse</Label>
                         <Select id="llmProviderParse" value={llmProviderParse} onValueChange={setLlmProviderParse}>
                           <SelectTrigger className="w-[140px]">
@@ -271,7 +271,7 @@ export function SettingsPopup() {
                             <SelectItem key="ollama" value="ollama">Local: Ollama</SelectItem>
                           </SelectContent>
                         </Select>
-                      </div>
+                      </div> */}
                       <div className="grid grid-cols-2 items-center gap-2">
                         <Label htmlFor="llmProviderRemovePII">LLM for removing PII</Label>
                         <Select id="llmProviderRemovePII" value={llmProviderRemovePII} onValueChange={setLlmProviderRemovePII}>
@@ -282,9 +282,13 @@ export function SettingsPopup() {
                             <SelectItem key="skip" value="skip">Don't remove personal data</SelectItem>
                             <SelectItem key="ollama" value="ollama">Local: Ollama</SelectItem>
                             <SelectItem key="replace" value="replace">Basic: Replace strings</SelectItem>
+                            <SelectItem key="both" value="both">Both: Replace strings + Ollama</SelectItem>
                           </SelectContent>
                         </Select>
                       </div>                     
+                      <div className="text-xs">
+                        Personaly Identifable Information (PII) removal works only when OCR is enabled. It removes personal data from attachments before sending it to Cloud AI providers.
+                      </div>
                       <div>
                         <Label htmlFor="ollamaUrl">Ollama URL:</Label>
                         <Input
@@ -296,8 +300,8 @@ export function SettingsPopup() {
                         />
                       </div>
                       <div className="grid grid-cols-2 items-center gap-2">
-                        <Label htmlFor="llmProviderParse">Ollama model</Label>
-                        <Select id="llmProviderParse" value={ollamaModel} onValueChange={setOllamaModel}>
+                        <Label htmlFor="llmProviderModel">Ollama model</Label>
+                        <Select id="llmProviderModel" value={ollamaModel} onValueChange={setOllamaModel}>
                           <SelectTrigger className="w-[140px]">
                             <SelectValue placeholder="Default: Llama 3.1" />
                           </SelectTrigger>
