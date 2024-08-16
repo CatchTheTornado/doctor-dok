@@ -75,8 +75,6 @@ export type UploadQueueStatus = {
   queueSize: number
 }
 
-let internalFiles: UploadedFile[] = []
-
 type FileUploaderProps = {
   value: UploadedFile[] | null;
   reSelect?: boolean;
@@ -108,6 +106,9 @@ export const EncryptedAttachmentUploader = forwardRef<
     },
     ref
   ) => {
+    
+    const internalFiles = useRef<UploadedFile[]>([]);
+
     const [isFileTooBig, setIsFileTooBig] = useState(false);
     const [isLOF, setIsLOF] = useState(false);
     const [activeIndex, setActiveIndex] = useState(-1);
@@ -128,24 +129,30 @@ export const EncryptedAttachmentUploader = forwardRef<
 
     const updateFile = (file: UploadedFile) => {
       console.log(internalFiles, file);
-      const newFiles = internalFiles ? [...internalFiles] : [];
-      internalFiles = newFiles.map((f) => (f.index === file.index ? file : f));
+      const newFiles = internalFiles ? [...internalFiles.current] : [];
+      internalFiles.current = newFiles.map((f) => (f.index === file.index ? file : f));
       onValueChange(newFiles);
     }
 
     const removeFileFromSet = useCallback(
-      (i: number) => {
+      async (i: number) => {
         if (!value) return;
-        const fileToRemove = internalFiles.find((_, index) => index === i);
+        internalFiles.current = value ? [...value] : [];
+        const fileToRemove = internalFiles.current.find((_, index) => index === i);
         if (fileToRemove) {
           const apiClient = new EncryptedAttachmentApiClient('', dbContext, {
             useEncryption: false  // for FormData we're encrypting records by ourselves - above
           })
-          if(fileToRemove.dto) apiClient.delete(fileToRemove.dto); // remove file from storage
+          try {
+            if(fileToRemove.dto) await apiClient.delete(fileToRemove.dto); // TODO: in case user last seconds cancels record save AFTER attachment removal it may cause problems that attachments are still attached to the record but not existient on the storage
+          } catch (error) {
+            toast.error('Error removing file from storage ' + error);
+            console.error(error);
+          }
 
         }
-        const newFiles = internalFiles.filter((_, index) => index !== i);
-        internalFiles = newFiles;
+        const newFiles = internalFiles.current.filter((_, index) => index !== i);
+        internalFiles.current = newFiles;
         onValueChange(newFiles);
       },
       [value, onValueChange]
@@ -246,7 +253,7 @@ export const EncryptedAttachmentUploader = forwardRef<
             };
             fileToUpload.status = FileUploadStatus.ENCRYPTING;
             updateFile(fileToUpload);
-            attachmentDTO = encFilter ? await encFilter.encrypt(attachmentDTO, EncryptedAttachmentDTOEncSettings) : attachmentDTO;
+            attachmentDTO = encFilter ? await encFilter.encrypt(attachmentDTO, EncryptedAttachmentDTOEncSettings) as EncryptedAttachmentDTO : attachmentDTO;
 
             formData.append("attachmentDTO", JSON.stringify(attachmentDTO));
             try {
@@ -292,7 +299,7 @@ export const EncryptedAttachmentUploader = forwardRef<
 
     const onDrop = useCallback(
       (acceptedFiles: File[], rejectedFiles: FileRejection[]) => {
-        internalFiles = value ? [...value] : [];
+        internalFiles.current = value ? [...value] : [];
         const files = acceptedFiles;
 
         if (!files) {
@@ -300,28 +307,29 @@ export const EncryptedAttachmentUploader = forwardRef<
           return;
         }
 
-        const newValues: UploadedFile[] = internalFiles ? [...internalFiles] : [];
+        const newValues: UploadedFile[] = internalFiles.current ? [...internalFiles.current] : [];
 
         if (reSelectAll) {
-          internalFiles.splice(0, internalFiles.length);
+          internalFiles.current.splice(0, internalFiles.current.length);
         }
 
         files.forEach((file) => {
-          if (newValues.length < maxFiles && internalFiles.find((f) => f.file.name === file.name) === undefined) {
+          if (newValues.length < maxFiles && internalFiles.current.find((f) => f.file.name === file.name) === undefined) {
             let uploadedFile:UploadedFile = {
                 id: '',
                 file: file,
                 uploaded: false,
                 status: FileUploadStatus.UPLOADING,
-                index: newValues.length
+                index: newValues.length,
+                dto: null
             }
             setQueueSize(uploadQueueSize+1)
             newValues.push(uploadedFile);
             onInternalUpload(uploadedFile);
           }
         });
-        internalFiles = newValues
-        onValueChange(internalFiles);
+        internalFiles.current = newValues;
+        onValueChange(internalFiles.current);
 
         if (rejectedFiles.length > 0) {
           for (let i = 0; i < rejectedFiles.length; i++) {

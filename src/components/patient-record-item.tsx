@@ -23,16 +23,18 @@ export default function PatientRecordItem({ record, displayAttachmentPreviews }:
   // TODO: refactor and extract business logic to a separate files
   const patientRecordContext = useContext(PatientRecordContext)
   const [parseInProgress, setParseInProgress] = useState(false);
-  let displayableAttachmentsInProgress = false;
+  const [displayableAttachmentsInProgress, setDisplayableAttachmentsInProgress] = useState(false)
 
   const [displayableAttachments, setDisplayableAttachments] = useState<Attachment[]>([]);
 
   useEffect(() => {
     if (displayAttachmentPreviews && !displayableAttachmentsInProgress) {
-      displayableAttachmentsInProgress = true;
+      setDisplayableAttachmentsInProgress(true);
       patientRecordContext?.convertAttachmentsToImages(record, false).then((attachments) => {
         setDisplayableAttachments(attachments);
-        displayableAttachmentsInProgress = false;
+        setDisplayableAttachmentsInProgress(false);
+      }).catch((error) => {
+        setDisplayableAttachmentsInProgress(false);
       });
     }
   }, [displayAttachmentPreviews, record]);
@@ -80,7 +82,7 @@ export default function PatientRecordItem({ record, displayAttachmentPreviews }:
               />
             ))}
           </div>
-        ): <div className="mt-2 text-sm text-muted-foreground flex h-4 content-center gap-2">
+        ): (displayableAttachmentsInProgress ? (<div className="mt-2 text-sm text-muted-foreground flex h-4 content-center gap-2">
             <div role="status" className="w-4">
                 <svg aria-hidden="true" className="w-4 h-4 text-gray-200 animate-spin dark:text-gray-600 fill-blue-600" viewBox="0 0 100 101" fill="none" xmlns="http://www.w3.org/2000/svg">
                     <path d="M100 50.5908C100 78.2051 77.6142 100.591 50 100.591C22.3858 100.591 0 78.2051 0 50.5908C0 22.9766 22.3858 0.59082 50 0.59082C77.6142 0.59082 100 22.9766 100 50.5908ZM9.08144 50.5908C9.08144 73.1895 27.4013 91.5094 50 91.5094C72.5987 91.5094 90.9186 73.1895 90.9186 50.5908C90.9186 27.9921 72.5987 9.67226 50 9.67226C27.4013 9.67226 9.08144 27.9921 9.08144 50.5908Z" fill="currentColor"/>
@@ -88,7 +90,7 @@ export default function PatientRecordItem({ record, displayAttachmentPreviews }:
                 </svg>
             </div>          
             Loading previews ...
-          </div>
+          </div>): null)
       ) : null}
       <div className="mt-2 flex items-center gap-2">
         <Button size="icon" variant="ghost" title="Edit record">

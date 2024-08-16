@@ -9,6 +9,7 @@ import {
   FileInput,
   UploadedFile,
   EncryptedAttachmentUploader,
+  FileUploadStatus,
 } from "@/components/encrypted-attachment-uploader";
 import { use, useContext, useEffect, useState } from "react";
 import { EncryptedAttachment, Patient, PatientRecord } from "@/data/client/models";
@@ -111,7 +112,7 @@ export default function PatientRecordForm({ patient }: { patient?: Patient }) {
             isStillUploading = true;
           }
 
-          if (file.status === 'error') {
+        if (file.status === FileUploadStatus.ERROR) {
             toast('Please check upload error for file ' + file.dto?.displayName);
           }
         });

@@ -159,7 +159,7 @@ export class ApiClient {
         return responseData;
       }
     } catch (error) {
-      throw new Error('Request failed');
+      throw new Error('Request failed ' + error);
     }
   }
 }

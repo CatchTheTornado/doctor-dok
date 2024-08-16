@@ -169,26 +169,31 @@ export const PatientRecordContextProvider: React.FC<PropsWithChildren> = ({ chil
         const attachments = []
         for(const ea of record.attachments){
     
-          if (ea.mimeType === 'application/pdf') {
-            if (statusUpdates) toast.info('Downloading file ' + ea.displayName);
-            const pdfBase64Content = await getAttachmentDataURL(ea.toDTO(), URLType.data); // convert to images otherwise it's not supported by vercel ai sdk
-            if (statusUpdates) toast.info('Converting file  ' + ea.displayName + ' to images ...');
-            const imagesArray = await convert(pdfBase64Content, { base64: true }, pdfjs)
-            if (statusUpdates) toast.info('File converted to ' + imagesArray.length + ' images');  
-            for (let i = 0; i < imagesArray.length; i++){
+          try {
+            if (ea.mimeType === 'application/pdf') {
+              if (statusUpdates) toast.info('Downloading file ' + ea.displayName);
+              const pdfBase64Content = await getAttachmentDataURL(ea.toDTO(), URLType.data); // convert to images otherwise it's not supported by vercel ai sdk
+              if (statusUpdates) toast.info('Converting file  ' + ea.displayName + ' to images ...');
+              const imagesArray = await convert(pdfBase64Content, { base64: true }, pdfjs)
+              if (statusUpdates) toast.info('File converted to ' + imagesArray.length + ' images');  
+              for (let i = 0; i < imagesArray.length; i++){
+                attachments.push({
+                  name: ea.displayName + ' page ' + (i+1),
+                  contentType: 'image/x-png',
+                  url: imagesArray[i]
+                })
+              }
+      
+            } else {
               attachments.push({
-                name: ea.displayName + ' page ' + (i+1),
-                contentType: 'image/x-png',
-                url: imagesArray[i]
+                name: ea.displayName,
+                contentType: ea.mimeType,
+                url: await getAttachmentDataURL(ea.toDTO(), URLType.data) // TODO: convert PDF attachments to images here
               })
             }
-    
-          } else {
-            attachments.push({
-              name: ea.displayName,
-              contentType: ea.mimeType,
-              url: await getAttachmentDataURL(ea.toDTO(), URLType.data) // TODO: convert PDF attachments to images here
-            })
+          } catch (error) {
+            console.error(error);
+            if (statusUpdates) toast.error('Error downloading attachment: ' + error);
           }
         }
         return attachments;
