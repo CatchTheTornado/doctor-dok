@@ -28,12 +28,13 @@ export class ApiClient {
   }
 
   protected async getArrayBuffer(
-    endpoint: string
-  ): Promise<ArrayBuffer> {
+    endpoint: string,
+    temporaryAccessToken = ''
+  ): Promise<ArrayBuffer | null | undefined> {
     const headers: Record<string, string> = {};
 
     if (this.dbContext?.accessToken) {
-      headers['Authorization'] = `Bearer ${this.dbContext?.accessToken}`;
+      headers['Authorization'] = `Bearer ${temporaryAccessToken ? temporaryAccessToken : this.dbContext?.accessToken}`;
     }
 
     if(this.dbContext?.databaseHashId) {
@@ -54,17 +55,16 @@ export class ApiClient {
       if(response.status === 401) {
         console.error('Unauthorized, first and only refresh attempt');
         // Refresh token
-        const refreshResult = this.dbContext?.refresh({
+        const refreshResult = await this.dbContext?.refresh({
           refreshToken: this.dbContext.refreshToken
         })
-        if((await refreshResult)?.success) {
+        if((refreshResult)?.success) {
           console.log('Refresh token success', this.dbContext?.accessToken);
-          return this.getArrayBuffer(endpoint);
+          return this.getArrayBuffer(endpoint, refreshResult.accessToken);
         } else {
           this.dbContext?.logout();
           toast.error('Refresh token failed. Please try to log-in again.');
-          // throw new Error('Request failed. Refresh token failed. Try log-in again.');
-          return response;
+          return null;
         }
       }
 
@@ -83,12 +83,13 @@ export class ApiClient {
     method: 'GET' | 'POST' | 'PUT' | 'DELETE',
     encryptionSettings?: DTOEncryptionSettings,
     body?: any,
-    formData?: FormData
+    formData?: FormData,
+    temporaryAccessToken:string = ''
   ): Promise<T | T[]> {
     const headers: Record<string, string> = {};
 
     if (this.dbContext?.accessToken) {
-      headers['Authorization'] = `Bearer ${this.dbContext?.accessToken}`;
+      headers['Authorization'] = `Bearer ${temporaryAccessToken ? temporaryAccessToken : this.dbContext?.accessToken}`;
     }
 
     if(this.dbContext?.databaseHashId) {
@@ -126,12 +127,12 @@ export class ApiClient {
       if(response.status === 401) {
         console.error('Unauthorized, first and only refresh attempt');
         // Refresh token
-        const refreshResult = this.dbContext?.refresh({
+        const refreshResult = await this.dbContext?.refresh({
           refreshToken: this.dbContext.refreshToken
         })
-        if((await refreshResult)?.success) {
+        if((refreshResult)?.success) {
           console.log('Refresh token success', this.dbContext?.accessToken);
-          return this.request(endpoint, method, encryptionSettings, body, formData);
+          return this.request(endpoint, method, encryptionSettings, body, formData, refreshResult.accessToken);
         } else {
           this.dbContext?.logout();
           toast.error('Refresh token failed. Please try to log-in again.');

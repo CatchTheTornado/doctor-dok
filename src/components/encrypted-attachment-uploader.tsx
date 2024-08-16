@@ -78,6 +78,7 @@ export type UploadQueueStatus = {
 type FileUploaderProps = {
   value: UploadedFile[] | null;
   reSelect?: boolean;
+  onFileRemove?: (file: UploadedFile) => void;
   onUploadSuccess?: (value: UploadedFile | null, uploadStatus: UploadQueueStatus) => void;
   onUploadError?: (value: UploadedFile | null, uploadStatus: UploadQueueStatus) => void;
   onAllUploadsComplete?: (value: UploadedFile[] | null) => void;
@@ -98,6 +99,7 @@ export const EncryptedAttachmentUploader = forwardRef<
       onValueChange,
       onUploadError,
       onUploadSuccess,
+      onFileRemove,
       reSelect,
       orientation = "vertical",
       children,
@@ -149,7 +151,7 @@ export const EncryptedAttachmentUploader = forwardRef<
             toast.error('Error removing file from storage ' + error);
             console.error(error);
           }
-
+          if (onFileRemove) onFileRemove(fileToRemove);
         }
         const newFiles = internalFiles.current.filter((_, index) => index !== i);
         internalFiles.current = newFiles;

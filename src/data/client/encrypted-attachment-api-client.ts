@@ -37,12 +37,12 @@ export class EncryptedAttachmentApiClient extends ApiClient {
       }
     }
 
-    async get(attachment: EncryptedAttachmentDTO): Promise<ArrayBuffer> {
+    async get(attachment: EncryptedAttachmentDTO): Promise<ArrayBuffer | undefined | null> {
       return this.getArrayBuffer('/api/encrypted-attachment/' + attachment.storageKey);
     }
 
     async delete(attachment: EncryptedAttachmentDTO): Promise<DeleteEncryptedAttachmentResponse> {
-      return this.request<DeleteEncryptedAttachmentResponse>('/api/encrypted-attachment/' + attachment.storageKey, 'DELETE') as Promise<DeleteEncryptedAttachmentResponse>;
+      return this.request<DeleteEncryptedAttachmentResponse>('/api/encrypted-attachment/' + attachment.storageKey, 'DELETE', { ecnryptedFields: [] }) as Promise<DeleteEncryptedAttachmentResponse>;
     }
     
   }
