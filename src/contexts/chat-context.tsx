@@ -6,6 +6,7 @@ import { ollama, createOllama } from 'ollama-ai-provider';
 import { CallWarning, convertToCoreMessages, FinishReason, streamText } from 'ai';
 import { ConfigContext } from './config-context';
 import { toast } from 'sonner';
+import { PatientRecord } from '@/data/client/models';
 
 enum MessageDisplayMode {
     Text = 'text',
@@ -17,6 +18,9 @@ enum MessageDisplayMode {
 export type MessageEx = Message & {
     prev_sent_attachments?: Attachment[];
     displayMode?: MessageDisplayMode
+    finished: boolean
+    recordRef: PatientRecord
+    recordSaved: boolean
 }
 
 export type CreateMessageEx = MessageEx & {
@@ -152,6 +156,7 @@ export const ChatContextProvider: React.FC<PropsWithChildren> = ({ children }) =
             messages: convertToCoreMessages(messages),
             onFinish: (e) =>  {
                 e.text.indexOf('```json') > -1 ? resultMessage.displayMode = MessageDisplayMode.InternalJSONResponse : resultMessage.displayMode = MessageDisplayMode.Text
+                resultMessage.finished = true;
                 if (onResult) onResult(resultMessage, e);
                 // TODO: add chat persistency and maybe extract health records / other data for #43
             }

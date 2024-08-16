@@ -8,6 +8,7 @@ import { ConfigContextType } from '@/contexts/config-context';
 import { prompts } from '@/data/ai/prompts';
 import { removePII } from '@/lib/removePII';
 import { PatientContextType } from '@/contexts/patient-context';
+import { PatientRecordContextType } from '@/contexts/patient-record-context';
 
 export type ImageData = {
     base64Content: string;
@@ -39,7 +40,7 @@ const processFiles = async (files: DisplayableDataObject[], selectedLanguage: st
 
   }
 
-export async function parse(record: PatientRecord, chatContext: ChatContextType, configContext: ConfigContextType | null, patientContext: PatientContextType | null, sourceImages: DisplayableDataObject[], updatePatientRecord: (record: PatientRecord) => void) {
+export async function parse(record: PatientRecord, chatContext: ChatContextType, configContext: ConfigContextType | null, patientContext: PatientContextType | null, updateRecordFromText: (text: string, record: PatientRecord) => PatientRecord|null, sourceImages: DisplayableDataObject[]) {
     // TODO: add Tesseract parsing logic - then LLM - it should be configurable whichh LLM is being used for data parsing from tesseract text
     toast.info('Sending images to Tesseract for OCR processing...');
 
@@ -59,34 +60,8 @@ export async function parse(record: PatientRecord, chatContext: ChatContextType,
                 content: prompts.patientRecordParseOCR({ record, config: configContext }, text)
             },
             onResult: (resultMessage, result) => {
-                if (result.text.indexOf('```json') > -1) {
-                    const codeBlocks = findCodeBlocks(result.text.trimEnd().endsWith('```') ? result.text : result.text + '```', false);
-                    let recordJSON = [];
-                    let recordMarkdown = "";
-                    if (codeBlocks.blocks.length > 0) {
-                        for (const block of codeBlocks.blocks) {
-                            if (block.syntax === 'json') {
-                                const jsonObject = JSON.parse(block.code);
-                                if (Array.isArray(jsonObject)) {
-                                    for (const record of jsonObject) {
-                                        recordJSON.push(record);
-                                    }
-                                } else recordJSON.push(jsonObject);
-                            }
-
-                            if (block.syntax === 'markdown') {
-                                recordMarkdown += block.code;
-                            }
-                        }
-
-                        if (record) {
-                            const discoveredType = recordJSON.length > 0 ? recordJSON.map(item => item.type).join(", ") : 'note';
-                            record = new PatientRecord({ ...record, json: recordJSON, text: recordMarkdown, type: discoveredType });
-                            updatePatientRecord(record);
-                        }
-                        console.log('JSON repr: ', recordJSON);
-                    }
-                }
+                resultMessage.recordSaved = true;
+                updateRecordFromText(resultMessage.content, record);
             },
             providerName: parseAIProvider
         });

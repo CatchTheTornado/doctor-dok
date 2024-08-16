@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useContext } from 'react';
 import Markdown from 'react-markdown'
 import ZoomableImage from './zoomable-image';
 import { MessageEx } from '@/contexts/chat-context';
@@ -9,6 +9,9 @@ import { useTheme } from 'next-themes';
 import dynamic from 'next/dynamic';
 
 import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
+import { Button } from '@/components/ui/button';
+import { SaveIcon } from 'lucide-react';
+import { PatientRecordContext } from '@/contexts/patient-record-context';
 
 interface ChatMessageProps {
     message: MessageEx;
@@ -17,6 +20,7 @@ interface ChatMessageProps {
 
 const ChatMessage: React.FC<ChatMessageProps> = ({ message, ref }) => {
     const { theme, systemTheme } = useTheme();
+    const patientRecordContext = useContext(PatientRecordContext);
     const shTheme = (theme === 'system' ? systemTheme : theme) === 'dark' ? 'material-dark' : 'material-light';
     return (
     <div id={'msg-' + message.id} ref={ref} className={message.role === 'user' ?  "flex items-start gap-4 justify-end" :  "flex items-start gap-4"}>
@@ -91,10 +95,17 @@ const ChatMessage: React.FC<ChatMessageProps> = ({ message, ref }) => {
                 {message.content}
               </Markdown>
             ))}
+            {message.role !== 'user'  && message.finished && !message.recordSaved ? (
+              <div className="flex-wrap flex items-center justify-left">
+                <Button title="Save message as record" variant="ghost" size="icon" onClick={() => {
+                  patientRecordContext?.updateRecordFromText(message.content, message.recordRef);
+                }}><SaveIcon /></Button>
+              </div>
+              ): null }
               <div className="flex-wrap flex items-center justify-left min-h-100">
                 {message.experimental_attachments
                   ?.filter(attachment =>
-                    attachment.contentType.startsWith('image/'),
+                    attachment.contentType?.startsWith('image/'),
                   )
                   .map((attachment, index) => (
                     <ZoomableImage

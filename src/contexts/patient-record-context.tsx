@@ -17,6 +17,7 @@ import { prompts } from "@/data/ai/prompts";
 import { parse as chatgptParseRecord } from '@/ocr/ocr-chatgpt-provider';
 import { parse as tesseractParseRecord } from '@/ocr/ocr-tesseract-provider';
 import { PatientContext } from './patient-context';
+import { findCodeBlocks, getCurrentTS } from '@/lib/utils';
 
 export enum URLType {
     data = 'data',
@@ -35,6 +36,7 @@ export type PatientRecordContextType = {
     loaderStatus: DataLoadingStatus;
     operationStatus: DataLoadingStatus;
 
+    updateRecordFromText: (text: string, record: PatientRecord) => PatientRecord|null;
     getAttachmentDataURL: (attachmentDTO: EncryptedAttachmentDTO, type: URLType) => Promise<string>;
     downloadAttachment: (attachment: EncryptedAttachmentDTO) => void;
     convertAttachmentsToImages: (record: PatientRecord, statusUpdates: boolean) => Promise<DisplayableDataObject[]>;
@@ -86,6 +88,47 @@ export const PatientRecordContextProvider: React.FC<PropsWithChildren> = ({ chil
             return patientRecord;
         }
     };
+
+    const updateRecordFromText =  (text: string, record: PatientRecord | null = null): PatientRecord|null => {
+        if (text.indexOf('```json') > -1) {
+          const codeBlocks = findCodeBlocks(text.trimEnd().endsWith('```') ? text : text + '```', false);
+          let recordJSON = [];
+          let recordMarkdown = "";
+          if (codeBlocks.blocks.length > 0) {
+              for (const block of codeBlocks.blocks) {
+                  if (block.syntax === 'json') {
+                      const jsonObject = JSON.parse(block.code);
+                      if (Array.isArray(jsonObject)) {
+                          for (const record of jsonObject) {
+                              recordJSON.push(record);
+                          }
+                      } else recordJSON.push(jsonObject);
+                  }
+
+                  if (block.syntax === 'markdown') {
+                      recordMarkdown += block.code;
+                  }
+              }
+              const discoveredType = recordJSON.length > 0 ? recordJSON.map(item => item.type).join(", ") : 'note';
+              if (record) {
+                  record = new PatientRecord({ ...record, json: recordJSON, text: recordMarkdown, type: discoveredType } as PatientRecord);
+                  updatePatientRecord(record);
+              } else {
+                  if (patientContext?.currentPatient?.id) { // create new patient Record
+                    record = new PatientRecord({ patientId: patientContext?.currentPatient?.id, type: discoveredType, createdAt: getCurrentTS(), updatedAt: getCurrentTS(), json: recordJSON, text: recordMarkdown } as PatientRecord);
+                    updatePatientRecord(record);
+                  }
+              }
+              console.log('JSON repr: ', recordJSON);
+          } 
+      } else { // create new patient Record
+        if (patientContext?.currentPatient?.id) { // create new patient Record
+          record = new PatientRecord({ patientId: patientContext?.currentPatient?.id, type: 'note', createdAt: getCurrentTS(), updatedAt: getCurrentTS(), json: null, text: text } as PatientRecord);
+          updatePatientRecord(record);
+        }
+      }
+      return record;
+    }
 
     const deletePatientRecord = async (record: PatientRecord) => {
         const prClient = await setupApiClient(config);
@@ -237,9 +280,9 @@ export const PatientRecordContextProvider: React.FC<PropsWithChildren> = ({ chil
         console.log('Using OCR provider:', ocrProvider);
 
         if (ocrProvider === 'chatgpt') {
-          return  await chatgptParseRecord(record, chatContext, config, patientContext, attachments, updatePatientRecord);
+          return  await chatgptParseRecord(record, chatContext, config, patientContext, updateRecordFromText, attachments);
         } else if (ocrProvider === 'tesseract') {
-          return await tesseractParseRecord(record, chatContext, config, patientContext, attachments, updatePatientRecord);
+          return await tesseractParseRecord(record, chatContext, config, patientContext, updateRecordFromText, attachments);
         }
       }
     
@@ -263,6 +306,7 @@ export const PatientRecordContextProvider: React.FC<PropsWithChildren> = ({ chil
         <PatientRecordContext.Provider
             value={{
                  patientRecords, 
+                 updateRecordFromText,
                  updatePatientRecord, 
                  loaderStatus, 
                  operationStatus,
