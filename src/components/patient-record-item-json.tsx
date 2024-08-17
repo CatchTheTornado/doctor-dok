@@ -1,17 +1,20 @@
 "use client"
-import React, { useContext } from 'react';
+import React, { useContext, useRef } from 'react';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from './ui/accordion';
 import { PatientRecord } from '@/data/client/models';
 import { labels } from '@/data/ai/labels';
 import { formatString } from 'typescript-string-operations';
-import dynamic from 'next/dynamic';
-import { JsonEditor } from 'json-edit-react'
 import { useTheme } from 'next-themes';
 import { PatientRecordContext } from '@/contexts/patient-record-context';
+import { githubLightTheme } from '@uiw/react-json-view/githubLight';
+import { githubDarkTheme } from '@uiw/react-json-view/githubDark';
+import JsonViewEditor from '@uiw/react-json-view/editor';
+import { useHighlight } from '@uiw/react-json-view';
 
 interface Props {
     record: PatientRecord;
 }
+  
 const PatientRecordItemJson: React.FC<Props> = ({ record }) => {
     const { theme, systemTheme } = useTheme();
     const currentTheme = (theme === 'system' ? systemTheme : theme)
@@ -25,12 +28,7 @@ const PatientRecordItemJson: React.FC<Props> = ({ record }) => {
                         <AccordionItem key={index} value={'item-' + index}>
                             <AccordionTrigger>{formatString('{0} [{1}]', labels.patientRecordItemLabel(item.type, { record }), item.subtype)}</AccordionTrigger>
                             <AccordionContent>
-                                <JsonEditor onUpdate={
-                                    (data) => {
-                                        record.json[index] = data.newData;
-                                        patientRecordContext?.updatePatientRecord(record);
-                                    }
-                                } data={item} theme={currentTheme === 'dark' ? 'githubDark' : 'githubLight '} />
+                                <JsonViewEditor value={item} style={currentTheme === 'dark' ? githubDarkTheme : githubLightTheme } />
                             </AccordionContent>
                         </AccordionItem>
                     ))}
@@ -45,12 +43,7 @@ const PatientRecordItemJson: React.FC<Props> = ({ record }) => {
                         <AccordionItem value="item-1">
                             <AccordionTrigger>Structured results</AccordionTrigger>
                             <AccordionContent>
-                                <JsonEditor onUpdate={
-                                    (data) => {
-                                        record.json = data.newData;
-                                        patientRecordContext?.updatePatientRecord(record);
-                                    }
-                                } data={record.json} theme={currentTheme === 'dark' ? 'githubDark' : 'githubLight '}/>
+                                <JsonViewEditor value={record.json} style={currentTheme === 'dark' ? githubDarkTheme : githubLightTheme }/>
                             </AccordionContent>
                         </AccordionItem>
                     </Accordion>

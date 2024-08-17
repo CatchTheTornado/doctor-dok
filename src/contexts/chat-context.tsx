@@ -104,7 +104,6 @@ export const ChatContextProvider: React.FC<PropsWithChildren> = ({ children }) =
     }
 
     const aiProvider = async (providerName:string = '') => {
-        console.log('Chat AI Provider request for: ' + providerName)
         await checkApiConfig();
 
         if (!providerName) {
