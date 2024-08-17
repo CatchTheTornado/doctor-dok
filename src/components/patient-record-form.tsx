@@ -85,12 +85,14 @@ export default function PatientRecordForm({ patient }: { patient?: Patient }) {
     setValue("note", patientRecordContext?.currentPatientRecord?.description as string);
     let existingFiles:UploadedFile[] = []
     if (patientRecordContext?.currentPatientRecord) {
+      let idx = 0
       existingFiles = patientRecordContext?.currentPatientRecord?.attachments.map((attachment) => {
+        idx ++;
         return {
           id: attachment.id, 
           status: FileUploadStatus.SUCCESS,
           uploaded: true,
-          index: attachment.id,
+          index: idx,
           file: new File([], attachment.displayName),
           dto: attachment
         }

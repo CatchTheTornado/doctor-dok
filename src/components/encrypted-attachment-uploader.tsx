@@ -129,20 +129,16 @@ export const EncryptedAttachmentUploader = forwardRef<
     const reSelectAll = maxFiles === 1 ? true : reSelect;
     const direction: DirectionOptions = dir === "rtl" ? "rtl" : "ltr";
 
-    const updateFile = (file: UploadedFile) => {
-      console.log(internalFiles, file);
-      const newFiles = internalFiles ? [...internalFiles.current] : [];
-      internalFiles.current = newFiles.map((f) => (f.index === file.index ? file : f));
-      onValueChange(newFiles);
+    const updateFile = (file: UploadedFile, allFiles: UploadedFile[]) => {
+      if(value) onValueChange(allFiles.map((f) => (f.index === file.index ? file : f)));
     }
 
     const removeFileFromSet = useCallback(
       async (i: number) => {
         if (!value) return;
-        internalFiles.current = value ? [...value] : [];
-        const fileToRemove = internalFiles.current.find((_, index) => index === i);
-        const newFiles = internalFiles.current.filter((_, index) => index !== i);
-        internalFiles.current = newFiles;
+        const files = value ? [...value] : [];
+        const fileToRemove = files.find((_, index) => index === i);
+        const newFiles = files.filter((_, index) => index !== i);
         onValueChange(newFiles);
         if (onFileRemove && fileToRemove) onFileRemove(fileToRemove);          
       },
@@ -217,10 +213,10 @@ export const EncryptedAttachmentUploader = forwardRef<
         fr.readAsArrayBuffer(fileObject);
       });
     }
-    const onInternalUpload = useCallback(async (fileToUpload:UploadedFile | null) => {
+    const onInternalUpload = useCallback(async (fileToUpload:UploadedFile | null, allFiles: UploadedFile[]) => {
         if (fileToUpload){
           fileToUpload.status = FileUploadStatus.UPLOADING;
-          updateFile(fileToUpload);
+          updateFile(fileToUpload, allFiles);
           const formData = new FormData();
           const masterKey = await dbContext?.masterKey;
           if(fileToUpload && fileToUpload.file) 
@@ -243,7 +239,7 @@ export const EncryptedAttachmentUploader = forwardRef<
               updatedAt: getCurrentTS(),            
             };
             fileToUpload.status = FileUploadStatus.ENCRYPTING;
-            updateFile(fileToUpload);
+            updateFile(fileToUpload, allFiles);
             attachmentDTO = encFilter ? await encFilter.encrypt(attachmentDTO, EncryptedAttachmentDTOEncSettings) as EncryptedAttachmentDTO : attachmentDTO;
 
             formData.append("attachmentDTO", JSON.stringify(attachmentDTO));
@@ -256,9 +252,9 @@ export const EncryptedAttachmentUploader = forwardRef<
                 const decryptedAttachmentDTO: EncryptedAttachmentDTO = (encFilter ? await encFilter.decrypt(result.data, EncryptedAttachmentDTOEncSettings) : result.data) as EncryptedAttachmentDTO;
                 console.log('Attachment saved', decryptedAttachmentDTO);
                 fileToUpload.status = FileUploadStatus.SUCCESS;
-                updateFile(fileToUpload);
                 fileToUpload.uploaded = true;
                 fileToUpload.dto = decryptedAttachmentDTO;
+                updateFile(fileToUpload, allFiles);
                 setQueueSize(uploadQueueSize-1)
                 setActiveIndex(fileToUpload.index)
                 // TODO: add file processing - like extracting preview from PDF etc.
@@ -267,7 +263,7 @@ export const EncryptedAttachmentUploader = forwardRef<
                 console.log("File upload error " + result.message);
                 toast.error("File upload error " + result.message);
                 fileToUpload.status = FileUploadStatus.ERROR;
-                updateFile(fileToUpload);
+                updateFile(fileToUpload, allFiles);
                 setQueueSize(uploadQueueSize-1)
                 setActiveIndex(fileToUpload.index)
                 if(onUploadError) onUploadError(fileToUpload, { files: value as UploadedFile[], queueSize: uploadQueueSize });
@@ -277,7 +273,7 @@ export const EncryptedAttachmentUploader = forwardRef<
               toast('File upload error ' + error);
               toast.error('File upload error ' + error);
               fileToUpload.status = FileUploadStatus.ERROR;
-              updateFile(fileToUpload);
+              updateFile(fileToUpload, allFiles);
               setQueueSize(uploadQueueSize-1)
               setActiveIndex(fileToUpload.index)
               if(onUploadError) onUploadError(fileToUpload, { files: value as UploadedFile[], queueSize: uploadQueueSize-1 });
@@ -290,7 +286,6 @@ export const EncryptedAttachmentUploader = forwardRef<
 
     const onDrop = useCallback(
       (acceptedFiles: File[], rejectedFiles: FileRejection[]) => {
-        internalFiles.current = value ? [...value] : [];
         const files = acceptedFiles;
 
         if (!files) {
@@ -298,29 +293,35 @@ export const EncryptedAttachmentUploader = forwardRef<
           return;
         }
 
-        const newValues: UploadedFile[] = internalFiles.current ? [...internalFiles.current] : [];
+        const newValues: UploadedFile[] = value ? [...value] : [];
 
         if (reSelectAll) {
-          internalFiles.current.splice(0, internalFiles.current.length);
+          newValues.splice(0, newValues.length);
         }
 
+        let maxIdx = newValues.map((f) => f.index).reduce((a, b) => Math.max(a, b), -1);
+        let idx = maxIdx + 1;
+        const filesToBeUploaded:UploadedFile[] = []
         files.forEach((file) => {
-          if (newValues.length < maxFiles && internalFiles.current.find((f) => f.file.name === file.name) === undefined) {
+          if (newValues.length < maxFiles && newValues.find((f) => f.file.name === file.name) === undefined) {
             let uploadedFile:UploadedFile = {
                 id: '',
                 file: file,
                 uploaded: false,
                 status: FileUploadStatus.UPLOADING,
-                index: newValues.length,
+                index: idx,
                 dto: null
             }
+            idx++;
+            filesToBeUploaded.push(uploadedFile);
             setQueueSize(uploadQueueSize+1)
             newValues.push(uploadedFile);
-            onInternalUpload(uploadedFile);
+          } else {
+            toast.error("File already exists or max files reached");
           }
         });
-        internalFiles.current = newValues;
-        onValueChange(internalFiles.current);
+        onValueChange(newValues);
+        filesToBeUploaded.forEach((fileToUpload) => onInternalUpload(fileToUpload, newValues));
 
         if (rejectedFiles.length > 0) {
           for (let i = 0; i < rejectedFiles.length; i++) {
