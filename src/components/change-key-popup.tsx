@@ -10,7 +10,7 @@ import { useTheme } from 'next-themes';
 import { ChangeKeyForm } from './change-key-form';
 import { Credenza, CredenzaContent, CredenzaTrigger } from './credenza';
 import { KeyContext } from '@/contexts/key-context';
-import { SettingsIcon } from 'lucide-react';
+import { KeyIcon, SettingsIcon } from 'lucide-react';
 import { Button } from './ui/button';
 
 export function ChangeKeyPopup({}) {
@@ -20,10 +20,11 @@ export function ChangeKeyPopup({}) {
 
   useEffect(() => {
   },[]);
+
   return (
     <Credenza open={keysContext?.changeEncryptionKeyDialogOpen} onOpenChange={keysContext?.setChangeEncryptionKeyDialogOpen}>
       <CredenzaContent className="sm:max-w-[425px] bg-white dark:bg-zinc-950">
-        <div className="p-4 grid items-center justify-center h-screen">
+        <div className="p-4 grid items-center justify-center">
           <ChangeKeyForm />
         </div>
       </CredenzaContent>

@@ -9,6 +9,7 @@ import AuthorizationGuard from "@/components/authorization-guard";
 import { PatientRecordContextProvider } from "@/contexts/patient-record-context";
 import { ChatContextProvider } from "@/contexts/chat-context";
 import PatientRecordsWrapper from "@/components/patient-records-wrapper";
+import { KeyContextProvider } from "@/contexts/key-context";
 
 // part of bundle size optimization (https://github.com/CatchTheTornado/patient-pad/issues/67)
 // const DynamicPatientRecordsWrapper = dynamic(() => import('@/components/patient-records-wrapper'), { ssr: false });
@@ -24,10 +25,12 @@ export default function PatientPad() {
          <ChatContextProvider>
           <PatientContextProvider>
               <PatientRecordContextProvider>
-                <div>
-                  <TopHeader />
-                  <PatientRecordsWrapper />
-                </div>
+                <KeyContextProvider>
+                  <div>
+                    <TopHeader />
+                    <PatientRecordsWrapper />
+                  </div>
+                </KeyContextProvider>
               </PatientRecordContextProvider>
             </PatientContextProvider>
           </ChatContextProvider>

@@ -1,9 +1,9 @@
-import { DataLoadingStatus, Key } from '@/data/client/models';
+import { DataLoadingStatus, Key, KeyACL } from '@/data/client/models';
 import { EncryptionUtils, generateEncryptionKey, sha256 } from '@/lib/crypto';
 import React, { createContext, PropsWithChildren, useContext, useState } from 'react';
 import { DatabaseContext, DatabaseContextType, defaultDatabaseIdHashSalt, defaultKeyLocatorHashSalt } from './db-context';
 import { toast } from 'sonner';
-import { KeyDTO } from '@/data/dto';
+import { KeyACLDTO, KeyDTO } from '@/data/dto';
 import { KeyApiClient, PutKeyResponse, PutKeyResponseError } from '@/data/client/key-api-client';
 import { ConfigContextType } from './config-context';
 import { getCurrentTS } from '@/lib/utils';
@@ -17,8 +17,8 @@ interface KeyContextProps {
     currentKey: Key | null;
 
     loadKeys: () => void;
-    addKey: (databaseId: string, displayName: string, sharedKey: string, expDate: Date | null) => Promise<PutKeyResponse>;
-    removeKey: (keyLocatorHash: string) => void;
+    addKey: (databaseId: string, displayName: string, sharedKey: string, expDate: Date | null, acl: KeyACLDTO) => Promise<PutKeyResponse>;
+    removeKey: (keyLocatorHash: string) => Promise<PutKeyResponse>;
 
     setCurrentKey: (key: Key | null) => void;
     setSharedKeysDialogOpen: (value: boolean) => void;
@@ -33,8 +33,8 @@ export const KeyContext = createContext<KeyContextProps>({
     currentKey: null,
     
     loadKeys: () => {},
-    addKey: (databaseId: string, displayName: string, sharedKey: string, expDate: Date | null) => Promise.resolve({} as PutKeyResponse),
-    removeKey: (keyLocatorHash: string) => {},
+    addKey: (databaseId: string, displayName: string, sharedKey: string, expDate: Date | null, acl: KeyACLDTO) => Promise.resolve({} as PutKeyResponse),
+    removeKey: (keyLocatorHash: string) => Promise.resolve({} as PutKeyResponse),
 
     setCurrentKey: (key: Key | null)  => {},
     setSharedKeysDialogOpen: () => {},
@@ -55,7 +55,10 @@ export const KeyContextProvider: React.FC<PropsWithChildren> = ({ children }) =>
         return client;
     }
 
-    const addKey = async (databaseId: string, displayName: string, sharedKey: string, expDate: Date | null): Promise<PutKeyResponse> => {
+    const addKey = async (databaseId: string, displayName: string, sharedKey: string, expDate: Date | null, acl: KeyACLDTO = {
+        role: 'guest',
+        features: ['*']
+    } ): Promise<PutKeyResponse> => {
         // setKeys((prevKeys) => [...prevKeys, newKey]);
         const keyHashParams = {
             salt: generateEncryptionKey(),
@@ -94,10 +97,7 @@ export const KeyContextProvider: React.FC<PropsWithChildren> = ({ children }) =>
             keyHashParams: JSON.stringify(keyHashParams),
             keyLocatorHash,
             displayName,
-            acl: JSON.stringify({
-                role: 'guest',
-                features: ['*']
-            }),
+            acl: JSON.stringify(acl),
             expiryDate: expDate,
             updatedAt: getCurrentTS()
         };
@@ -115,19 +115,15 @@ export const KeyContextProvider: React.FC<PropsWithChildren> = ({ children }) =>
     };
 
     const removeKey = async (keyLocatorHash: string) => {
-        if (keyLocatorHash) {
-            setKeys((prevKeys) => prevKeys.filter((key) => key.keyLocatorHash !== keyLocatorHash));
-            const apiClient = await setupApiClient(null);
-            apiClient.delete(keyLocatorHash);
-        }// } else {
-        //     toast.error('Cannot remove the last key');
-        // }
+        setKeys((prevKeys) => prevKeys.filter((key) => key.keyLocatorHash !== keyLocatorHash));
+        const apiClient = await setupApiClient(null);
+        return apiClient.delete(keyLocatorHash);
     };
 
     const loadKeys = async () => {
         const apiClient = await setupApiClient(null);
         const keys = await apiClient.get();
-        setKeys(keys.filter(k => k.displayName).map(k=>new Key(k))); // skip keys without display name
+        setKeys(keys.filter(k => k.displayName && (k.acl && (JSON.parse(k.acl) as KeyACLDTO).role !== 'owner') ).map(k=>new Key(k))); // skip keys without display name
     }
 
     return (

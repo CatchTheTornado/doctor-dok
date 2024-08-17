@@ -189,11 +189,6 @@ export function SettingsPopup() {
 
   return (
     <Credenza open={config?.isConfigDialogOpen} onOpenChange={config?.setConfigDialogOpen}>
-      <CredenzaTrigger asChild>
-        <Button variant="outline" size="icon">
-          <SettingsIcon className="w-6 h-6" />
-        </Button>
-      </CredenzaTrigger>
       <CredenzaContent className="sm:max-w-[425px] bg-white dark:bg-zinc-950">
         <div className="p-4">
           <form onSubmit={handleSubmit(onSubmit)}>
@@ -239,11 +234,6 @@ export function SettingsPopup() {
                             piiGeneralData: (value) => true
                           }} )}></Textarea>
                       </div>
-                      <div className="gap-2 p-4">
-                        <Button onClick={(e) => {
-                          keysContext.setChangeEncryptionKeyDialogOpen(true);
-                          config?.setConfigDialogOpen(false);
-                      }} className="color-red-500 w-full">Change Encryption Key</Button></div>
                   </CardContent>
                 </Card>
               </TabsContent>
@@ -338,6 +328,7 @@ export function SettingsPopup() {
                   <CardContent className="space-y-2">
                     <Label htmlFor="chatGptApiKey">ChatGPT API Key</Label>
                     <Input
+                      autoFocus
                       type="text"
                       id="chatGptApiKey"
                       {...register("chatGptApiKey", { required: 'Chat GPT API key is required' , validate: {

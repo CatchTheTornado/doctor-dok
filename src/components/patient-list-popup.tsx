@@ -5,7 +5,7 @@ import { DatabaseAuthStatus, DataLoadingStatus } from "@/data/client/models";
 import DataLoader from "./data-loader";
 import { ConfigContext } from "@/contexts/config-context";
 import { Alert, AlertDescription, AlertTitle } from "./ui/alert";
-import { ListIcon, Terminal } from "lucide-react";
+import { ListIcon, Terminal, User2Icon, Users, UserX2Icon } from "lucide-react";
 import { Credenza, CredenzaContent, CredenzaDescription, CredenzaHeader, CredenzaTitle, CredenzaTrigger } from "./credenza";
 import { Button } from "./ui/button";
 import DatabaseLinkAlert from "./shared/database-link-alert";
@@ -21,7 +21,7 @@ export default function PatientListPopup() {
     <Credenza open={patientsContext?.patientListPopup} onOpenChange={patientsContext?.setPatientListPopup}>
       <CredenzaTrigger asChild>
         <Button variant="outline" size="icon">
-          <ListIcon className="w-6 h-6" />
+          <Users className="w-6 h-6" />
         </Button>
       </CredenzaTrigger>
       <CredenzaContent className="sm:max-w-[500px] bg-white dark:bg-zinc-950" side="top">
