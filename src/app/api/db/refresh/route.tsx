@@ -33,7 +33,7 @@ export async function POST(request: Request) {
                 .setIssuedAt()
                 .setIssuer('urn:ctt:patient-pad')
                 .setAudience('urn:ctt:patient-pad')
-                .setExpirationTime('15m')
+                .setExpirationTime('10s')
                 .sign(new TextEncoder().encode(process.env.PATIENT_PAD_TOKEN_SECRET || 'Jeipho7ahchue4ahhohsoo3jahmui6Ap'))
 
                 const refreshToken = await new SignJWT(tokenPayload)

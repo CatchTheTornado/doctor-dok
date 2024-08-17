@@ -37,6 +37,7 @@ next-env.d.ts
 
 /data/*.sqlite
 data/db.sqlite
+/data/*
 
 *.sqlite
 *.bak

@@ -29,12 +29,12 @@ export class ApiClient {
 
   protected async getArrayBuffer(
     endpoint: string,
-    temporaryAccessToken = ''
+    repeatedRequestAccessToken = ''
   ): Promise<ArrayBuffer | null | undefined> {
     const headers: Record<string, string> = {};
 
-    if (this.dbContext?.accessToken || temporaryAccessToken) {
-      headers['Authorization'] = `Bearer ${temporaryAccessToken ? temporaryAccessToken : this.dbContext?.accessToken}`;
+    if (this.dbContext?.accessToken || repeatedRequestAccessToken) {
+      headers['Authorization'] = `Bearer ${repeatedRequestAccessToken ? repeatedRequestAccessToken : this.dbContext?.accessToken}`;
     }
 
     if(this.dbContext?.databaseHashId) {
@@ -55,7 +55,7 @@ export class ApiClient {
       if(response.status === 401) {
         console.error('Unauthorized, first and only refresh attempt');
         // Refresh token
-        if (!temporaryAccessToken) {
+        if (!repeatedRequestAccessToken) {
           const refreshResult = await this.dbContext?.refresh({
             refreshToken: this.dbContext.refreshToken
           })
@@ -90,35 +90,38 @@ export class ApiClient {
     encryptionSettings?: DTOEncryptionSettings,
     body?: any,
     formData?: FormData,
-    temporaryAccessToken:string = ''
+    repeatedRequestAccessToken:string = ''
   ): Promise<T | T[]> {
     const headers: Record<string, string> = {};
 
-    if (this.dbContext?.accessToken || temporaryAccessToken) {
-      headers['Authorization'] = `Bearer ${temporaryAccessToken ? temporaryAccessToken : this.dbContext?.accessToken}`;
+    if (this.dbContext?.accessToken || repeatedRequestAccessToken) {
+      headers['Authorization'] = `Bearer ${repeatedRequestAccessToken ? repeatedRequestAccessToken : this.dbContext?.accessToken}`;
     }
 
     if(this.dbContext?.databaseHashId) {
       headers['Database-Id-Hash'] = this.dbContext?.databaseHashId;
     }
 
-    if (formData) {
-      if (this.encryptionFilter) {
-        throw new Error('Encryption is not supported for FormData');
-      }
+    if (!repeatedRequestAccessToken) { //  if this is just a repeated request - in case of token refresh we're not encrypting data second time
+      if (formData) {
+          if (this.encryptionFilter) {
+            throw new Error('Encryption is not supported for FormData');
+          }
 
-      // Set Content-Type header to 'multipart/form-data'
-      headers['Content-Type'] = 'multipart/form-data';
-    } else {
-      // Set Content-Type header to 'application/json'
-      headers['Content-Type'] = 'application/json';
+          // Set Content-Type header to 'multipart/form-data'
+          headers['Content-Type'] = 'multipart/form-data';
+        } else {
+          // Set Content-Type header to 'application/json'
+          headers['Content-Type'] = 'application/json';
 
-      // Encrypt body if encryptionFilter is available
-      if (body && this.encryptionFilter) {
-        body = await this.encryptionFilter.encrypt(body, encryptionSettings);
-      }
-    }
-
+          // Encrypt body if encryptionFilter is available
+          if (body && this.encryptionFilter) {
+            body = await this.encryptionFilter.encrypt(body, encryptionSettings);
+          }
+        }
+    } else [
+      console.log('Repeated request to ' + endpoint + ', skipping encryption')
+    ]
     const config: AxiosRequestConfig = {
       method,
       url: `${this.baseUrl}${endpoint}`,
@@ -133,7 +136,7 @@ export class ApiClient {
       if(response.status === 401) {
         console.error('Unauthorized, first and only refresh attempt');
         // Refresh token
-        if (!temporaryAccessToken) {
+        if (!repeatedRequestAccessToken) {
           const refreshResult = await this.dbContext?.refresh({
             refreshToken: this.dbContext.refreshToken
           })

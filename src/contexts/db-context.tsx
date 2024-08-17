@@ -139,7 +139,7 @@ export const DatabaseContextProvider: React.FC<PropsWithChildren> = ({ children 
             setKeyLocatorHash(keyLocatorHash);
             setKeyHash(keyHash.encoded);
             setKeyHashParams(keyHashParams);
-            setMasterKey(masterKey);
+            setMasterKey(masterKey.trim());
             setEncryptionKey(createRequest.key);
         }
 
@@ -253,7 +253,7 @@ export const DatabaseContextProvider: React.FC<PropsWithChildren> = ({ children 
                 setKeyHashParams(keyHashParams);
 
                 const encryptedMasterKey = (authResponse as AuthorizeDbResponse).data.encryptedMasterKey;
-                setMasterKey(await encryptionUtils.decrypt(encryptedMasterKey));
+                setMasterKey((await encryptionUtils.decrypt(encryptedMasterKey)).trim());
                 setEncryptionKey(authorizeRequest.key);
 
                 setAccesToken((authResponse as AuthorizeDbResponse).data.accessToken);
