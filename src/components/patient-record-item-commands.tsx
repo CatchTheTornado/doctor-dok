@@ -116,10 +116,10 @@ const PatientRecordItemCommands: React.FC<Props> = ({ record, patient, open, set
         <CommandList>
             <CommandEmpty>No results found.</CommandEmpty>
             <CommandGroup heading="Suggestions">
-                <CommandItem className="text-xs" onSelect={(v) => { patientRecordContext?.extraToRecord('interpretation', prompts.patientRecordInterpretation({ record }), record) }}><Wand2Icon /> AI Interpretation</CommandItem>
-                <CommandItem className="text-xs" onSelect={(v) => { patientRecordContext?.extraToRecord('summary', prompts.patientRecordSummary({ record }), record) }}><TextQuoteIcon /> Summary in one sentence</CommandItem>
-                <CommandItem className="text-xs" onSelect={(v) => { patientRecordContext?.sendAllRecordsToChat() }}><ClipboardPasteIcon /> Add all records to chat context</CommandItem>
-                <CommandItem className="text-xs" onSelect={(v) => { 
+                <CommandItem key="cmd-interpret" className="text-xs" onSelect={(v) => { patientRecordContext?.extraToRecord('interpretation', prompts.patientRecordInterpretation({ record }), record) }}><Wand2Icon /> AI Interpretation</CommandItem>
+                <CommandItem key="cmd-summary" className="text-xs" onSelect={(v) => { patientRecordContext?.extraToRecord('summary', prompts.patientRecordSummary({ record }), record) }}><TextQuoteIcon /> Summary in one sentence</CommandItem>
+                <CommandItem key="cmd-send-all" className="text-xs" onSelect={(v) => { patientRecordContext?.sendAllRecordsToChat() }}><ClipboardPasteIcon /> Add all records to chat context</CommandItem>
+                <CommandItem key="cmd-best-next-steps" className="text-xs" onSelect={(v) => { 
                         chatContext.setChatOpen(true);
                         chatContext.sendMessage({
                           message: {
@@ -133,7 +133,7 @@ const PatientRecordItemCommands: React.FC<Props> = ({ record, patient, open, set
             <CommandSeparator />
             <CommandGroup heading="Translations">
                 {supportedLanguages.map((item) => (
-                    <CommandItem  onSelect={(v) => {
+                    <CommandItem key={item.code}  onSelect={(v) => {
                         chatContext.setChatOpen(true);
                         chatContext.sendMessage({
                           message: {
