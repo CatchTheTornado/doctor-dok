@@ -80,7 +80,7 @@ export function Chat() {
         </DrawerHeader>
         <div className="flex flex-col h-[500px] overflow-y-auto">
           <div className="flex-1 p-4 space-y-4">
-            {chatContext.messages.map((message, index) => (
+            {chatContext.messages.slice(chatContext.messages.length > 5 ? chatContext.messages.length-8 : 0, chatContext.messages.length).map((message, index) => ( // display only last 5 messages
               <ChatMessage key={index} message={message} />
             ))}
             {chatContext.isStreaming ? (
