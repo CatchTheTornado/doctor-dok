@@ -9,8 +9,10 @@ const config: Config = {
   theme: {
     extend: {
       screens: {
-        'xs': '375px',
-        
+        'xxs': '100px',
+
+        'xs': '320px',
+
         'sm': '640px',
         // => @media (min-width: 640px) { ... }
   
