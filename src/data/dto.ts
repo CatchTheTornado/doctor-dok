@@ -15,7 +15,7 @@ export const patientDTOSchema = z.object({
   updatedAt: z.string().default(() => getCurrentTS()),
 });
 
-export const PatientDTOEncSettings: DTOEncryptionSettings =  { ecnryptedFields: ['firstName', 'lastName', 'dateOfBirth', 'email'] }
+export const PatientDTOEncSettings: DTOEncryptionSettings =  { ecnryptedFields: ['firstName', 'lastName', 'dateOfBirth', 'email', 'json'] }
 export type PatientDTO = z.infer<typeof patientDTOSchema>;
 
 export const configDTOSchema = z.object({
@@ -122,11 +122,18 @@ export const databaseRefreshRequestSchema = z.object({
 
 export type DatabaseRefreshRequestDTO = z.infer<typeof databaseRefreshRequestSchema>;
 
-  export const keyHashParamsDTOSchema = z.object({
-    salt: z.string(),
-    time: z.number().positive().int(),
-    mem: z.number().positive().int(),
-    hashLen: z.number().positive().int(),
-    parallelism: z.number().positive().int(),
-  });
-  export type KeyHashParamsDTO = z.infer<typeof keyHashParamsDTOSchema>;
+export const keyHashParamsDTOSchema = z.object({
+  salt: z.string(),
+  time: z.number().positive().int(),
+  mem: z.number().positive().int(),
+  hashLen: z.number().positive().int(),
+  parallelism: z.number().positive().int(),
+});
+export type KeyHashParamsDTO = z.infer<typeof keyHashParamsDTOSchema>;
+
+export const keyACLSchema = z.object({
+  role: z.string().min(1),
+  features: z.array(z.string()).min(1),
+});
+export type KeyACLDTO = z.infer<typeof keyACLSchema>;
+export const defaultKeyACL: KeyACLDTO = { role: 'guest', features: [] };

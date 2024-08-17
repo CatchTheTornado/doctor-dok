@@ -13,10 +13,10 @@ export default function SharedKeyItem({ sharedKey, selected, onClick }: { shared
       href=""
       onClick={onClick}
     >
-      <div className="grid grid-cols-3">
+      <div className="grid grid-cols-3 w-full">
         <div className="font-medium">{sharedKey.displayName}</div>
-        <div className="text-sm text-zinc-500 dark:text-zinc-400">Expiry date: {sharedKey.expiryDate ? new Date(sharedKey.expiryDate as string).toLocaleString(): 'never'} {new Date(sharedKey.expiryDate as string).getTime() < Date.now() ? (<span className="text-red-500">expired!</span>) : null}</div>
-        <div className="text-sm">
+        <div className="text-xs text-zinc-500 dark:text-zinc-400">Expiry date: {sharedKey.expiryDate ? new Date(sharedKey.expiryDate as string).toLocaleString(): 'never'} {sharedKey.expiryDate && new Date(sharedKey.expiryDate as string).getTime() < Date.now() ? (<span className="text-red-500">expired!</span>) : null}</div>
+        <div className="text-sm items-end">
           <Button onClick={(e) => {
             keysContext.removeKey(sharedKey.keyLocatorHash);
           }}>Revoke key</Button>

@@ -4,7 +4,8 @@ import { ZodError, ZodObject } from "zod";
 import { NextRequest, NextResponse } from "next/server";
 import { authorizeKey } from "@/data/server/server-key-helpers";
 import { jwtVerify } from "jose";
-import { KeyDTO } from "@/data/dto";
+import { defaultKeyACL, KeyACLDTO, KeyDTO } from "@/data/dto";
+import { Key } from "react";
 
 export type ApiResult = {
     message: string;
@@ -18,7 +19,7 @@ export type AuthorizedRequestContext = {
     databaseIdHash: string;
     keyHash: string;
     keyLocatorHash: string;
-    acl: any;
+    acl: KeyACLDTO;
     extra: any;
 }
 
@@ -38,11 +39,13 @@ export async function authorizeRequestContext(request: Request, response?: NextR
             NextResponse.json({ message: 'Unauthorized', status: 401 });
             throw new Error('Unauthorized. Wrong Key.');
         } else {
+            const keyACL = (authResult as KeyDTO).acl ?? null;
+            const aclDTO = keyACL ? JSON.parse(keyACL) : defaultKeyACL
             return {
                 databaseIdHash: decoded.payload.databaseIdHash as string,
                 keyHash: decoded.payload.keyHash as string,
                 keyLocatorHash: decoded.payload.keyLocatorHash as string,
-                acl: (authResult as KeyDTO).acl,
+                acl: aclDTO as KeyACLDTO,
                 extra: (authResult as KeyDTO).extra
             }
         }

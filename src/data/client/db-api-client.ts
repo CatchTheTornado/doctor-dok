@@ -1,5 +1,5 @@
 import { DatabaseContextType } from "@/contexts/db-context";
-import { DatabaseAuthorizeChallengeRequestDTO, DatabaseAuthorizeRequestDTO, DatabaseCreateRequestDTO, DatabaseRefreshRequestDTO, KeyHashParamsDTO } from "../dto";
+import { DatabaseAuthorizeChallengeRequestDTO, DatabaseAuthorizeRequestDTO, DatabaseCreateRequestDTO, DatabaseRefreshRequestDTO, KeyACLDTO, KeyHashParamsDTO } from "../dto";
 import { ApiClient, ApiEncryptionConfig } from "./base-api-client";
 
 export type CreateDbResponse = {
@@ -23,6 +23,7 @@ export type AuthorizeDbResponse = {
     encryptedMasterKey: string;
     accessToken: string;
     refreshToken: string;
+    acl: KeyACLDTO | null;
   }
   status: number;
   issues?: any[];

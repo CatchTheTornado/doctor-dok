@@ -1,6 +1,6 @@
 import React, { createContext, useState,  PropsWithChildren } from 'react';
 import { KeyHashParamsDTO } from '@/data/dto';
-import { DatabaseAuthorizeRequest, DatabaseAuthStatus, DatabaseCreateRequest, DatabaseKeepLoggedInRequest, DatabaseRefreshRequest, DataLoadingStatus, Patient, PatientRecord } from '@/data/client/models';
+import { DatabaseAuthorizeRequest, DatabaseAuthStatus, DatabaseCreateRequest, DatabaseKeepLoggedInRequest, DatabaseRefreshRequest, DataLoadingStatus, KeyACL, Patient, PatientRecord } from '@/data/client/models';
 import { AuthorizeDbResponse, DbApiClient, RefreshDbResponse } from '@/data/client/db-api-client';
 import { ConfigContextType } from './config-context';
 import { EncryptionUtils, generateEncryptionKey, sha256 } from '@/lib/crypto';
@@ -41,6 +41,9 @@ export type DatabaseContextType = {
     encryptionKey: string;
     setEncryptionKey: (key: string) => void; 
 
+    acl: KeyACL | null;
+    setACL: (acl: KeyACL | null) => void;
+
 
     databaseHashId: string;
     setDatabaseHashId: (hashId: string) => void;
@@ -78,6 +81,7 @@ export const DatabaseContextProvider: React.FC<PropsWithChildren> = ({ children 
     const [masterKey, setMasterKey] = useState<string>('');
     const [encryptionKey, setEncryptionKey] = useState<string>('');
 
+    const [acl, setACL] = useState<KeyACL|null>(null);
     const [databaseHashId, setDatabaseHashId] = useState<string>('');
     const [keyLocatorHash, setKeyLocatorHash] = useState<string>('');
     const [keyHash, setKeyHash] = useState<string>('');
@@ -152,6 +156,7 @@ export const DatabaseContextProvider: React.FC<PropsWithChildren> = ({ children 
 
     const logout = () => {
         setDatabaseId('');
+        setACL(null);
         setMasterKey('');
         setEncryptionKey('');
         setDatabaseHashId('');
@@ -269,6 +274,13 @@ export const DatabaseContextProvider: React.FC<PropsWithChildren> = ({ children 
                     }
                 }
 
+                const aclDTO = (authResponse as AuthorizeDbResponse).data.acl;
+                if(aclDTO) {
+                    console.log('Setting ACL: ', aclDTO);
+                    setACL(new KeyACL(aclDTO));
+                } else {
+                    setACL(null);
+                }
                 return {
                     success: true,
                     message: authResponse.message,
@@ -321,7 +333,9 @@ export const DatabaseContextProvider: React.FC<PropsWithChildren> = ({ children 
         authorize,
         logout,
         refresh,
-        keepLoggedIn
+        keepLoggedIn,
+        acl,
+        setACL
     };
 
     return (

@@ -11,6 +11,7 @@ import { toast } from "sonner";
 import { useTheme } from 'next-themes';
 import SharedKeysPopup from "./shared-keys-popup";
 import { KeyContextProvider } from "@/contexts/key-context";
+import { ChangeKeyPopup } from "./change-key-popup";
 
 export default function TopHeader() {
     const patientContext = useContext(PatientContext);
@@ -27,10 +28,11 @@ export default function TopHeader() {
         <div className="flex items-center gap-2">
           <PatientListPopup />
           <KeyContextProvider>
-            <SharedKeysPopup />
+            {!dbContext?.acl || dbContext.acl.role === 'owner' ? (<SharedKeysPopup />) : null}
+            <ChangeKeyPopup />
           </KeyContextProvider>
 
-          <SettingsPopup />
+          {!dbContext?.acl || dbContext.acl.role === 'owner' ? (<SettingsPopup />) : null}
           {(patientContext?.currentPatient !== null) ? (
             <PatientRecordForm patient={patientContext?.currentPatient} />
           ) : ("")}

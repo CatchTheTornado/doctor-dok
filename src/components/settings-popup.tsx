@@ -14,6 +14,9 @@ import { useForm } from "react-hook-form";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "./ui/select";
 import { set } from "react-hook-form";
 import { Textarea } from "./ui/textarea";
+import { DatabaseContext } from "@/contexts/db-context";
+import { KeyContext } from "@/contexts/key-context";
+import { ChangeKeyPopup } from "./change-key-popup";
 
 const ocrLlanguages = [
   { name: "English", code: "eng" },
@@ -119,6 +122,7 @@ const ocrLlanguages = [
 
 export function SettingsPopup() {
   const config = useContext(ConfigContext);
+  const keysContext = useContext(KeyContext);
   const [ocrProvider, setOcrProvider] = useState("chatgpt");
   const [ocrLanguage, setOcrLanguage] = useState("eng");
   const [llmProviderChat, setLlmProviderChat] = useState("chatgpt")
@@ -202,10 +206,7 @@ export function SettingsPopup() {
             <TabsContent value="general-settings">
                 <Card>
                   <CardHeader>
-                    <CardTitle>General Settings</CardTitle>
-                    <CardDescription>
-                      Setup application settings here
-                    </CardDescription>
+                    General Settings
                   </CardHeader>
                   <CardContent className="space-y-2">
                     <div className="flex items-center gap-2">
@@ -238,6 +239,11 @@ export function SettingsPopup() {
                             piiGeneralData: (value) => true
                           }} )}></Textarea>
                       </div>
+                      <div className="gap-2 p-4">
+                        <Button onClick={(e) => {
+                          keysContext.setChangeEncryptionKeyDialogOpen(true);
+                          config?.setConfigDialogOpen(false);
+                      }} className="color-red-500 w-full">Change Encryption Key</Button></div>
                   </CardContent>
                 </Card>
               </TabsContent>

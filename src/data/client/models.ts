@@ -1,4 +1,4 @@
-import { EncryptedAttachmentDTO, KeyDTO, PatientDTO, PatientRecordDTO } from "../dto";
+import { EncryptedAttachmentDTO, KeyACLDTO, KeyDTO, PatientDTO, PatientRecordDTO } from "../dto";
 import { z } from "zod";
 
 import PasswordValidator from 'password-validator';
@@ -218,6 +218,27 @@ export class PatientRecord {
     }  
   }
 
+export class KeyACL {
+    role: string;
+    features: string[];
+    constructor(keyACLDTO: KeyACLDTO) {
+        this.role = keyACLDTO.role;
+        this.features = keyACLDTO.features;
+    }
+
+    static fromDTO(keyACLDTO: KeyACLDTO): KeyACL {
+        return new KeyACL(keyACLDTO);
+    }
+
+    toDTO(): KeyACLDTO {
+        return {
+            role: this.role,
+            features: this.features,
+        };
+    }
+
+}
+
 export class Key {
     displayName: string;
     keyLocatorHash: string;
@@ -225,19 +246,19 @@ export class Key {
     keyHashParams: string;
     databaseIdHash: string;
     encryptedMasterKey: string;
-    acl: string | null;
+    acl: KeyACL | null;
     extra: string | null;
     expiryDate: string | null;
     updatedAt: string;
 
-    constructor(keyDTO: KeyDTO) {
+    constructor(keyDTO: KeyDTO | Key) {
         this.displayName = keyDTO.displayName;
         this.keyLocatorHash = keyDTO.keyLocatorHash;
         this.keyHash = keyDTO.keyHash;
         this.keyHashParams = keyDTO.keyHashParams;
         this.databaseIdHash = keyDTO.databaseIdHash;
         this.encryptedMasterKey = keyDTO.encryptedMasterKey;
-        this.acl = keyDTO.acl ?? null;
+        this.acl = keyDTO instanceof Key ? keyDTO.acl :  (keyDTO.acl ? JSON.parse(keyDTO.acl) : null);
         this.extra = keyDTO.extra ?? null;
         this.expiryDate = keyDTO.expiryDate ?? null;
         this.updatedAt = keyDTO.updatedAt ?? getCurrentTS();
@@ -249,12 +270,13 @@ export class Key {
 
     toDTO(): KeyDTO {
         return {
+            displayName: this.displayName,
             keyLocatorHash: this.keyLocatorHash,
             keyHash: this.keyHash,
             keyHashParams: this.keyHashParams,
             databaseIdHash: this.databaseIdHash,
             encryptedMasterKey: this.encryptedMasterKey,
-            acl: this.acl,
+            acl: JSON.stringify(this.acl),
             extra: this.extra,
             expiryDate: this.expiryDate,
             updatedAt: this.updatedAt,

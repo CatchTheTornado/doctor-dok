@@ -4,6 +4,9 @@ import { authorizeRequestContext, genericDELETE } from "@/lib/generic-api";
 
 export async function DELETE(request: Request, { params }: { params: { key: string }} ) {
     const requestContext = await authorizeRequestContext(request);
+    if (requestContext.acl.role !== 'owner') {
+        return Response.json({ message: "Owner role is required", status: 401 }, {status: 401});
+    }
 
     const recordLocator = params.key;
     if(!recordLocator){

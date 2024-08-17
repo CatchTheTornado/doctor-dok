@@ -3,6 +3,7 @@ import { maintenance } from "@/data/server/db-provider";
 import ServerKeyRepository from "@/data/server/server-key-repository";
 import { getCurrentTS, getErrorMessage, getZedErrorMessage } from "@/lib/utils";
 import { NextRequest, userAgent } from "next/server";
+import { features } from "process";
 
 
 
@@ -46,12 +47,16 @@ export async function POST(request: NextRequest) {
                     });                    
                 } else {
                     const firstUserKey = keyRepo.create({
+                        displayName: '',
                         keyLocatorHash: authCreateRequest.keyLocatorHash,
                         keyHash: authCreateRequest.keyHash,
                         keyHashParams: authCreateRequest.keyHashParams,
                         encryptedMasterKey: authCreateRequest.encryptedMasterKey,
                         databaseIdHash: authCreateRequest.databaseIdHash,                
-                        acl: null,
+                        acl: JSON.stringify({
+                            role: 'owner',
+                            features: ['*']
+                        }),
                         extra: null,
                         expiryDate: null,
                         updatedAt: getCurrentTS(),
