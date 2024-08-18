@@ -6,6 +6,8 @@
 
 **1 Password + AI for Health**
 
+**Convert all your Blood Tests, MRI Scans, TK Scans, After Visit reports, Hospital Admission Reports to JSON, safely store in the cloud and discuss, annotate, translate it with AI.**
+
 Patient Pad is a secure storage, digitization, sharing and AI discovery platform for all your family and/or patients health data.
 
 All health history - digitalized - accesible anywhere from Mobile or Desktop. Using AI you may **translate your health records to one of 50+ languages** - making abroad health services more accesible.
