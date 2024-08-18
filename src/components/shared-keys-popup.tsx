@@ -5,7 +5,7 @@ import { DatabaseAuthStatus, DataLoadingStatus } from "@/data/client/models";
 import DataLoader from "./data-loader";
 import { ConfigContext } from "@/contexts/config-context";
 import { Alert, AlertDescription, AlertTitle } from "./ui/alert";
-import { ListIcon, Share2Icon, Terminal } from "lucide-react";
+import { ListIcon, PlusIcon, Share2Icon, Terminal } from "lucide-react";
 import { Credenza, CredenzaContent, CredenzaDescription, CredenzaHeader, CredenzaTitle, CredenzaTrigger } from "./credenza";
 import { Button } from "./ui/button";
 import DatabaseLinkAlert from "./shared/database-link-alert";
@@ -53,7 +53,7 @@ export default function SharedKeysPopup() {
                     ))
                     : (
                       <NoRecordsAlert title="Data is not shared">
-                        No Shared Keys found in the database. Please add a new Shared Key using "+" icon above.
+                        No Shared Keys found in the database. Please add a new Shared Key using <strong>+</strong> icon above.
                       </NoRecordsAlert>
                     )
                 )}

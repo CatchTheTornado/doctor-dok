@@ -8,6 +8,7 @@ import { Alert, AlertDescription, AlertTitle } from "./ui/alert";
 import { sort } from "fast-sort";
 import { useEffectOnce } from "react-use";
 import { ConfigContext } from "@/contexts/config-context";
+import { PlusIcon } from "lucide-react";
 
 export default function PatientRecordList({ patient }) {
   const patientRecordContext = useContext(PatientRecordContext);
@@ -44,7 +45,7 @@ export default function PatientRecordList({ patient }) {
         ) : (null) }
         { (patientRecordContext?.loaderStatus === "success" && patientRecordContext?.patientRecords.length === 0) ? (
           <NoRecordsAlert title="No health records found">
-            No health records found in the database. Please add a new patient using "+" icon above.
+            No health records found in the database. Please add a new patient using <strong>+</strong> icon above.
           </NoRecordsAlert>
         ) : (null) }
         { (patientRecordContext?.loaderStatus === "success" && patientRecordContext?.patientRecords.length > 0) ? (

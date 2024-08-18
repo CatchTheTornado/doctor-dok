@@ -5,7 +5,7 @@ import { DatabaseAuthStatus, DataLoadingStatus } from "@/data/client/models";
 import DataLoader from "./data-loader";
 import { ConfigContext } from "@/contexts/config-context";
 import { Alert, AlertDescription, AlertTitle } from "./ui/alert";
-import { ListIcon, Terminal, User2Icon, Users, UserX2Icon } from "lucide-react";
+import { ListIcon, PlusIcon, Terminal, User2Icon, Users, UserX2Icon } from "lucide-react";
 import { Credenza, CredenzaContent, CredenzaDescription, CredenzaHeader, CredenzaTitle, CredenzaTrigger } from "./credenza";
 import { Button } from "./ui/button";
 import DatabaseLinkAlert from "./shared/database-link-alert";
@@ -50,7 +50,7 @@ export default function PatientListPopup() {
                     ))
                     : (
                       <NoRecordsAlert title="No patients found">
-                        No patients found in the database. Please add a new patient using "+" icon above.
+                        No patients found in the database. Please add a new patient using <strong>+</strong> icon above.
                       </NoRecordsAlert>
                     )
                 )}

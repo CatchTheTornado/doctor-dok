@@ -9,7 +9,7 @@ export async function middleware(request: NextRequest) {
         return NextResponse.json({ message: 'Unauthorized', status: 401 }, { status: 401 });
     } else {
         try {
-            const decoded = await jwtVerify(jwtToken, new TextEncoder().encode(process.env.PATIENT_PAD_TOKEN_SECRET || 'Jeipho7ahchue4ahhohsoo3jahmui6Ap'));
+            const decoded = await jwtVerify(jwtToken, new TextEncoder().encode(process.env.NEXT_PUBLIC_TOKEN_SECRET || 'Jeipho7ahchue4ahhohsoo3jahmui6Ap'));
             const checkDbHeader = request.headers.get('database-id-hash') === decoded.payload.databaseIdHash;
 
             if(!checkDbHeader) {

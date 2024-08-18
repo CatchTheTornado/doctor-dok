@@ -5,7 +5,7 @@ import { PatientContext } from "@/contexts/patient-context";
 import DatabaseLinkAlert from "./shared/database-link-alert";
 import { ConfigContext } from "@/contexts/config-context";
 import { NoRecordsAlert } from "./shared/no-records-alert";
-import { ListIcon } from "lucide-react";
+import { ListIcon, UsersIcon } from "lucide-react";
 import { useEffectOnce } from "react-use";
 import { PatientRecordContext } from "@/contexts/patient-record-context";
 import { DatabaseContext } from "@/contexts/db-context";
@@ -40,7 +40,7 @@ export default function PatientRecordsWrapper({}) {
           </div>
         ) : (
         <NoRecordsAlert title="No patients found">
-          <div className="flex items-center">Please do select current patient using the <ListIcon className="flex ml-4 mr-4" /> icon above.</div>
+          <div className="flex items-center">Please do select current patient using the <UsersIcon className="flex ml-4 mr-4" /> icon above.</div>
         </NoRecordsAlert>          
         ) }
       </div>

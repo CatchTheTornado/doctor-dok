@@ -11,6 +11,28 @@ function isNumber(value:any){
   return !isNaN(value);
 }
 
+function coercedVal(val: any): ConfigSupportedValueType {
+  if (val === '' || val === undefined || val === 'null') return '';
+  if (val === 'true') return true; // booleans are not supported by sqlite so we're converting them on input and outputse
+  if (val === 'false') return false;
+  if (isNumber(val)) return Number(val);
+
+  return val;
+}
+
+export const ENV_PROVIDED_CONFIG = {
+  chatGptApiKey: process.env.NEXT_PUBLIC_CHAT_GPT_API_KEY,
+  displayAttachmentPreviews: process.env.NEXT_PUBLIC_DISPLAY_ATTACHMENT_PREVIEWS,
+  ocrProvider: process.env.NEXT_PUBLIC_OCR_PROVIDER,
+  ocrLanguage: process.env.NEXT_PUBLIC_OCR_LANGUAGE,
+  ollamaUrl: process.env.NEXT_PUBLIC_OLLAMA_URL,
+  ollamaModel: process.env.NEXT_PUBLIC_OLLAMA_MODEL,
+  llmProviderChat: process.env.NEXT_PUBLIC_LLM_PROVIDER_CHAT,
+  llmProviderParse: process.env.NEXT_PUBLIC_LLM_PROVIDER_PARSE,
+  llmProviderRemovePII: process.env.NEXT_PUBLIC_LLM_PROVIDER_REMOVE_PII,
+  piiGeneralData: process.env.NEXT_PUBLIC_PII_GENERAL_DATA
+}
+
 type ConfigSupportedValueType = string | number | boolean | null | undefined;
 
 export type ConfigContextType = {
@@ -82,7 +104,13 @@ const [isConfigDialogOpen, setConfigDialogOpen] = React.useState(false);
           }
           localConfig = ({ ...localConfig, [key]: value });
         },
-      getLocalConfig: (key: string) => localConfig[key],
+      getLocalConfig: (key: string) => {
+        if (typeof localConfig[key] !== 'undefined') {
+          return coercedVal(localConfig[key]);
+        } else {
+          return coercedVal(ENV_PROVIDED_CONFIG[key]);
+        }
+      },
       setServerConfig: (key: string, value: ConfigSupportedValueType) =>
       {
         if (dbContext?.authStatus === DatabaseAuthStatus.Authorized) {
@@ -95,11 +123,11 @@ const [isConfigDialogOpen, setConfigDialogOpen] = React.useState(false);
       getServerConfig: async (key: string) => {
         const serverConfig  = await loadServerConfig();
         const val = serverConfig[key];
-        if (val === '' || val === undefined || val === 'null') return '';
-        if (val === 'true') return true; // booleans are not supported by sqlite so we're converting them on input and outputse
-        if (val === 'false') return false;
-        if (isNumber(val)) return Number(val);
-        return val;
+        if (serverConfig && typeof serverConfig[key] !== 'undefined') {
+          return coercedVal(val);
+        } else {
+            return coercedVal(ENV_PROVIDED_CONFIG[key]);
+        }
       },
     };
   

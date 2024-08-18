@@ -28,7 +28,7 @@ export async function authorizeRequestContext(request: Request, response?: NextR
     const jwtToken = authorizationHeader?.replace('Bearer ', '');
 
     if (jwtToken) {
-        const decoded = await jwtVerify(jwtToken as string, new TextEncoder().encode(process.env.PATIENT_PAD_TOKEN_SECRET || 'Jeipho7ahchue4ahhohsoo3jahmui6Ap'));
+        const decoded = await jwtVerify(jwtToken as string, new TextEncoder().encode(process.env.NEXT_PUBLIC_TOKEN_SECRET || 'Jeipho7ahchue4ahhohsoo3jahmui6Ap'));
 
         const authResult = await authorizeKey({
             databaseIdHash: decoded.payload.databaseIdHash as string,

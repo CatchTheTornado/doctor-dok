@@ -149,25 +149,30 @@ export const ChatContextProvider: React.FC<PropsWithChildren> = ({ children }) =
             content: '',
             createdAt: new Date(),
             role: 'assistant'
-        }        
-        const result = await streamText({
-            model: await aiProvider(providerName),
-            messages: convertToCoreMessages(messages),
-            onFinish: (e) =>  {
-                e.text.indexOf('```json') > -1 ? resultMessage.displayMode = MessageDisplayMode.InternalJSONResponse : resultMessage.displayMode = MessageDisplayMode.Text
-                resultMessage.finished = true;
-                if (onResult) onResult(resultMessage, e);
-                // TODO: add chat persistency and maybe extract health records / other data for #43
-            }
-          });
-          
-
-        for await (const delta of result.textStream) {
-            resultMessage.content += delta;
-            setMessages([...messages, resultMessage])
         }
-        setIsStreaming(false);
-        setMessages([...messages, resultMessage])
+        try {
+            const result = await streamText({
+                model: await aiProvider(providerName),
+                messages: convertToCoreMessages(messages),
+                onFinish: (e) =>  {
+                    e.text.indexOf('```json') > -1 ? resultMessage.displayMode = MessageDisplayMode.InternalJSONResponse : resultMessage.displayMode = MessageDisplayMode.Text
+                    resultMessage.finished = true;
+                    if (onResult) onResult(resultMessage, e);
+                    // TODO: add chat persistency and maybe extract health records / other data for #43
+                }
+            });
+            
+
+            for await (const delta of result.textStream) {
+                resultMessage.content += delta;
+                setMessages([...messages, resultMessage])
+            }
+            setIsStreaming(false);
+            setMessages([...messages, resultMessage])
+        } catch (e) {
+            setIsStreaming(false);
+            toast.error('Error while streaming AI response: ' + e);
+        }
     }
 
     const prepareMessage = (msg: MessageEx, setMessages: React.Dispatch<React.SetStateAction<MessageEx[]>>, messages: MessageEx[], setLastMessage: React.Dispatch<React.SetStateAction<MessageEx | null>>) => {

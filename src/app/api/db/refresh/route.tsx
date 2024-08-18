@@ -11,7 +11,7 @@ export async function POST(request: Request) {
         if (validationResult.success === true) {
 
             const jwtToken = validationResult.data.refreshToken;
-            const tokenData = await jwtVerify<DatabaseAuthorizeRequestDTO>(jwtToken, new TextEncoder().encode(process.env.PATIENT_PAD_REFRESH_TOKEN_SECRET || 'Am2haivu9teiseejai5Ao6engae8hiuw'))
+            const tokenData = await jwtVerify<DatabaseAuthorizeRequestDTO>(jwtToken, new TextEncoder().encode(process.env.NEXT_PUBLIC_REFRESH_TOKEN_SECRET || 'Am2haivu9teiseejai5Ao6engae8hiuw'))
             const authRequest = {
                 databaseIdHash: tokenData.payload.databaseIdHash,
                 keyHash: tokenData.payload.keyHash,
@@ -34,7 +34,7 @@ export async function POST(request: Request) {
                 .setIssuer('urn:ctt:patient-pad')
                 .setAudience('urn:ctt:patient-pad')
                 .setExpirationTime('15m')
-                .sign(new TextEncoder().encode(process.env.PATIENT_PAD_TOKEN_SECRET || 'Jeipho7ahchue4ahhohsoo3jahmui6Ap'))
+                .sign(new TextEncoder().encode(process.env.NEXT_PUBLIC_TOKEN_SECRET || 'Jeipho7ahchue4ahhohsoo3jahmui6Ap'))
 
                 const refreshToken = await new SignJWT(tokenPayload)
                 .setProtectedHeader({ alg })
@@ -42,7 +42,7 @@ export async function POST(request: Request) {
                 .setIssuer('urn:ctt:patient-pad')
                 .setAudience('urn:ctt:patient-pad')
                 .setExpirationTime('8h')
-                .sign(new TextEncoder().encode(process.env.PATIENT_PAD_REFRESH_TOKEN_SECRET || 'Am2haivu9teiseejai5Ao6engae8hiuw'))
+                .sign(new TextEncoder().encode(process.env.NEXT_PUBLIC_REFRESH_TOKEN_SECRET || 'Am2haivu9teiseejai5Ao6engae8hiuw'))
 
                 return Response.json({
                     message: 'Succesfully Refreshed!',

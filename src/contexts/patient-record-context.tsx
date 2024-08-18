@@ -110,7 +110,7 @@ export const PatientRecordContextProvider: React.FC<PropsWithChildren> = ({ chil
                       recordMarkdown += block.code;
                   }
               }
-              const discoveredType = recordJSON.length > 0 ? recordJSON.map(item => item.type).join(", ") : 'note';
+              const discoveredType = recordJSON.length > 0 ? recordJSON.map(item => item.subtype ? item.subtype : item.type).join(", ") : 'note';
               if (record) {
                   record = new PatientRecord({ ...record, json: recordJSON, text: recordMarkdown, type: discoveredType } as PatientRecord);
                   updatePatientRecord(record);
