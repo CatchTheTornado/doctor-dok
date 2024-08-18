@@ -194,17 +194,19 @@ export function Chat() {
               className="min-h-[48px] rounded-2xl resize-none p-4 border border-neutral-400 shadow-sm pr-16"
             />
             <div className="absolute flex top-3 right-3 gap-2">
-              <Select id="llmProvider" className="h-8" value={llmProvider} onValueChange={setLlmProvider}>
-                  <SelectTrigger className="w-[180px]">
-                    <SelectValue placeholder="Default: Chat GPT" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem key="chatgpt" value="chatgpt">Cloud: Chat GPT</SelectItem>
-                    {showProviders ? (
-                      <SelectItem key="ollama" value="ollama">Local: Ollama</SelectItem>
-                    ): null}
-                  </SelectContent>
-                </Select>
+              <div className="xxs:invisible md:visible">
+                <Select id="llmProvider" value={llmProvider} onValueChange={setLlmProvider}>
+                    <SelectTrigger className="w-[180px]">
+                      <SelectValue placeholder="Default: Chat GPT" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem key="chatgpt" value="chatgpt">Cloud: Chat GPT</SelectItem>
+                      {showProviders ? (
+                        <SelectItem key="ollama" value="ollama">Local: Ollama</SelectItem>
+                      ): null}
+                    </SelectContent>
+                  </Select>
+                </div>
 
               <Button type="submit" size="icon" className="w-8 h-8" onClick={() => {
                 handleSubmit();
