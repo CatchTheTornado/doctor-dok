@@ -7,7 +7,7 @@ import { ThemeProvider } from "@/components/theme-provider";
 const inter = Inter({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
-  title: "Patient Pad",
+  title: "Doctor Dok",
   description: "End 2 End encrypted vault for your health data",
 };
 

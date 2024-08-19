@@ -7,7 +7,7 @@ import { features } from "process";
 
 
 
-// This is the UC01 implementation of https://github.com/CatchTheTornado/patient-pad/issues/65
+// This is the UC01 implementation of https://github.com/CatchTheTornado/doctor-dok/issues/65
 export async function POST(request: NextRequest) {
     try {
         const jsonRequest = await request.json();

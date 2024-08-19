@@ -1,18 +1,18 @@
 <p align="center">
-    <img width="200" src="public/img/patient-pad-logo.svg" />
+    <img width="200" src="public/img/doctor-dok-logo.svg" />
 </p>
 
-## Patient Pad
+## Doctor Dok
 
 **1 Password + AI for Health**
 
 **Convert all your Blood Tests, MRI Scans, TK Scans, After Visit reports, Hospital Admission Reports to JSON, safely store in the cloud and discuss, annotate, translate it with AI.**
 
-Patient Pad is a secure storage, digitization, sharing and AI discovery platform for all your family and/or patients health data.
+Doctor Dok is a secure storage, digitization, sharing and AI discovery platform for all your family and/or patients health data.
 
 All health history - digitalized - accesible anywhere from Mobile or Desktop. Using AI you may **translate your health records to one of 50+ languages** - making abroad health services more accesible.
 
-Patient Pad uses AI to OCR even a hardly readable photo of your healt documents. Then stores it in cloud with [Zero Trust Security architecture](https://github.com/CatchTheTornado/patient-pad/issues/65) (no body but You can decrypt the data). 
+Doctor Dok uses AI to OCR even a hardly readable photo of your healt documents. Then stores it in cloud with [Zero Trust Security architecture](https://github.com/CatchTheTornado/doctor-dok/issues/65) (no body but You can decrypt the data). 
 
 Chat GPT, LLama 3.1 and other Ollama supported AI models avaialble.
 
@@ -57,7 +57,7 @@ Chat GPT, LLama 3.1 and other Ollama supported AI models avaialble.
 - Supports All types of medical records: Blood results, MRI Scans, RTG Scans, After-Visit reports ...
 - Multi Patients support,
 - PII (Personaly Identifiable Information) removal using AI or Blacklisting,
-- End 2 End data encryption - [read about the architecture](https://github.com/CatchTheTornado/patient-pad/issues/65)
+- End 2 End data encryption - [read about the architecture](https://github.com/CatchTheTornado/doctor-dok/issues/65)
 - Safe sharing within your family, with your physician etc - using Sharing Key feature,
 - Access from Mobile or Desktop,
 - Dark and Light themes supported,
@@ -65,13 +65,13 @@ Chat GPT, LLama 3.1 and other Ollama supported AI models avaialble.
 - 100% TypeScript, Next JS, React + Shadcn-ui tech stack.
 
 ## Use cases
-- **End user** - using Patient Pad as health AI cloud,
-- **Med provider** - using Patient Pad as secure framework EHR with per-patient sharing,
-- **Med tech** - using Patient Pad as a framework for product development
+- **End user** - using Doctor Dok as health AI cloud,
+- **Med provider** - using Doctor Dok as secure framework EHR with per-patient sharing,
+- **Med tech** - using Doctor Dok as a framework for product development
 
 ## Structured data
 
-Patient Pad uses standarized JSON format to which parses all input health records. By doing so it opens a way for all exciting new features like data summarization, diagraming, data compression, taking even years long health history into AI context. Things that previously were very difficult or even impossible for human beings.
+Doctor Dok uses standarized JSON format to which parses all input health records. By doing so it opens a way for all exciting new features like data summarization, diagraming, data compression, taking even years long health history into AI context. Things that previously were very difficult or even impossible for human beings.
 
 ## Encrypted storage
 
@@ -109,4 +109,4 @@ export const ENV_PROVIDED_CONFIG = {
 
 ## License
 
-Patient Pad is released under [MIT](LICENSE) license.
+Doctor Dok is released under [MIT](LICENSE) license.

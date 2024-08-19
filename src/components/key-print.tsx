@@ -21,7 +21,7 @@ export function KeyPrint ({ key, databaseId }: { key: string, databaseId: string
             <Page size="A4" style={styles.page}>
               <View style={styles.titleContainer}>
                   <View style={styles.spaceBetween}>
-                      <Text style={styles.reportTitle}>Patient Pad Recovery Kit</Text>
+                      <Text style={styles.reportTitle}>Doctor Dok Recovery Kit</Text>
                   </View>
               </View>
               <View style={styles.titleContainer}>

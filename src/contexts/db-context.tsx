@@ -102,7 +102,7 @@ export const DatabaseContextProvider: React.FC<PropsWithChildren> = ({ children 
         return client;
     }
     const create = async (createRequest: DatabaseCreateRequest): Promise<CreateDatabaseResult> => {
-        // Implement UC01 hashing and encryption according to https://github.com/CatchTheTornado/patient-pad/issues/65
+        // Implement UC01 hashing and encryption according to https://github.com/CatchTheTornado/doctor-dok/issues/65
 
         const keyHashParams = {
             salt: generateEncryptionKey(),
