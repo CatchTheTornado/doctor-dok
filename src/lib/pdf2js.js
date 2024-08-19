@@ -98,7 +98,7 @@ module.exports.convert = async function (pdf, conversion_config = {}, pdfjs) {
 
   var outputPages = [];
   pdfjs.GlobalWorkerOptions.workerSrc = ('https://unpkg.com/pdfjs-dist@4.4.168/build/pdf.worker.min.mjs');
-  var loadingTask = pdfjs.getDocument({data: pdfData, disableFontFace: true, verbosity: 0});
+  var loadingTask = pdfjs.getDocument({data: pdfData, disableFontFace: false, verbosity: 0});
 
   var pdfDocument = await loadingTask.promise
 
