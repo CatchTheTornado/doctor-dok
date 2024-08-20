@@ -77,17 +77,21 @@ export function Chat() {
   
 
   const handleSubmit = async () => {
+    let messageWasDelivered = false;
     if (currentMessage) {
       if (addPatientContext) {
         if (chatContext.arePatientRecordsLoaded === false && !chatContext.isStreaming && await chatContext.checkApiConfig()) {
           try {
             patientRecordContext?.sendAllRecordsToChat({ role: 'user', name: 'You', content: currentMessage }, llmProvider ?? defaultChatProvider ); // send message along the context
+            messageWasDelivered = true;
           } catch (error) {
             console.error(error);
             toast.error('Failed to load patient records into chat: ' + error);
           }
         }        
-      } else {
+      } 
+      
+      if (!messageWasDelivered) {
         chatContext.sendMessage({ message: { role: 'user', name: 'You', content: currentMessage}, providerName: llmProvider ?? defaultChatProvider  });
       }
       setCurrentMessage('');
