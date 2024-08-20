@@ -27,10 +27,11 @@ import { ChatContext, MessageVisibility } from "@/contexts/chat-context"
 import ChatMessage from "./chat-message"
 import DataLoader from "./data-loader"
 import { SettingsIcon } from "lucide-react"
-import { ConfigContext } from "@/contexts/config-context"
+import { coercedVal, ConfigContext } from "@/contexts/config-context"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "./ui/select"
 import { PatientRecordContext } from "@/contexts/patient-record-context"
 import { toast } from "sonner"
+import { Checkbox } from "@/components/ui/checkbox"
 
 
 export function Chat() {
@@ -41,6 +42,7 @@ export function Chat() {
   const [llmProvider, setLlmProvider] = useState('chatgpt');
   const messageTextArea = useRef<HTMLTextAreaElement | null>(null);
   const lastMessageRef = useRef<HTMLDivElement | null>(null);
+  const [addPatientContext, setPatientContext] = useState(true);
 
   const [defaultChatProvider, setDefaultChatProvider] = useState('');
   const [ollamaUrl, setOllamaUrl] = useState('');
@@ -58,14 +60,15 @@ export function Chat() {
       setOllamaUrl(configOllamaUrl);
       setShowProviders(configOllamaUrl !== null && typeof configOllamaUrl === 'string' && configOllamaUrl.startsWith('http'));
 
-      if (chatContext.arePatientRecordsLoaded === false && !chatContext.isStreaming && await chatContext.checkApiConfig()) {
-        try {
-          await patientRecordContext?.sendAllRecordsToChat();
-        } catch (error) {
-          console.error(error);
-          toast.error('Failed to load patient records into chat: ' + error);
-        }
-      }
+      setPatientContext(coercedVal(await config?.getServerConfig('autoLoadPatientContext'), true) as boolean);
+//      if (chatContext.arePatientRecordsLoaded === false && !chatContext.isStreaming && await chatContext.checkApiConfig()) {
+//        try {
+          // await patientRecordContext?.sendAllRecordsToChat(); - changed due to too high tokens usage - now it's an option in the chat
+//        } catch (error) {
+//          console.error(error);
+//          toast.error('Failed to load patient records into chat: ' + error);
+//        }
+//      }
     }; 
     loadConfig();
 
@@ -73,9 +76,20 @@ export function Chat() {
   }, [chatContext.messages, chatContext.lastMessage, chatContext.isStreaming, patientRecordContext?.patientRecords]);
   
 
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
     if (currentMessage) {
-      chatContext.sendMessage({ message: { role: 'user', name: 'You', content: currentMessage}, providerName: llmProvider ?? defaultChatProvider  });
+      if (addPatientContext) {
+        if (chatContext.arePatientRecordsLoaded === false && !chatContext.isStreaming && await chatContext.checkApiConfig()) {
+          try {
+            patientRecordContext?.sendAllRecordsToChat({ role: 'user', name: 'You', content: currentMessage }, llmProvider ?? defaultChatProvider ); // send message along the context
+          } catch (error) {
+            console.error(error);
+            toast.error('Failed to load patient records into chat: ' + error);
+          }
+        }        
+      } else {
+        chatContext.sendMessage({ message: { role: 'user', name: 'You', content: currentMessage}, providerName: llmProvider ?? defaultChatProvider  });
+      }
       setCurrentMessage('');
     }
   }
@@ -188,6 +202,18 @@ export function Chat() {
           </div>
         </div>
         <DrawerFooter className="bg-muted py-2 px-4">
+          <div className="flex items-center gap-2 w-full">
+          <div className="flex items-center gap-2">
+              <Checkbox
+                  id="addPatientContext"
+                  checked={addPatientContext}
+                  onCheckedChange={(checked) => {
+                      setPatientContext(checked);
+                  }}
+              />
+              <label htmlFor="addPatientContext" className="text-sm">Add patient health context</label>
+            </div>    
+          </div>          
           <div className="relative">
             <Textarea
               placeholder="Type your message..."

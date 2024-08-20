@@ -9,7 +9,7 @@ import { toast } from 'sonner';
 import { sort } from 'fast-sort';
 import { EncryptedAttachmentApiClient } from '@/data/client/encrypted-attachment-api-client';
 import { DatabaseContext } from './db-context';
-import { ChatContext, MessageVisibility } from './chat-context';
+import { ChatContext, CreateMessageEx, MessageVisibility } from './chat-context';
 import { convertDataContentToBase64String } from "ai";
 import { convert } from '@/lib/pdf2js'
 import { pdfjs } from 'react-pdf'
@@ -50,7 +50,7 @@ export type PatientRecordContextType = {
     extraToRecord: (type: string, promptText: string, record: PatientRecord) => void;
     parsePatientRecord: (record: PatientRecord) => void;
     sendHealthReacordToChat: (record: PatientRecord, forceRefresh: boolean) => void;
-    sendAllRecordsToChat: () => void;
+    sendAllRecordsToChat: (customMessage: CreateMessageEx | null, providerName?: string) => void;
 
     processParseQueue: () => void;
 }
@@ -342,33 +342,44 @@ export const PatientRecordContextProvider: React.FC<PropsWithChildren> = ({ chil
         processParseQueue();
       }
 
-      const sendAllRecordsToChat = async () => {
-        // chatContext.setChatOpen(true);
-        if (patientRecords.length > 0) {
-          chatContext.setPatientRecordsLoaded(true);
-          chatContext.sendMessages({
-              messages: [{
-                role: 'user',
-                createdAt: new Date(),
-                visibility: MessageVisibility.Hidden, // we don't show patient records context
-                content: prompts.patientRecordsToChat({ patientRecords, config }),
-              }, ...patientRecords.map((record) => {
-                return {
-                  role: 'user',
-                  visibility: MessageVisibility.Hidden, // we don't show patient records context
-                  createdAt: new Date(),
-                  content: prompts.patientRecordIntoChatSimplified({ record })
-                }
-            }), {
+      const sendAllRecordsToChat = async (customMessage: CreateMessageEx | null = null, providerName?: string) => {
+        return new Promise((resolve, reject) => {
+          // chatContext.setChatOpen(true);
+          if (patientRecords.length > 0) {
+            const msgs:CreateMessageEx = [{
               role: 'user',
-              visibility: MessageVisibility.Visible, // we don't show patient records context
               createdAt: new Date(),
-              content: prompts.patientRecordsToChatDone({ patientRecords, config }),
-            }], onResult: (resultMessage, result) => {
-              console.log('All records sent to chat');
-            }
-          })
-        }
+              visibility: MessageVisibility.Hidden, // we don't show patient records context
+              content: prompts.patientRecordsToChat({ patientRecords, config }),
+            }, ...patientRecords.map((record) => {
+              return {
+                role: 'user',
+                visibility: MessageVisibility.Hidden, // we don't show patient records context
+                createdAt: new Date(),
+                content: prompts.patientRecordIntoChatSimplified({ record })
+              }
+          }), {
+            role: 'user',
+            visibility: MessageVisibility.Visible, // we don't show patient records context
+            createdAt: new Date(),
+            content: prompts.patientRecordsToChatDone({ patientRecords, config }),
+          }];
+
+          if(customMessage) msgs.push(customMessage);
+
+            chatContext.setPatientRecordsLoaded(true);
+            chatContext.sendMessages({
+                messages: msgs, providerName, onResult: (resultMessage, result) => {
+                console.log('All records sent to chat');
+                if (result.finishReason !== 'error') {
+                  resolve(result);
+                } else {
+                  reject(result);
+                }
+              }
+            })
+          }
+        });
       }
     
       const sendHealthReacordToChat = async (record: PatientRecord, forceRefresh: boolean = false) => {
