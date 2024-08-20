@@ -3,7 +3,7 @@ import { SettingsPopup } from "@/components/settings-popup";
 import PatientListPopup from "./patient-list-popup";
 import PatientRecordForm from "./patient-record-form";
 import { PatientContext } from "@/contexts/patient-context";
-import { useContext, useState } from "react";
+import { useContext, useEffect, useState } from "react";
 import { Chat } from "./chat";
 import { Edit3Icon, KeyIcon, LogOutIcon, MenuIcon, MenuSquareIcon, MessageCircleIcon, PlusIcon, Settings2Icon, SettingsIcon, Share2Icon, UsersIcon } from "lucide-react";
 import { DatabaseContext } from "@/contexts/db-context";
@@ -16,6 +16,7 @@ import { CommandDialog, CommandEmpty, CommandGroup, CommandInput, CommandItem, C
 import { ConfigContext } from "@/contexts/config-context";
 import { ChatContext } from "@/contexts/chat-context";
 import { PatientRecordContext } from "@/contexts/patient-record-context";
+import { useEffectOnce } from "react-use";
 
 export default function TopHeader() {
     const patientContext = useContext(PatientContext);
@@ -27,7 +28,10 @@ export default function TopHeader() {
     const { theme, systemTheme } = useTheme();
     const currentTheme = (theme === 'system' ? systemTheme : theme)
     const [commandDialogOpen, setCommandDialogOpen] = useState(false);
-  
+
+    useEffectOnce(() => {
+      chatContext.checkApiConfig();
+    }); 
     return (
       <div className="sticky top-0 z-1000 flex items-center justify-between border-b border-zinc-200 dark:border-zinc-800 p-4 bg-zinc-200 dark:bg-zinc-800 h-12">
         <div className="font-medium flex justify-center items-center">
@@ -57,7 +61,7 @@ export default function TopHeader() {
                   <CommandItem key="cmd-edit-patient" className="cursor-pointer text-xs"  onSelect={(e) => { patientRecordContext?.setPatientRecordEditMode(true); }}><PlusIcon /> Add health record</CommandItem>
                   {!dbContext?.acl || dbContext.acl.role === 'owner' ? (<CommandItem key="cmd-settings" className="cursor-pointer text-xs" onSelect={(v) => { config?.setConfigDialogOpen(true);  }}><Settings2Icon className="w-6 h-6" />  Settings</CommandItem>) : null}
                     <CommandItem key="cmd-list-patients" className="cursor-pointer text-xs"  onSelect={(e) => { patientContext?.setPatientListPopup(true); patientContext?.setPatientEditOpen(false); }}><UsersIcon /> List patients</CommandItem>
-                    <CommandItem key="cmd-edit-patient" className="cursor-pointer text-xs"  onSelect={(e) => { patientContext?.setPatientListPopup(true); patientContext?.setPatientEditOpen(true); }}><Edit3Icon /> Edit currrent patient</CommandItem>
+                    <CommandItem key="cmd-edit-current-patient" className="cursor-pointer text-xs"  onSelect={(e) => { patientContext?.setPatientListPopup(true); patientContext?.setPatientEditOpen(true); }}><Edit3Icon /> Edit currrent patient</CommandItem>
                     <CommandItem key="cmd-open-chat" className="cursor-pointer text-xs"  onSelect={(e) => { chatContext?.setChatOpen(true); }}><MessageCircleIcon /> Open AI Chat</CommandItem>
 
                     {!dbContext?.acl || dbContext.acl.role === 'owner' ? (<CommandItem key="cmd-share" className="cursor-pointer text-xs" onSelect={(v) => { keyContext.setSharedKeysDialogOpen(true);  }}><Share2Icon className="w-6 h-6" />  Shared Keys</CommandItem>) : null}

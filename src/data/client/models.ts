@@ -171,6 +171,9 @@ export class PatientRecord {
     createdAt: string;
     updatedAt: string;
     attachments: EncryptedAttachment[] = [];
+
+    parseInProgress: boolean = false;
+    parseError: any = null;
   
     constructor(patientRecordSource: PatientRecordDTO | PatientRecord) {
       this.id = patientRecordSource.id;

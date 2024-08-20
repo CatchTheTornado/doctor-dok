@@ -8,10 +8,17 @@ import { ConfigContext } from './config-context';
 import { toast } from 'sonner';
 import { PatientRecord } from '@/data/client/models';
 
-enum MessageDisplayMode {
+export enum MessageDisplayMode {
     Text = 'text',
     InternalJSONRequest = 'internalJSONRequest',
     InternalJSONResponse= 'internalJSONResponse'
+}
+
+export enum MessageVisibility {
+    Hidden = 'hidden',
+    Visible = 'visible',
+    VisibleWhenFinished = 'visibleWhenFinished',
+    ProgressWhileStreaming = 'progressWhileStreaming'
 }
 
 
@@ -19,6 +26,9 @@ export type MessageEx = Message & {
     prev_sent_attachments?: Attachment[];
     displayMode?: MessageDisplayMode
     finished: boolean
+
+    visibility?: MessageVisibility
+
     recordRef: PatientRecord
     recordSaved: boolean
 }
@@ -60,11 +70,14 @@ export type ChatContextType = {
     messages: MessageEx[];
     lastMessage: MessageEx | null;
     providerName?: string;
+    arePatientRecordsLoaded: boolean;
+    setPatientRecordsLoaded: (value: boolean) => void;
     sendMessage: (msg: CreateMessageEnvelope) => void;
     sendMessages: (msg: CreateMessagesEnvelope) => void;
     chatOpen: boolean,
     setChatOpen: (value: boolean) => void;
     isStreaming: boolean;
+    checkApiConfig: () => Promise<boolean>;
 };
 
 // Create the chat context
@@ -72,11 +85,14 @@ export const ChatContext = createContext<ChatContextType>({
     messages: [],
     lastMessage: null,
     providerName: '',
+    arePatientRecordsLoaded: false,
+    setPatientRecordsLoaded: (value: boolean) => {},
     sendMessage: (msg: CreateMessageEnvelope) => {},
     sendMessages: (msg: CreateMessagesEnvelope) => {},
     chatOpen: false,
     setChatOpen: (value: boolean) => {},
-    isStreaming: false
+    isStreaming: false,
+    checkApiConfig: async () => { return false }
 });
 
 // Custom hook to access the chat context
@@ -86,21 +102,24 @@ export const useChatContext = () => useContext(ChatContext);
 export const ChatContextProvider: React.FC<PropsWithChildren> = ({ children }) => {
     
     const [ messages, setMessages ] = useState([
-        { role: 'user', name: 'You', content: 'Hi there! I will send in this conversation some medical records, please help me understand it and answer the questions as if you were physican!' },
+        { role: 'user', name: 'You', content: 'Hi there! I will send in this conversation some medical records, please help me understand it and answer the questions as if you were physican!', visibility: MessageVisibility.Visible } as MessageEx,
 //        { role: 'assistant', name: 'AI', content: 'Sure! I will do my best to answer all your questions specifically to your records' }
     ] as MessageEx[]);
     const [lastMessage, setLastMessage] = useState<MessageEx | null>(null);
     const [providerName, setProviderName] = useState('');
     const [chatOpen, setChatOpen] = useState(false);
     const [isStreaming, setIsStreaming] = useState(false);
+    const [arePatientRecordsLoaded, setPatientRecordsLoaded] = useState(false);
+
 
     const config = useContext(ConfigContext);
-    const checkApiConfig = async () => {
+    const checkApiConfig = async (): Promise<boolean> => {
         const apiKey = await config?.getServerConfig('chatGptApiKey') as string;
         if (!apiKey) {
             config?.setConfigDialogOpen(true);
             toast.info('Please enter Chat GPT API Key first');
-        }
+            return false;
+        } else return true;
     }
 
     const aiProvider = async (providerName:string = '') => {
@@ -148,9 +167,15 @@ export const ChatContextProvider: React.FC<PropsWithChildren> = ({ children }) =
             id: nanoid(),
             content: '',
             createdAt: new Date(),
-            role: 'assistant'
+            role: 'assistant',
+            visibility: MessageVisibility.Visible,
         }
         try {
+            if (messages.length > 0) {
+                if (messages[messages.length - 1].displayMode === MessageDisplayMode.InternalJSONRequest) {
+                    resultMessage.visibility = !resultMessage.finished ? MessageVisibility.ProgressWhileStreaming : MessageVisibility.Visible; // hide the response until the request is finished
+                }
+            }
             const result = await streamText({
                 model: await aiProvider(providerName),
                 messages: convertToCoreMessages(messages),
@@ -176,7 +201,7 @@ export const ChatContextProvider: React.FC<PropsWithChildren> = ({ children }) =
     }
 
     const prepareMessage = (msg: MessageEx, setMessages: React.Dispatch<React.SetStateAction<MessageEx[]>>, messages: MessageEx[], setLastMessage: React.Dispatch<React.SetStateAction<MessageEx | null>>) => {
-        const newlyCreatedOne = { ...msg, id: nanoid() };
+        const newlyCreatedOne = { ...msg, id: nanoid(), visibility: MessageVisibility.Visible, finished: false, recordRef: {} as PatientRecord, recordSaved: false } as MessageEx;
         if (newlyCreatedOne.content.indexOf('json') > -1) {
             newlyCreatedOne.displayMode = MessageDisplayMode.InternalJSONRequest;
         } else {
@@ -219,7 +244,10 @@ export const ChatContextProvider: React.FC<PropsWithChildren> = ({ children }) =
         sendMessages,
         chatOpen,
         setChatOpen,
-        isStreaming
+        isStreaming,
+        arePatientRecordsLoaded,
+        setPatientRecordsLoaded,
+        checkApiConfig
     }
 
     return (

@@ -39,6 +39,10 @@ export const prompts = {
         return 'Below is my health result data in JSON format. Please describe the results in plain language. Note all exceptions from the norm and tell me what it could mean? Answer in the language of original document. Return text, no code. \r\n\r\n```json\
         \r\n' + JSON.stringify(context.record?.json) + '```'
     },
+    patientRecordIntoChatSimplified: (context: PromptContext) => {
+        return 'Structured health record in JSON:  \r\n\r\n```json\
+        \r\n' + JSON.stringify(context.record?.json) + '```'
+    },
     translateRecord: (context: PromptContext & { language: string}) => {
         return 'Translate this health record to ' + context.language + ' language. Return translated JSON plus translated markdown: \r\n\r\n```json\
         '+ JSON.stringify(context.record?.json) + "```\r\n\r\n```markdown\r\n" + context.record?.text + '```';
@@ -51,6 +55,9 @@ export const prompts = {
     },
     patientRecordsToChat: (context: PromptContext) => {
         return 'OK. Now I will send you all my health records. Answer for now just with the number of records you received. Then I will ask more questions'
+    },
+    patientRecordsToChatDone: (context: PromptContext & { patientRecords: PatientRecord[] }) => {
+        return 'Health record context (' + context.patientRecords.length + ' records) sent.';
     },
     bestNextSteps: (context: PromptContext) => {
         return 'Based on the health result data below, what are the best next steps? What are the most important recommendations? '+ context.record?.text

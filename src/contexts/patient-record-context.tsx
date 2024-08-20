@@ -9,7 +9,7 @@ import { toast } from 'sonner';
 import { sort } from 'fast-sort';
 import { EncryptedAttachmentApiClient } from '@/data/client/encrypted-attachment-api-client';
 import { DatabaseContext } from './db-context';
-import { ChatContext } from './chat-context';
+import { ChatContext, MessageVisibility } from './chat-context';
 import { convertDataContentToBase64String } from "ai";
 import { convert } from '@/lib/pdf2js'
 import { pdfjs } from 'react-pdf'
@@ -18,6 +18,7 @@ import { parse as chatgptParseRecord } from '@/ocr/ocr-chatgpt-provider';
 import { parse as tesseractParseRecord } from '@/ocr/ocr-tesseract-provider';
 import { PatientContext } from './patient-context';
 import { findCodeBlocks, getCurrentTS } from '@/lib/utils';
+import { parse } from 'path';
 
 export enum URLType {
     data = 'data',
@@ -41,9 +42,11 @@ export type PatientRecordContextType = {
     downloadAttachment: (attachment: EncryptedAttachmentDTO) => void;
     convertAttachmentsToImages: (record: PatientRecord, statusUpdates: boolean) => Promise<DisplayableDataObject[]>;
     extraToRecord: (type: string, promptText: string, record: PatientRecord) => void;
-    parsePatientRecord: (record: PatientRecord, parsePromptText:string) => void;
+    parsePatientRecord: (record: PatientRecord) => void;
     sendHealthReacordToChat: (record: PatientRecord, forceRefresh: boolean) => void;
     sendAllRecordsToChat: () => void;
+
+    processParseQueue: () => void;
 }
 
 export const PatientRecordContext = createContext<PatientRecordContextType | null>(null);
@@ -54,6 +57,9 @@ export const PatientRecordContextProvider: React.FC<PropsWithChildren> = ({ chil
     const [loaderStatus, setLoaderStatus] = useState<DataLoadingStatus>(DataLoadingStatus.Loading);
     const [operationStatus, setOperationStatus] = useState<DataLoadingStatus>(DataLoadingStatus.Loading);
     const [currentPatientRecord, setCurrentPatientRecord] = useState<PatientRecord | null>(null); // new state
+
+    const [parseQueueInProgress, setParseQueueInProgress] = useState<boolean>(false);
+    const [parseQueue, setParseQueue] = useState<PatientRecord[]>([]);
 
     useEffect(() => {
     }, []);
@@ -81,6 +87,7 @@ export const PatientRecordContextProvider: React.FC<PropsWithChildren> = ({ chil
                     newRecord ? [...patientRecords, updatedPatientRecord] :
                     patientRecords.map(pr => pr.id === updatedPatientRecord.id ?  updatedPatientRecord : pr)
                 )
+                chatContext.setPatientRecordsLoaded(false); // reload context next time
                 return updatedPatientRecord;
             }
         } catch (error) {
@@ -100,8 +107,8 @@ export const PatientRecordContextProvider: React.FC<PropsWithChildren> = ({ chil
                   if (block.syntax === 'json') {
                       const jsonObject = JSON.parse(block.code);
                       if (Array.isArray(jsonObject)) {
-                          for (const record of jsonObject) {
-                              recordJSON.push(record);
+                          for (const recordItem of jsonObject) {
+                              recordJSON.push(recordItem);
                           }
                       } else recordJSON.push(jsonObject);
                   }
@@ -149,7 +156,8 @@ export const PatientRecordContextProvider: React.FC<PropsWithChildren> = ({ chil
         } else {
             toast.success('Patient record removed successfully!')
             const updatedPatientRecords = patientRecords.filter((pr) => pr.id !== record.id);
-            setPatientRecords(updatedPatientRecords);            
+            setPatientRecords(updatedPatientRecords);    
+            chatContext.setPatientRecordsLoaded(false); // reload context next time        
             return Promise.resolve(true);
         }
     };
@@ -268,40 +276,83 @@ export const PatientRecordContextProvider: React.FC<PropsWithChildren> = ({ chil
           })
       }
     
-    
-      const parsePatientRecord = async (record: PatientRecord)=> {
-        // TODO: add OSS models and OCR support - #60, #59, #61
-        setOperationStatus(DataLoadingStatus.Loading);
-        const attachments = await convertAttachmentsToImages(record);
-        setOperationStatus(DataLoadingStatus.Success);
+      const updateParseProgress = (record: PatientRecord, inProgress: boolean, error: any = null) => {
+        record.parseError = error;
+        record.parseInProgress = inProgress;
+        setPatientRecords(patientRecords.map(pr => pr.id === record.id ? record : pr)); // update state
+      }
 
-
-        // Parsing is two or thre stage operation: 1. OCR, 2. <optional> sensitive data removal, 3. LLM
-        const ocrProvider = await config?.getServerConfig('ocrProvider') || 'chatgpt';
-        console.log('Using OCR provider:', ocrProvider);
-
-        if (ocrProvider === 'chatgpt') {
-          return  await chatgptParseRecord(record, chatContext, config, patientContext, updateRecordFromText, attachments);
-        } else if (ocrProvider === 'tesseract') {
-          return await tesseractParseRecord(record, chatContext, config, patientContext, updateRecordFromText, attachments);
+      const processParseQueue = async () => {
+        if (parseQueueInProgress) {
+          console.log('Parse queue in progress');
+          return;
         }
+
+        let record = null;
+        setParseQueueInProgress(true);
+        while (parseQueue.length > 0) {
+          try {
+            record = parseQueue.pop() as PatientRecord;
+            setParseQueue(parseQueue); // after pop
+            console.log('Processing record: ', record.id, parseQueue.length);
+            // TODO: add OSS models and OCR support - #60, #59, #61
+            updateParseProgress(record, true);
+            
+            setOperationStatus(DataLoadingStatus.Loading);
+            const attachments = await convertAttachmentsToImages(record);
+            setOperationStatus(DataLoadingStatus.Success);
+
+            // Parsing is two or thre stage operation: 1. OCR, 2. <optional> sensitive data removal, 3. LLM
+            const ocrProvider = await config?.getServerConfig('ocrProvider') || 'chatgpt';
+            console.log('Using OCR provider:', ocrProvider);
+
+            if (ocrProvider === 'chatgpt') {
+              await chatgptParseRecord(record, chatContext, config, patientContext, updateRecordFromText, updateParseProgress, attachments);
+            } else if (ocrProvider === 'tesseract') {
+              await tesseractParseRecord(record, chatContext, config, patientContext, updateRecordFromText, updateParseProgress, attachments);
+            }
+          } catch (error) {
+            if (record) updateParseProgress(record, false, error);
+          }
+        }
+        setParseQueueInProgress(false);        
+      }      
+    
+      const parsePatientRecord = async (newRecord: PatientRecord)=> {
+        if (!parseQueue.find(pr => pr.id === newRecord.id)) {
+          setParseQueue([...parseQueue, newRecord]); // add to parse Queue
+          console.log('Added to parse queue: ', parseQueue.length);
+        }
+        processParseQueue();
       }
 
       const sendAllRecordsToChat = async () => {
-        chatContext.setChatOpen(true);
-        chatContext.sendMessages({
-            messages: [{
-              role: 'user',
-              createdAt: new Date(),
-              content: prompts.patientRecordsToChat({ patientRecords, config }),
-            }, ...patientRecords.map((record) => {
-              return {
+        // chatContext.setChatOpen(true);
+        if (patientRecords.length > 0) {
+          chatContext.setPatientRecordsLoaded(true);
+          chatContext.sendMessages({
+              messages: [{
                 role: 'user',
                 createdAt: new Date(),
-                content: record.text
-              }
-          })]
-        })
+                visibility: MessageVisibility.Hidden, // we don't show patient records context
+                content: prompts.patientRecordsToChat({ patientRecords, config }),
+              }, ...patientRecords.map((record) => {
+                return {
+                  role: 'user',
+                  visibility: MessageVisibility.Hidden, // we don't show patient records context
+                  createdAt: new Date(),
+                  content: prompts.patientRecordIntoChatSimplified({ record })
+                }
+            }), {
+              role: 'user',
+              visibility: MessageVisibility.Visible, // we don't show patient records context
+              createdAt: new Date(),
+              content: prompts.patientRecordsToChatDone({ patientRecords, config }),
+            }], onResult: (resultMessage, result) => {
+              console.log('All records sent to chat');
+            }
+          })
+        }
       }
     
       const sendHealthReacordToChat = async (record: PatientRecord, forceRefresh: boolean = false) => {
@@ -340,7 +391,8 @@ export const PatientRecordContextProvider: React.FC<PropsWithChildren> = ({ chil
                  extraToRecord,
                  parsePatientRecord,
                  sendHealthReacordToChat,
-                 sendAllRecordsToChat
+                 sendAllRecordsToChat,
+                processParseQueue
                 }}
         >
             {children}

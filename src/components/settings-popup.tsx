@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button"
 import { Label } from "@/components/ui/label"
 import { Input } from "@/components/ui/input"
 import Link from "next/link"
-import { ConfigContext } from "@/contexts/config-context"
+import { coercedVal, ConfigContext } from "@/contexts/config-context"
 import React from "react"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "./ui/card";
 import { useForm } from "react-hook-form";
@@ -134,6 +134,8 @@ export function SettingsPopup() {
       defaultValues: {
         chatGptApiKey: "",
         displayAttachmentPreviews: true,
+        autoLoadPatientContext: true,
+        autoParsePatientRecord: true,
         ocrProvider: "chatgpt",
         ocrLanguage: "eng",
         ollamaUrl: "",
@@ -146,6 +148,8 @@ export function SettingsPopup() {
     async function fetchDefaultConfig() {
       const chatGptKey = await config?.getServerConfig('chatGptApiKey');
       const displayAttachmentPreviews = await config?.getServerConfig('displayAttachmentPreviews');
+      const autoLoadPatientContext = await config?.getServerConfig('autoLoadPatientContext');
+      const autoParsePatientRecord = await config?.getServerConfig('autoParsePatientRecord');
       const ocr = await config?.getServerConfig('ocrProvider') as string      
       const ocrLang = await config?.getServerConfig('ocrLanguage') as string
       const ollamaUrl = await config?.getServerConfig('ollamaUrl') as string
@@ -163,7 +167,9 @@ export function SettingsPopup() {
     
 
       setValue("chatGptApiKey", chatGptKey as string);
-      setValue("displayAttachmentPreviews", displayAttachmentPreviews as boolean);
+      setValue("displayAttachmentPreviews", coercedVal(displayAttachmentPreviews, true) as boolean);
+      setValue("autoLoadPatientContext", coercedVal(autoLoadPatientContext, true) as boolean);
+      setValue("autoParsePatientRecord", coercedVal(autoParsePatientRecord, true) as boolean);
       setValue("ocrProvider", ocr);
       setValue("ocrLanguage", "eng");
       setValue("ollamaUrl", ollamaUrl);
@@ -176,6 +182,8 @@ export function SettingsPopup() {
     config?.setServerConfig('chatGptApiKey', formData['chatGptApiKey']);
     config?.setServerConfig('ocrProvider', ocrProvider as string || 'chatgpt');
     config?.setServerConfig('displayAttachmentPreviews', formData['displayAttachmentPreviews'] as string);
+    config?.setServerConfig('autoLoadPatientContext', formData['autoLoadPatientContext'] as string);
+    config?.setServerConfig('autoParsePatientRecord', formData['autoParsePatientRecord'] as string);
     config?.setServerConfig('ocrLanguage', ocrLanguage as string || "eng");
     config?.setServerConfig('llmProviderChat', llmProviderChat as string || 'chatgpt');
     config?.setServerConfig('llmProviderParse', llmProviderParse as string || 'chatgpt');
@@ -210,6 +218,20 @@ export function SettingsPopup() {
                         id="displayAttachmentPreviews"
                         {...register("displayAttachmentPreviews")}/>
                       <Label htmlFor="displayAttachmentPreviews">Display Attachment previews in records</Label>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <Input className="w-4 h-4" 
+                        type="checkbox"
+                        id="autoLoadPatientContext"
+                        {...register("autoLoadPatientContext")}/>
+                      <Label htmlFor="autoLoadPatientContext">Auto load patient context to chat</Label>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <Input className="w-4 h-4" 
+                        type="checkbox"
+                        id="autoParsePatientRecord"
+                        {...register("autoParsePatientRecord")}/>
+                      <Label htmlFor="autoParsePatientRecord">Auto parse patient record after uploaded</Label>
                     </div>
                     <div className="grid grid-cols-2 items-center gap-2">
                         <Label htmlFor="llmProviderRemovePII">Remove PII mode</Label>

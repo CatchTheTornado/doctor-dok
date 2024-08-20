@@ -1,7 +1,7 @@
 import React, { useContext } from 'react';
 import Markdown from 'react-markdown'
 import ZoomableImage from './zoomable-image';
-import { MessageEx } from '@/contexts/chat-context';
+import { MessageEx, MessageVisibility } from '@/contexts/chat-context';
 import remarkGfm from 'remark-gfm';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from './ui/accordion';
 import styles from './chat-message.module.css';
@@ -27,7 +27,10 @@ const ChatMessage: React.FC<ChatMessageProps> = ({ message, ref }) => {
         <div className={message.role === 'user' ?  "p-4 gap-4 text-right rounded-lg max-w-[70%] bg-gray dark:bg-zinc-500" :  "p-4 gap-1 rounded-lg max-w-[70%] bg-white dark:bg-zinc-950"}>
           <div className="font-bold">{message.name}</div>
           <div className="prose text-sm text-muted-foreground">
-            {message.displayMode === 'internalJSONRequest' ? (
+            {(message.visibility === MessageVisibility.ProgressWhileStreaming  && !message.finished) ? (
+              <div className="flex"><span className="text-xs">Parsing data in progress... <Button className="h-6" onClick={(e) => message.visibility = MessageVisibility.Visible }>Show progress</Button></span></div>
+            ) : (
+              (message.displayMode === 'internalJSONRequest') ? (
               <div>
                 <Accordion type="single" collapsible className="w-full">
                     <AccordionItem value="item-1">
@@ -94,7 +97,7 @@ const ChatMessage: React.FC<ChatMessageProps> = ({ message, ref }) => {
               <Markdown className={styles.markdown} remarkPlugins={[remarkGfm]}>
                 {message.content}
               </Markdown>
-            ))}
+            )))}
             {message.role !== 'user'  && message.finished && !message.recordSaved ? (
               <div className="flex-wrap flex items-center justify-left">
                 <Button title="Save message as record" variant="ghost" size="icon" onClick={() => {

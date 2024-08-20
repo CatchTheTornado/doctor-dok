@@ -2,7 +2,7 @@
 import { DataLoadingStatus, DisplayableDataObject, EncryptedAttachment, Patient, PatientRecord } from '@/data/client/models';
 import { findCodeBlocks } from "@/lib/utils";
 import { createWorker, OEM, PSM } from 'tesseract.js';
-import { ChatContextType } from '@/contexts/chat-context';
+import { ChatContextType, MessageVisibility } from '@/contexts/chat-context';
 import { toast } from 'sonner';
 import { ConfigContextType } from '@/contexts/config-context';
 import { prompts } from '@/data/ai/prompts';
@@ -40,11 +40,9 @@ const processFiles = async (files: DisplayableDataObject[], selectedLanguage: st
 
   }
 
-export async function parse(record: PatientRecord, chatContext: ChatContextType, configContext: ConfigContextType | null, patientContext: PatientContextType | null, updateRecordFromText: (text: string, record: PatientRecord) => PatientRecord|null, sourceImages: DisplayableDataObject[]) {
+export async function parse(record: PatientRecord, chatContext: ChatContextType, configContext: ConfigContextType | null, patientContext: PatientContextType | null, updateRecordFromText: (text: string, record: PatientRecord) => PatientRecord|null, updateParseProgress: (record: PatientRecord, inProgress: boolean, error: any) => void, sourceImages: DisplayableDataObject[]) {
     // TODO: add Tesseract parsing logic - then LLM - it should be configurable whichh LLM is being used for data parsing from tesseract text
     toast.info('Sending images to Tesseract for OCR processing...');
-
-    chatContext.setChatOpen(true);
 
     let textAfterOcr = await processFiles(sourceImages, (await configContext?.getServerConfig('ocrLanguage') as string) || 'en');
     console.log(textAfterOcr);
@@ -57,10 +55,13 @@ export async function parse(record: PatientRecord, chatContext: ChatContextType,
             message: {
                 role: 'user',
                 createdAt: new Date(),
+                // visibility: MessageVisibility.ProgressWhileStreaming,
                 content: prompts.patientRecordParseOCR({ record, config: configContext }, text)
             },
             onResult: (resultMessage, result) => {
                 resultMessage.recordSaved = true;
+                resultMessage.recordRef = record;
+                updateParseProgress(record, false, null);
                 updateRecordFromText(resultMessage.content, record);
             },
             providerName: parseAIProvider

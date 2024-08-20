@@ -23,12 +23,14 @@ import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar"
 import { Table, TableHeader, TableRow, TableHead, TableBody, TableCell } from "@/components/ui/table"
 import { Textarea } from "@/components/ui/textarea"
 import { useContext, useEffect, useRef, useState } from "react"
-import { ChatContext } from "@/contexts/chat-context"
+import { ChatContext, MessageVisibility } from "@/contexts/chat-context"
 import ChatMessage from "./chat-message"
 import DataLoader from "./data-loader"
 import { SettingsIcon } from "lucide-react"
 import { ConfigContext } from "@/contexts/config-context"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "./ui/select"
+import { PatientRecordContext } from "@/contexts/patient-record-context"
+import { toast } from "sonner"
 
 
 export function Chat() {
@@ -44,6 +46,8 @@ export function Chat() {
   const [ollamaUrl, setOllamaUrl] = useState('');
   const [showProviders, setShowProviders] = useState(false);
 
+  const patientRecordContext = useContext(PatientRecordContext);
+
   useEffect(()=> {
     if (chatContext.lastMessage) {
       lastMessageRef.current?.scrollIntoView({ behavior: 'instant' });
@@ -53,6 +57,15 @@ export function Chat() {
       const configOllamaUrl = await config?.getServerConfig('ollamaUrl') as string
       setOllamaUrl(configOllamaUrl);
       setShowProviders(configOllamaUrl !== null && typeof configOllamaUrl === 'string' && configOllamaUrl.startsWith('http'));
+
+      if (chatContext.arePatientRecordsLoaded === false && !chatContext.isStreaming && chatContext.chatOpen && await chatContext.checkApiConfig()) {
+        try {
+          await patientRecordContext?.sendAllRecordsToChat();
+        } catch (error) {
+          console.error(error);
+          toast.error('Failed to load patient records into chat: ' + error);
+        }
+      }
     }; 
     loadConfig();
 
@@ -80,11 +93,14 @@ export function Chat() {
         </DrawerHeader>
         <div className="flex flex-col h-[500px] overflow-y-auto">
           <div className="flex-1 p-4 space-y-4">
-            {chatContext.messages.slice(chatContext.messages.length > 5 ? chatContext.messages.length-8 : 0, chatContext.messages.length).map((message, index) => ( // display only last 5 messages
+            {chatContext.messages.filter(msg => { // display only visible messages
+              return (msg.visibility !== MessageVisibility.Hidden && 
+                    (msg.visibility === MessageVisibility.Visible || msg.visibility === MessageVisibility.ProgressWhileStreaming) || (msg.visibility === MessageVisibility.VisibleWhenFinished && msg.finished == true));  
+            }).slice(chatContext.messages.length > 5 ? chatContext.messages.length-5 : 0, chatContext.messages.length).map((message, index) => ( // display only last 5 messages
               <ChatMessage key={index} message={message} />
             ))}
             {chatContext.isStreaming ? (
-              <div className="flex"><div className="ml-2 h-4 w-4 animate-spin rounded-full border-4 border-primary border-t-transparent" /> <span className="text-xs">provider: {chatContext?.providerName}</span></div>
+              <div className="flex"><div className="ml-2 h-4 w-4 animate-spin rounded-full border-4 border-primary border-t-transparent" /> <span className="text-xs">AI request in progress, provider: {chatContext?.providerName}</span></div>
             ):null}
             <div id="last-message" ref={lastMessageRef}></div>
           {/* <div className="flex items-start gap-4 justify-end">

@@ -39,6 +39,6 @@ export class PatientRecordApiClient extends ApiClient {
     }
 
     async delete(patientRecord: PatientRecordDTO): Promise<DeletePatientRecordResponse> {
-      return this.request<DeletePatientRecordResponse>('/api/patient-record/' + patientRecord.id, 'DELETE') as Promise<DeletePatientRecordResponse>;
+      return this.request<DeletePatientRecordResponse>('/api/patient-record/' + patientRecord.id, 'DELETE', { ecnryptedFields: [] }) as Promise<DeletePatientRecordResponse>;
     }    
 }

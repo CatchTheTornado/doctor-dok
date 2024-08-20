@@ -11,8 +11,8 @@ function isNumber(value:any){
   return !isNaN(value);
 }
 
-function coercedVal(val: any): ConfigSupportedValueType {
-  if (val === '' || val === undefined || val === 'null') return '';
+export function coercedVal(val: any, defaultVal: any = ''): ConfigSupportedValueType {
+  if (val === '' || val === undefined || val === 'null') return defaultVal;
   if (val === 'true') return true; // booleans are not supported by sqlite so we're converting them on input and outputse
   if (val === 'false') return false;
   if (isNumber(val)) return Number(val);
@@ -30,7 +30,8 @@ export const ENV_PROVIDED_CONFIG = {
   llmProviderChat: process.env.NEXT_PUBLIC_LLM_PROVIDER_CHAT,
   llmProviderParse: process.env.NEXT_PUBLIC_LLM_PROVIDER_PARSE,
   llmProviderRemovePII: process.env.NEXT_PUBLIC_LLM_PROVIDER_REMOVE_PII,
-  piiGeneralData: process.env.NEXT_PUBLIC_PII_GENERAL_DATA
+  piiGeneralData: process.env.NEXT_PUBLIC_PII_GENERAL_DATA,
+  autoLoadPatientContext: process.env.NEXT_PUBLIC_AUTO_LOAD_PATIENT_CONTEXT,
 }
 
 type ConfigSupportedValueType = string | number | boolean | null | undefined;

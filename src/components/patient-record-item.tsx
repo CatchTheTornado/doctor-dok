@@ -19,13 +19,16 @@ import PatientRecordItemExtra from './patient-record-item-extra';
 import DataLoader from './data-loader';
 import PatientRecordItemCommands from "./patient-record-item-commands";
 import { PatientContext } from "@/contexts/patient-context";
+import { ChatContext } from "@/contexts/chat-context";
+import { ConfigContext } from "@/contexts/config-context";
 
 
 export default function PatientRecordItem({ record, displayAttachmentPreviews }: { record: PatientRecord, displayAttachmentPreviews: boolean }) {
   // TODO: refactor and extract business logic to a separate files
   const patientRecordContext = useContext(PatientRecordContext)
+  const chatContext = useContext(ChatContext)
+  const config = useContext(ConfigContext);
   const patientContext = useContext(PatientContext)
-  const [parseInProgress, setParseInProgress] = useState(false);
   const [displayableAttachmentsInProgress, setDisplayableAttachmentsInProgress] = useState(false)
   const [commandsOpen, setCommandsOpen] = useState(false);
 
@@ -41,6 +44,13 @@ export default function PatientRecordItem({ record, displayAttachmentPreviews }:
         setDisplayableAttachmentsInProgress(false);
       });
     }
+
+    if (config?.getServerConfig('autoParsePatientRecord') && !record.json && !record.parseInProgress && !record.parseError) { // TODO: maybe we need to add "parsedDate" or kind of checksum (better!) to make sure the record is parseed only when something changed
+      patientRecordContext?.parsePatientRecord(record);
+    }
+
+    patientRecordContext?.processParseQueue();
+
   }, [displayAttachmentPreviews, record]);
 
 
@@ -104,10 +114,10 @@ export default function PatientRecordItem({ record, displayAttachmentPreviews }:
           <PaperclipIcon className="w-4 h-4"  onClick={() => { patientRecordContext?.setCurrentPatientRecord(record);  patientRecordContext?.setPatientRecordEditMode(true); }} />
         </Button>
         <Button size="icon" variant="ghost" title="Convert to structural data">
-          {(parseInProgress) ? (
-            <DataLoader />
+          {(record.parseInProgress) ? (
+            <div className="cursor-pointer" onClick={(e) => chatContext.setChatOpen(true) }><DataLoader /></div>
           ) : (
-            <RefreshCwIcon className="w-4 h-4"  onClick={async () => { setParseInProgress(true);  await patientRecordContext?.sendHealthReacordToChat(record, true); setParseInProgress (false); } /* TODO: add prompt UI for altering the prompt */ } />
+            <RefreshCwIcon className="w-4 h-4"  onClick={async () => {  await patientRecordContext?.sendHealthReacordToChat(record, true); } /* TODO: add prompt UI for altering the prompt */ } />
           )}
         </Button>       
         {(record.json) ? (
