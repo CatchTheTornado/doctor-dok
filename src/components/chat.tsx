@@ -58,7 +58,7 @@ export function Chat() {
       setOllamaUrl(configOllamaUrl);
       setShowProviders(configOllamaUrl !== null && typeof configOllamaUrl === 'string' && configOllamaUrl.startsWith('http'));
 
-      if (chatContext.arePatientRecordsLoaded === false && !chatContext.isStreaming && chatContext.chatOpen && await chatContext.checkApiConfig()) {
+      if (chatContext.arePatientRecordsLoaded === false && !chatContext.isStreaming && await chatContext.checkApiConfig()) {
         try {
           await patientRecordContext?.sendAllRecordsToChat();
         } catch (error) {
@@ -70,7 +70,7 @@ export function Chat() {
     loadConfig();
 
     messageTextArea.current?.focus();
-  }, [chatContext.messages, chatContext.lastMessage, chatContext.isStreaming]);
+  }, [chatContext.messages, chatContext.lastMessage, chatContext.isStreaming, patientRecordContext?.patientRecords]);
   
 
   const handleSubmit = () => {
@@ -93,10 +93,7 @@ export function Chat() {
         </DrawerHeader>
         <div className="flex flex-col h-[500px] overflow-y-auto">
           <div className="flex-1 p-4 space-y-4">
-            {chatContext.messages.filter(msg => { // display only visible messages
-              return (msg.visibility !== MessageVisibility.Hidden && 
-                    (msg.visibility === MessageVisibility.Visible || msg.visibility === MessageVisibility.ProgressWhileStreaming) || (msg.visibility === MessageVisibility.VisibleWhenFinished && msg.finished == true));  
-            }).slice(chatContext.messages.length > 5 ? chatContext.messages.length-5 : 0, chatContext.messages.length).map((message, index) => ( // display only last 5 messages
+            {chatContext.visibleMessages.slice(chatContext.visibleMessages.length > 5 ? chatContext.visibleMessages.length-5 : 0, chatContext.visibleMessages.length).map((message, index) => ( // display only last 5 messages
               <ChatMessage key={index} message={message} />
             ))}
             {chatContext.isStreaming ? (

@@ -68,6 +68,7 @@ export type CreateMessagesEnvelope = {
 
 export type ChatContextType = {
     messages: MessageEx[];
+    visibleMessages: MessageEx[];
     lastMessage: MessageEx | null;
     providerName?: string;
     arePatientRecordsLoaded: boolean;
@@ -83,6 +84,7 @@ export type ChatContextType = {
 // Create the chat context
 export const ChatContext = createContext<ChatContextType>({
     messages: [],
+    visibleMessages: [],
     lastMessage: null,
     providerName: '',
     arePatientRecordsLoaded: false,
@@ -105,6 +107,7 @@ export const ChatContextProvider: React.FC<PropsWithChildren> = ({ children }) =
         { role: 'user', name: 'You', content: 'Hi there! I will send in this conversation some medical records, please help me understand it and answer the questions as if you were physican!', visibility: MessageVisibility.Visible } as MessageEx,
 //        { role: 'assistant', name: 'AI', content: 'Sure! I will do my best to answer all your questions specifically to your records' }
     ] as MessageEx[]);
+    const [visibleMessages, setVisibleMessages] = useState<MessageEx[]>(messages);
     const [lastMessage, setLastMessage] = useState<MessageEx | null>(null);
     const [providerName, setProviderName] = useState('');
     const [chatOpen, setChatOpen] = useState(false);
@@ -120,6 +123,13 @@ export const ChatContextProvider: React.FC<PropsWithChildren> = ({ children }) =
             toast.info('Please enter Chat GPT API Key first');
             return false;
         } else return true;
+    }
+
+    const filterVisibleMessages = (messages: MessageEx[]): MessageEx[] => {
+        return [...messages.filter(msg => { // display only visible messages
+            return (msg.visibility !== MessageVisibility.Hidden && 
+                  (msg.visibility === MessageVisibility.Visible || msg.visibility === MessageVisibility.ProgressWhileStreaming) || (msg.visibility === MessageVisibility.VisibleWhenFinished && msg.finished == true))
+        })];
     }
 
     const aiProvider = async (providerName:string = '') => {
@@ -191,23 +201,28 @@ export const ChatContextProvider: React.FC<PropsWithChildren> = ({ children }) =
             for await (const delta of result.textStream) {
                 resultMessage.content += delta;
                 setMessages([...messages, resultMessage])
+                setVisibleMessages(filterVisibleMessages([...messages, resultMessage]));
             }
             setIsStreaming(false);
             setMessages([...messages, resultMessage])
+            setVisibleMessages(filterVisibleMessages([...messages, resultMessage]));
         } catch (e) {
+            const errMsg = 'Error while streaming AI response: ' + e;
+            if (onResult) onResult(resultMessage, { finishReason: 'error', text: errMsg, usage: null });
             setIsStreaming(false);
-            toast.error('Error while streaming AI response: ' + e);
+            toast.error(errMsg);
         }
     }
 
     const prepareMessage = (msg: MessageEx, setMessages: React.Dispatch<React.SetStateAction<MessageEx[]>>, messages: MessageEx[], setLastMessage: React.Dispatch<React.SetStateAction<MessageEx | null>>) => {
-        const newlyCreatedOne = { ...msg, id: nanoid(), visibility: MessageVisibility.Visible, finished: false, recordRef: {} as PatientRecord, recordSaved: false } as MessageEx;
+        const newlyCreatedOne = { ...msg, id: nanoid(), visibility: msg.visibility ? msg.visibility : MessageVisibility.Visible } as MessageEx;
         if (newlyCreatedOne.content.indexOf('json') > -1) {
             newlyCreatedOne.displayMode = MessageDisplayMode.InternalJSONRequest;
         } else {
             newlyCreatedOne.displayMode = MessageDisplayMode.Text;
         }
         setMessages([...messages, newlyCreatedOne]);
+        setVisibleMessages(filterVisibleMessages([...messages, newlyCreatedOne]));
         setLastMessage(newlyCreatedOne);
         return newlyCreatedOne;
     }    
@@ -238,6 +253,7 @@ export const ChatContextProvider: React.FC<PropsWithChildren> = ({ children }) =
 
     const value = { 
         messages,
+        visibleMessages,
         lastMessage,
         providerName,
         sendMessage,

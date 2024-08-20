@@ -45,7 +45,7 @@ export default function PatientRecordItem({ record, displayAttachmentPreviews }:
       });
     }
 
-    if (config?.getServerConfig('autoParsePatientRecord') && !record.json && !record.parseInProgress && !record.parseError) { // TODO: maybe we need to add "parsedDate" or kind of checksum (better!) to make sure the record is parseed only when something changed
+    if (config?.getServerConfig('autoParsePatientRecord') && !record.json && !record.parseInProgress && !record.parseError && (new Date().getTime() - new Date(record.updatedAt).getTime()) < 1000 * 120 /* parse only records changed 30s ago */) { // TODO: maybe we need to add "parsedDate" or kind of checksum (better!) to make sure the record is parseed only when something changed
       patientRecordContext?.parsePatientRecord(record);
     }
 

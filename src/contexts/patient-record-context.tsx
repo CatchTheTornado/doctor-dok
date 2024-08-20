@@ -1,5 +1,5 @@
 import '@enhances/with-resolvers';
-import React, { createContext, useState, useEffect, useContext, PropsWithChildren } from 'react';
+import React, { createContext, useState, useEffect, useContext, PropsWithChildren, useRef } from 'react';
 import { EncryptedAttachmentDTO, PatientRecordDTO } from '@/data/dto';
 import { PatientRecordApiClient } from '@/data/client/patient-record-api-client';
 import { ApiEncryptionConfig } from '@/data/client/base-api-client';
@@ -20,6 +20,11 @@ import { PatientContext } from './patient-context';
 import { findCodeBlocks, getCurrentTS } from '@/lib/utils';
 import { parse } from 'path';
 
+let parseQueueInProgress = false;
+let parseQueue:PatientRecord[] = []
+let parseQueueLength = 0;
+
+
 export enum URLType {
     data = 'data',
     blob = 'blob'
@@ -28,6 +33,7 @@ export enum URLType {
 export type PatientRecordContextType = {
     patientRecords: PatientRecord[];
     patientRecordEditMode: boolean;
+    parseQueueLength: number;
     setPatientRecordEditMode: (editMode: boolean) => void;
     currentPatientRecord: PatientRecord | null; 
     updatePatientRecord: (patientRecord: PatientRecord) => Promise<PatientRecord>;
@@ -58,9 +64,6 @@ export const PatientRecordContextProvider: React.FC<PropsWithChildren> = ({ chil
     const [operationStatus, setOperationStatus] = useState<DataLoadingStatus>(DataLoadingStatus.Loading);
     const [currentPatientRecord, setCurrentPatientRecord] = useState<PatientRecord | null>(null); // new state
 
-    const [parseQueueInProgress, setParseQueueInProgress] = useState<boolean>(false);
-    const [parseQueue, setParseQueue] = useState<PatientRecord[]>([]);
-
     useEffect(() => {
     }, []);
 
@@ -87,7 +90,7 @@ export const PatientRecordContextProvider: React.FC<PropsWithChildren> = ({ chil
                     newRecord ? [...patientRecords, updatedPatientRecord] :
                     patientRecords.map(pr => pr.id === updatedPatientRecord.id ?  updatedPatientRecord : pr)
                 )
-                chatContext.setPatientRecordsLoaded(false); // reload context next time
+                //chatContext.setPatientRecordsLoaded(false); // reload context next time - TODO we can reload it but we need time framed throthling #97
                 return updatedPatientRecord;
             }
         } catch (error) {
@@ -157,7 +160,7 @@ export const PatientRecordContextProvider: React.FC<PropsWithChildren> = ({ chil
             toast.success('Patient record removed successfully!')
             const updatedPatientRecords = patientRecords.filter((pr) => pr.id !== record.id);
             setPatientRecords(updatedPatientRecords);    
-            chatContext.setPatientRecordsLoaded(false); // reload context next time        
+            //chatContext.setPatientRecordsLoaded(false); // reload context next time        
             return Promise.resolve(true);
         }
     };
@@ -267,11 +270,13 @@ export const PatientRecordContextProvider: React.FC<PropsWithChildren> = ({ chil
               content: promptText,
             },
             onResult: (resultMessage, result) => {    
-              let recordEXTRA = record.extra || []
-              recordEXTRA.find(p => p.type === type) ? recordEXTRA = recordEXTRA.map(p => p.type === type ? { ...p, value: result.text } : p) : recordEXTRA.push({ type: type, value: result.text })
-              console.log(recordEXTRA);
-              record = new PatientRecord({ ...record, extra: recordEXTRA });
-              updatePatientRecord(record);          
+              if (result.finishReason !== 'error') {
+                let recordEXTRA = record.extra || []
+                recordEXTRA.find(p => p.type === type) ? recordEXTRA = recordEXTRA.map(p => p.type === type ? { ...p, value: result.text } : p) : recordEXTRA.push({ type: type, value: result.text })
+                console.log(recordEXTRA);
+                record = new PatientRecord({ ...record, extra: recordEXTRA });
+                updatePatientRecord(record);          
+              }
             }
           })
       }
@@ -289,38 +294,49 @@ export const PatientRecordContextProvider: React.FC<PropsWithChildren> = ({ chil
         }
 
         let record = null;
-        setParseQueueInProgress(true);
+        parseQueueInProgress = true;
         while (parseQueue.length > 0) {
           try {
-            record = parseQueue.pop() as PatientRecord;
-            setParseQueue(parseQueue); // after pop - TODO: test if it's really removed
-            console.log('Processing record: ', record.id, parseQueue.length);
-            // TODO: add OSS models and OCR support - #60, #59, #61
-            updateParseProgress(record, true);
-            
-            setOperationStatus(DataLoadingStatus.Loading);
-            const attachments = await convertAttachmentsToImages(record);
-            setOperationStatus(DataLoadingStatus.Success);
+//            if (!chatContext.isStreaming) {
+              record = parseQueue[0] as PatientRecord;
+              console.log('Processing record: ', record, parseQueue.length);
+              // TODO: add OSS models and OCR support - #60, #59, #61
+              updateParseProgress(record, true);
+              
+              setOperationStatus(DataLoadingStatus.Loading);
+              const attachments = await convertAttachmentsToImages(record);
+              setOperationStatus(DataLoadingStatus.Success);
 
-            // Parsing is two or thre stage operation: 1. OCR, 2. <optional> sensitive data removal, 3. LLM
-            const ocrProvider = await config?.getServerConfig('ocrProvider') || 'chatgpt';
-            console.log('Using OCR provider:', ocrProvider);
+              // Parsing is two or thre stage operation: 1. OCR, 2. <optional> sensitive data removal, 3. LLM
+              const ocrProvider = await config?.getServerConfig('ocrProvider') || 'chatgpt';
+              console.log('Using OCR provider:', ocrProvider);
 
-            if (ocrProvider === 'chatgpt') {
-              await chatgptParseRecord(record, chatContext, config, patientContext, updateRecordFromText, updateParseProgress, attachments);
-            } else if (ocrProvider === 'tesseract') {
-              await tesseractParseRecord(record, chatContext, config, patientContext, updateRecordFromText, updateParseProgress, attachments);
-            }
+              if (ocrProvider === 'chatgpt') {
+                await chatgptParseRecord(record, chatContext, config, patientContext, updateRecordFromText, updateParseProgress, attachments);
+              } else if (ocrProvider === 'tesseract') {
+                await tesseractParseRecord(record, chatContext, config, patientContext, updateRecordFromText, updateParseProgress, attachments);
+              }
+              console.log('Record parsed, taking next record', record);
+              parseQueue = parseQueue.slice(1); // remove one item
+              parseQueueLength = parseQueue.length;
+/*            } else {
+              console.log('Waiting for chat to finish streaming');
+              await new Promise(r => setTimeout(r, 1000));
+            }*/
           } catch (error) {
+            parseQueue = parseQueue.slice(1); // remove one item
+            parseQueueLength = parseQueue.length;
+
             if (record) updateParseProgress(record, false, error);
           }
         }
-        setParseQueueInProgress(false);        
+        parseQueueInProgress = false;
       }      
     
       const parsePatientRecord = async (newRecord: PatientRecord)=> {
         if (!parseQueue.find(pr => pr.id === newRecord.id)) {
-          setParseQueue([...parseQueue, newRecord]); // add to parse Queue
+          parseQueue.push(newRecord)
+          parseQueueLength = parseQueue.length
           console.log('Added to parse queue: ', parseQueue.length);
         }
         processParseQueue();
@@ -375,6 +391,7 @@ export const PatientRecordContextProvider: React.FC<PropsWithChildren> = ({ chil
         <PatientRecordContext.Provider
             value={{
                  patientRecords, 
+                 parseQueueLength,
                  updateRecordFromText,
                  updatePatientRecord, 
                  loaderStatus, 
@@ -392,7 +409,7 @@ export const PatientRecordContextProvider: React.FC<PropsWithChildren> = ({ chil
                  parsePatientRecord,
                  sendHealthReacordToChat,
                  sendAllRecordsToChat,
-                processParseQueue
+                 processParseQueue
                 }}
         >
             {children}

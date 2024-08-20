@@ -28,7 +28,7 @@ const ChatMessage: React.FC<ChatMessageProps> = ({ message, ref }) => {
           <div className="font-bold">{message.name}</div>
           <div className="prose text-sm text-muted-foreground">
             {(message.visibility === MessageVisibility.ProgressWhileStreaming  && !message.finished) ? (
-              <div className="flex"><span className="text-xs">Parsing data in progress... <Button className="h-6" onClick={(e) => message.visibility = MessageVisibility.Visible }>Show progress</Button></span></div>
+              <div className="flex"><span className="text-xs">Parsing data in progress (queue length: {patientRecordContext?.parseQueueLength ? patientRecordContext?.parseQueueLength : 1})... <Button className="h-6" onClick={(e) => message.visibility = MessageVisibility.Visible }>Show progress</Button></span></div>
             ) : (
               (message.displayMode === 'internalJSONRequest') ? (
               <div>

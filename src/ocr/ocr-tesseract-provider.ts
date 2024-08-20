@@ -40,75 +40,89 @@ const processFiles = async (files: DisplayableDataObject[], selectedLanguage: st
 
   }
 
-export async function parse(record: PatientRecord, chatContext: ChatContextType, configContext: ConfigContextType | null, patientContext: PatientContextType | null, updateRecordFromText: (text: string, record: PatientRecord) => PatientRecord|null, updateParseProgress: (record: PatientRecord, inProgress: boolean, error: any) => void, sourceImages: DisplayableDataObject[]) {
-    // TODO: add Tesseract parsing logic - then LLM - it should be configurable whichh LLM is being used for data parsing from tesseract text
-    toast.info('Sending images to Tesseract for OCR processing...');
+export async function parse(record: PatientRecord, chatContext: ChatContextType, configContext: ConfigContextType | null, patientContext: PatientContextType | null, updateRecordFromText: (text: string, record: PatientRecord) => PatientRecord|null, updateParseProgress: (record: PatientRecord, inProgress: boolean, error: any) => void, sourceImages: DisplayableDataObject[]): Promise<AIResultEventType>  {
+    return new Promise (async (resolve, reject) => {
 
-    let textAfterOcr = await processFiles(sourceImages, (await configContext?.getServerConfig('ocrLanguage') as string) || 'en');
-    console.log(textAfterOcr);
+        // TODO: add Tesseract parsing logic - then LLM - it should be configurable whichh LLM is being used for data parsing from tesseract text
+        toast.info('Sending images to Tesseract for OCR processing...');
 
-    const removePIIMode = await configContext?.getServerConfig('llmProviderRemovePII') as string;
-    const parseAIProvider = await configContext?.getServerConfig('llmProviderChat') as string;
+        let textAfterOcr = await processFiles(sourceImages, (await configContext?.getServerConfig('ocrLanguage') as string) || 'en');
+        console.log(textAfterOcr);
 
-    const parseRequest = async (text:string) => {
-        return chatContext.sendMessage({ 
-            message: {
-                role: 'user',
-                createdAt: new Date(),
-                // visibility: MessageVisibility.ProgressWhileStreaming,
-                content: prompts.patientRecordParseOCR({ record, config: configContext }, text)
-            },
-            onResult: (resultMessage, result) => {
-                resultMessage.recordSaved = true;
-                resultMessage.recordRef = record;
-                updateParseProgress(record, false, null);
-                updateRecordFromText(resultMessage.content, record);
-            },
-            providerName: parseAIProvider
-        });
-    };
+        const removePIIMode = await configContext?.getServerConfig('llmProviderRemovePII') as string;
+        const parseAIProvider = await configContext?.getServerConfig('llmProviderChat') as string;
 
-    if (removePIIMode === 'replace' || removePIIMode === 'both') {
-        // TODO: add programmatical data removal removing all patient personal data - extend patient to store more personal data to be removed
-        const piiTokens:string[] = []
-        if (patientContext?.currentPatient) {
-            const patientJsonData = patientContext?.currentPatient.json;
-            if (patientJsonData) {
-                Object.keys(patientJsonData).forEach((key) => {
-                    const piiToken = patientJsonData[key] as string;
-                    if (piiToken && piiToken.length > 3) piiTokens.push(patientJsonData[key]);
-                });
-            }
-            piiTokens.push(patientContext?.currentPatient.firstName);
-            piiTokens.push(patientContext?.currentPatient.lastName);
-            if (patientContext?.currentPatient.email) piiTokens.push(patientContext?.currentPatient.email);
-            if (patientContext?.currentPatient.dateOfBirth) piiTokens.push(patientContext?.currentPatient.dateOfBirth);
-            const piiGeneralData: string = (await configContext?.getServerConfig('piiGeneralData') as string) || '';
-            if (piiGeneralData) piiTokens.push(...piiGeneralData.split("\n"));    
-        }
-        console.log('Removing PII Tokens: ', piiTokens)
-        textAfterOcr = removePII(textAfterOcr, piiTokens, '***');
-    } 
-    
-    if(removePIIMode === 'ollama' || removePIIMode === 'both') {
-        const ollamaUrl = await configContext?.getServerConfig('ollamaUrl') as string;
-        if (!ollamaUrl) {
-            toast.error('Please configure the Ollama URL in the Settings first in order to remove PII using Ollama')
-        } else {
-            toast.info('Sending OCR text to Ollama for PII removal...');
-            chatContext.sendMessage({ // still using chatgpt only - add support for other LLMS
+        const parseRequest = async (text:string) => {
+            return chatContext.sendMessage({ 
                 message: {
                     role: 'user',
                     createdAt: new Date(),
-                    content: prompts.patientRecordRemovePII({ record, config: configContext }, textAfterOcr)
+                    // visibility: MessageVisibility.ProgressWhileStreaming,
+                    content: prompts.patientRecordParseOCR({ record, config: configContext }, text)
                 },
                 onResult: (resultMessage, result) => {
-                    parseRequest(result.text);
+                    if (result.finishReason !== 'error') {
+                        resultMessage.recordSaved = true;
+                        resultMessage.recordRef = record;
+                        updateParseProgress(record, false, null);
+                        updateRecordFromText(resultMessage.content, record);
+                        resolve(result);
+                    } else {
+                        reject(result);
+                    }
+                    
                 },
-                providerName: 'ollama'
+                providerName: parseAIProvider
             });
-        }
-    }  else {
-        parseRequest(textAfterOcr);
-    }   
+        };
+
+        if (removePIIMode === 'replace' || removePIIMode === 'both') {
+            // TODO: add programmatical data removal removing all patient personal data - extend patient to store more personal data to be removed
+            const piiTokens:string[] = []
+            if (patientContext?.currentPatient) {
+                const patientJsonData = patientContext?.currentPatient.json;
+                if (patientJsonData) {
+                    Object.keys(patientJsonData).forEach((key) => {
+                        const piiToken = patientJsonData[key] as string;
+                        if (piiToken && piiToken.length > 3) piiTokens.push(patientJsonData[key]);
+                    });
+                }
+                piiTokens.push(patientContext?.currentPatient.firstName);
+                piiTokens.push(patientContext?.currentPatient.lastName);
+                if (patientContext?.currentPatient.email) piiTokens.push(patientContext?.currentPatient.email);
+                if (patientContext?.currentPatient.dateOfBirth) piiTokens.push(patientContext?.currentPatient.dateOfBirth);
+                const piiGeneralData: string = (await configContext?.getServerConfig('piiGeneralData') as string) || '';
+                if (piiGeneralData) piiTokens.push(...piiGeneralData.split("\n"));    
+            }
+            console.log('Removing PII Tokens: ', piiTokens)
+            textAfterOcr = removePII(textAfterOcr, piiTokens, '***');
+        } 
+        
+        if(removePIIMode === 'ollama' || removePIIMode === 'both') {
+            const ollamaUrl = await configContext?.getServerConfig('ollamaUrl') as string;
+            if (!ollamaUrl) {
+                toast.error('Please configure the Ollama URL in the Settings first in order to remove PII using Ollama')
+            } else {
+                toast.info('Sending OCR text to Ollama for PII removal...');
+                chatContext.sendMessage({ // still using chatgpt only - add support for other LLMS
+                    message: {
+                        role: 'user',
+                        createdAt: new Date(),
+                        content: prompts.patientRecordRemovePII({ record, config: configContext }, textAfterOcr)
+                    },
+                    onResult: (resultMessage, result) => {
+                        if (result.finishReason !== 'error') {
+                            parseRequest(result.text);
+                        } else {
+                            reject(result);
+                        }
+
+                    },
+                    providerName: 'ollama'
+                });
+            }
+        }  else {
+            parseRequest(textAfterOcr);
+        }   
+    });
 }    
