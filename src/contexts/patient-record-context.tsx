@@ -293,7 +293,7 @@ export const PatientRecordContextProvider: React.FC<PropsWithChildren> = ({ chil
         while (parseQueue.length > 0) {
           try {
             record = parseQueue.pop() as PatientRecord;
-            setParseQueue(parseQueue); // after pop
+            setParseQueue(parseQueue); // after pop - TODO: test if it's really removed
             console.log('Processing record: ', record.id, parseQueue.length);
             // TODO: add OSS models and OCR support - #60, #59, #61
             updateParseProgress(record, true);
