@@ -19,6 +19,7 @@ import { parse as tesseractParseRecord } from '@/ocr/ocr-tesseract-provider';
 import { PatientContext } from './patient-context';
 import { findCodeBlocks, getCurrentTS } from '@/lib/utils';
 import { parse } from 'path';
+import { sha256 } from '@/lib/crypto';
 
 let parseQueueInProgress = false;
 let parseQueue:PatientRecord[] = []
@@ -72,6 +73,9 @@ export const PatientRecordContextProvider: React.FC<PropsWithChildren> = ({ chil
     const chatContext = useContext(ChatContext);
     const patientContext = useContext(PatientContext)
 
+    const cache = async () => {
+      return await caches.open('patientRecordContext');      
+    }
 
     const updatePatientRecord = async (patientRecord: PatientRecord): Promise<PatientRecord> => {
         try {
@@ -202,6 +206,15 @@ export const PatientRecordContextProvider: React.FC<PropsWithChildren> = ({ chil
     }
 
       const getAttachmentDataURL = async(attachmentDTO: EncryptedAttachmentDTO, type: URLType): Promise<string> => {
+        const cacheStorage = await cache();
+
+        const attachmentDataUrl = await cacheStorage.match(attachmentDTO.storageKey);
+
+        if (attachmentDataUrl) {
+          console.log('Attachment loaded from cache ', attachmentDTO)
+          return attachmentDataUrl.text();
+        }
+    
         console.log('Download attachment', attachmentDTO);
     
         const client = await setupAttachmentsApiClient(config);
@@ -210,9 +223,11 @@ export const PatientRecordContextProvider: React.FC<PropsWithChildren> = ({ chil
         if (type === URLType.blob) {
           const blob = new Blob([arrayBufferData], { type: attachmentDTO.mimeType + ";charset=utf-8" });
           const url = URL.createObjectURL(blob);
+          cacheStorage.put(attachmentDTO.storageKey, new Response(url))
           return url;
         } else {
           const url = 'data:' + attachmentDTO.mimeType +';base64,' + convertDataContentToBase64String(arrayBufferData);
+          cacheStorage.put(attachmentDTO.storageKey, new Response(url))
           return url;
         }
       }
@@ -228,6 +243,17 @@ export const PatientRecordContextProvider: React.FC<PropsWithChildren> = ({ chil
     
       const convertAttachmentsToImages = async (record: PatientRecord, statusUpdates: boolean = true): Promise<DisplayableDataObject[]> => {
         const attachments = []
+        const cacheStorage = await cache();
+        const attachmentsHash = await sha256(record.attachments.map(ea => ea.storageKey).join('-'), 'attachments')
+        const cacheKey = `patientRecord-${record.id}-${attachmentsHash}-${dbContext?.databaseHashId}`;
+        const cachedAttachments = await cacheStorage.match(cacheKey);
+
+        if (cachedAttachments) {
+          const deserializedAttachments = await cachedAttachments.json() as DisplayableDataObject[];
+          console.log(`Attachment images loaded from cache for ${record.id} - pages: ` + deserializedAttachments.length + ' (' + attachmentsHash + ')');
+          return deserializedAttachments;
+        }
+
         for(const ea of record.attachments){
     
           try {
@@ -257,6 +283,7 @@ export const PatientRecordContextProvider: React.FC<PropsWithChildren> = ({ chil
             if (statusUpdates) toast.error('Error downloading attachment: ' + error);
           }
         }
+        cacheStorage.put(cacheKey, new Response(JSON.stringify(attachments)));
         return attachments;
       }
     
