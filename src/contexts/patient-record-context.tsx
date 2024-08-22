@@ -46,7 +46,7 @@ export type PatientRecordContextType = {
 
     updateRecordFromText: (text: string, record: PatientRecord) => PatientRecord|null;
     getAttachmentDataURL: (attachmentDTO: EncryptedAttachmentDTO, type: URLType) => Promise<string>;
-    downloadAttachment: (attachment: EncryptedAttachmentDTO) => void;
+    downloadAttachment: (attachment: EncryptedAttachmentDTO, useCache: boolean) => void;
     convertAttachmentsToImages: (record: PatientRecord, statusUpdates: boolean) => Promise<DisplayableDataObject[]>;
     extraToRecord: (type: string, promptText: string, record: PatientRecord) => void;
     parsePatientRecord: (record: PatientRecord) => void;
@@ -205,12 +205,12 @@ export const PatientRecordContextProvider: React.FC<PropsWithChildren> = ({ chil
         return client;
     }
 
-      const getAttachmentDataURL = async(attachmentDTO: EncryptedAttachmentDTO, type: URLType): Promise<string> => {
+      const getAttachmentDataURL = async(attachmentDTO: EncryptedAttachmentDTO, type: URLType, useCache = true): Promise<string> => {
         const cacheStorage = await cache();
 
         const attachmentDataUrl = await cacheStorage.match(attachmentDTO.storageKey);
 
-        if (attachmentDataUrl) {
+        if (attachmentDataUrl && useCache) {
           console.log('Attachment loaded from cache ', attachmentDTO)
           return attachmentDataUrl.text();
         }
@@ -223,18 +223,18 @@ export const PatientRecordContextProvider: React.FC<PropsWithChildren> = ({ chil
         if (type === URLType.blob) {
           const blob = new Blob([arrayBufferData], { type: attachmentDTO.mimeType + ";charset=utf-8" });
           const url = URL.createObjectURL(blob);
-          cacheStorage.put(attachmentDTO.storageKey, new Response(url))
+          if(useCache) cacheStorage.put(attachmentDTO.storageKey, new Response(url))
           return url;
         } else {
           const url = 'data:' + attachmentDTO.mimeType +';base64,' + convertDataContentToBase64String(arrayBufferData);
-          cacheStorage.put(attachmentDTO.storageKey, new Response(url))
+          if(useCache) cacheStorage.put(attachmentDTO.storageKey, new Response(url))
           return url;
         }
       }
     
-      const downloadAttachment = async (attachment: EncryptedAttachmentDTO) => {
+      const downloadAttachment = async (attachment: EncryptedAttachmentDTO, useCache = true) => {
         try {
-          const url = await getAttachmentDataURL(attachment, URLType.blob);
+          const url = await getAttachmentDataURL(attachment, URLType.blob, useCache);
           window.open(url);    
         } catch (error) {
           toast.error('Error downloading attachment ' + error);

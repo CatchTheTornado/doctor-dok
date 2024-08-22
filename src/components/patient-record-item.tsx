@@ -1,7 +1,7 @@
 import { Button } from "@/components/ui/button";
 import { PaperclipIcon, Trash2Icon } from "./icons";
 import { PatientRecord } from "@/data/client/models";
-import { useContext, useEffect, useState } from "react";
+import { useContext, useEffect, useRef, useState } from "react";
 import { PencilIcon, Wand2Icon } from "lucide-react";
 import { PatientRecordContext } from "@/contexts/patient-record-context";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "./ui/alert-dialog";
@@ -31,10 +31,12 @@ export default function PatientRecordItem({ record, displayAttachmentPreviews }:
   const patientContext = useContext(PatientContext)
   const [displayableAttachmentsInProgress, setDisplayableAttachmentsInProgress] = useState(false)
   const [commandsOpen, setCommandsOpen] = useState(false);
+  const thisElementRef = useRef(null);
+  const [isVisible, setIsVisible] = useState(false);
 
   const [displayableAttachments, setDisplayableAttachments] = useState<Attachment[]>([]);
 
-  useEffect(() => {
+  const loadAttachmentPreviews = () => {
     if (displayAttachmentPreviews && !displayableAttachmentsInProgress) {
       setDisplayableAttachmentsInProgress(true);
       patientRecordContext?.convertAttachmentsToImages(record, false).then((attachments) => {
@@ -43,6 +45,39 @@ export default function PatientRecordItem({ record, displayAttachmentPreviews }:
       }).catch((error) => {
         setDisplayableAttachmentsInProgress(false);
       });
+    }    
+  }
+
+  useEffect(() => {
+
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        setIsVisible(entry.isIntersecting);
+        if (entry.isIntersecting) loadAttachmentPreviews();
+      },
+      {
+        root: null, // viewport
+        rootMargin: '0px', // no margin
+        threshold: 0.5, // 50% of target visible
+      }
+    );
+
+    if (thisElementRef.current) {
+      observer.observe(thisElementRef.current);
+    }
+
+    // Clean up the observer
+    return () => {
+      if (thisElementRef.current) {
+        observer.unobserve(thisElementRef.current);
+      }
+    };
+  }, [])
+
+  useEffect(() => {
+
+    if (isVisible) {      
+      loadAttachmentPreviews();
     }
 
     if (config?.getServerConfig('autoParsePatientRecord') && !record.json && !record.parseInProgress && !record.parseError && (new Date().getTime() - new Date(record.updatedAt).getTime()) < 1000 * 120 /* parse only records changed 30s ago */) { // TODO: maybe we need to add "parsedDate" or kind of checksum (better!) to make sure the record is parseed only when something changed
@@ -50,7 +85,6 @@ export default function PatientRecordItem({ record, displayAttachmentPreviews }:
     }
 
     patientRecordContext?.processParseQueue();
-
   }, [displayAttachmentPreviews, record]);
 
 
@@ -77,9 +111,9 @@ export default function PatientRecordItem({ record, displayAttachmentPreviews }:
         <PatientRecordItemJson record={record} />
         <PatientRecordItemExtra record={record} />
       </div>
-      <div className="mt-2 flex flex-wrap items-center gap-2 w-100">
+      <div ref={thisElementRef} className="mt-2 flex flex-wrap items-center gap-2 w-100">
         {record.attachments.map((attachment, index) => (
-          <div key={index} className="text-sm inline-flex w-auto"><Button variant="outline" onClick={() => patientRecordContext?.downloadAttachment(attachment.toDTO())}><PaperclipIcon className="w-4 h-4 mr-2" /> {attachment.displayName}</Button></div>
+          <div key={index} className="text-sm inline-flex w-auto"><Button variant="outline" onClick={() => patientRecordContext?.downloadAttachment(attachment.toDTO(), false)}><PaperclipIcon className="w-4 h-4 mr-2" /> {attachment.displayName}</Button></div>
         ))}
       </div>
       {displayAttachmentPreviews && record.attachments.length > 0 ? (
