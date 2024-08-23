@@ -25,7 +25,7 @@ export type DatabaseManifest = {
 
 export const maintenance = { 
 	databaseDirectory: (databaseId:string) =>  path.join(rootPath, 'data', databaseId),
-	databaseFileName: (databaseId:string) =>  path.join(maintenance.databaseDirectory(databaseId),  'db.sqlite'),
+	databaseFileName: (databaseId:string, databaseSchema:string = '') =>  path.join(maintenance.databaseDirectory(databaseId),  `db${databaseSchema ? '-' + databaseSchema : ''}.sqlite`),
 	createDatabaseManifest: async (databaseId: string, databaseManifest: DatabaseManifest) => {
 		const databaseDirectory = maintenance.databaseDirectory(databaseId)
 		if (!fs.existsSync(databaseDirectory)) {
@@ -33,7 +33,7 @@ export const maintenance = {
 		}
 
 		console.log('Creating new database hash = ' + databaseId);
-		const newDb = (await pool)(databaseId, true); // create new database
+		const newDb = (await pool)(databaseId, '', true); // create main database file (empty schema)
 
 		const manifestPath = path.join(databaseDirectory, 'manifest.json')
 		if (!fs.existsSync(manifestPath)) {
@@ -55,16 +55,17 @@ export const maintenance = {
 
 export const Pool = async (maxPool = 50) => {
 	const databaseInstances: Record<string, BetterSQLite3Database> = {}
-	return async (databaseId: string, createNewDb: boolean = false) => {
-		if (databaseInstances[databaseId]) {
-			return databaseInstances[databaseId]
+	return async (databaseId: string, databaseSchema:string = '', createNewDb: boolean = false ) => {
+		const poolKey = `${databaseId}-${databaseSchema}`
+		if (databaseInstances[poolKey]) {
+			return databaseInstances[poolKey]
 		}
 
 		if (Object.keys(databaseInstances).length >= maxPool) {
 			delete databaseInstances[Object.keys(databaseInstances)[0]]
 		}
 
-		const databaseFile = maintenance.databaseFileName(databaseId)
+		const databaseFile = maintenance.databaseFileName(databaseId, databaseSchema)
 		let requiresMigration = true
 
 		if(!maintenance.checkIfDatabaseExists(databaseId)) {
@@ -74,14 +75,14 @@ export const Pool = async (maxPool = 50) => {
 		}
 
 		const db = new Database(databaseFile)
-		databaseInstances[databaseId] = drizzle(db)
+		databaseInstances[poolKey] = drizzle(db)
 
 		if (requiresMigration) { // we are never skipping running the migrations when first adding database to the pool bc of possible changes in the schema
             console.log('Running migrations')
-			await migrate(databaseInstances[databaseId], { migrationsFolder: 'drizzle' })
+			await migrate(databaseInstances[poolKey], { migrationsFolder: 'drizzle' })
 		}
 
-		return databaseInstances[databaseId]
+		return databaseInstances[poolKey]
 	}
 }
 

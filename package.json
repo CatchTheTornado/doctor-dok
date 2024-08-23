@@ -6,7 +6,9 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint"
+    "lint": "next lint",
+    "generate": "drizzle-kit generate",
+    "generate-stats": "drizzle-kit generate --config drizzle.stats.config.ts"
   },
   "dependencies": {
     "@ai-sdk/openai": "^0.0.36",

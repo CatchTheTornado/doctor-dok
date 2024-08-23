@@ -137,3 +137,20 @@ export const keyACLSchema = z.object({
 });
 export type KeyACLDTO = z.infer<typeof keyACLSchema>;
 export const defaultKeyACL: KeyACLDTO = { role: 'guest', features: [] };
+
+
+
+// Stats DTO's 
+export const statsSchema = z.object({
+  id: z.number().positive().int(),
+  eventName: z.string().min(1),
+  promptTokens: z.number().positive().int(),
+  completionTokens: z.number().positive().int(),
+  finishReasons: z.number().positive().int(),
+  createdAt: z.string().default(() => getCurrentTS()),
+  createdMonth:  z.number().positive().int(),
+  createdDay:  z.number().positive().int(),
+  createdYear:  z.number().positive().int(),
+  createdHour:  z.number().positive().int()
+})
+export type StatDTO = z.infer<typeof statsSchema>;
