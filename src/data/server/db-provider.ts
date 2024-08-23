@@ -56,7 +56,7 @@ export const maintenance = {
 export const Pool = async (maxPool = 50) => {
 	const databaseInstances: Record<string, BetterSQLite3Database> = {}
 	return async (databaseId: string, databaseSchema:string = '', createNewDb: boolean = false ) => {
-		const poolKey = `${databaseId}-${databaseSchema}`
+		const poolKey = `${databaseId}-${databaseSchema}` // TODO: maybe we should use different pools for different schemas? however as for now it makes no big difference
 		if (databaseInstances[poolKey]) {
 			return databaseInstances[poolKey]
 		}
