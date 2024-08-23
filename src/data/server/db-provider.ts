@@ -79,7 +79,7 @@ export const Pool = async (maxPool = 50) => {
 
 		if (requiresMigration) { // we are never skipping running the migrations when first adding database to the pool bc of possible changes in the schema
             console.log('Running migrations')
-			await migrate(databaseInstances[poolKey], { migrationsFolder: 'drizzle' })
+			await migrate(databaseInstances[poolKey], { migrationsFolder: `drizzle${ databaseSchema ? '-' + databaseSchema : '' }` }) // database migrations in subfolder for different schemas
 		}
 
 		return databaseInstances[poolKey]
