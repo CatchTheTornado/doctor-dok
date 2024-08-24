@@ -161,9 +161,10 @@ export const ChatContextProvider: React.FC<PropsWithChildren> = ({ children }) =
             return aiProvider.chat(await config?.getServerConfig('ollamaModel') as string);
         } else if (providerName === 'chatgpt'){
             const aiProvider = createOpenAI({
+                compatibility: 'strict',
                 apiKey: await config?.getServerConfig('chatGptApiKey') as string
             })
-            return aiProvider.chat('gpt-4o')   //gpt-4o-2024-05-13
+            return aiProvider.chat('chatgpt-4o-latest')   //gpt-4o-2024-05-13
         } else {
             toast.error('Unknown AI provider ' + providerName);
             throw new Error('Unknown AI provider ' + providerName);
@@ -189,7 +190,9 @@ export const ChatContextProvider: React.FC<PropsWithChildren> = ({ children }) =
             const result = await streamText({
                 model: await aiProvider(providerName),
                 messages: convertToCoreMessages(messages),
+                //maxTokens: 4096,
                 onFinish: (e) =>  {
+                    console.log('AI usage: ', e.usage);
                     e.text.indexOf('```json') > -1 ? resultMessage.displayMode = MessageDisplayMode.InternalJSONResponse : resultMessage.displayMode = MessageDisplayMode.Text
                     resultMessage.finished = true;
                     if (onResult) onResult(resultMessage, e);

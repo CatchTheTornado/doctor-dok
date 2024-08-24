@@ -1,6 +1,6 @@
 import { Button } from "@/components/ui/button";
 import { PaperclipIcon, Trash2Icon } from "./icons";
-import { PatientRecord } from "@/data/client/models";
+import { DisplayableDataObject, PatientRecord } from "@/data/client/models";
 import { useContext, useEffect, useRef, useState } from "react";
 import { PencilIcon, Wand2Icon } from "lucide-react";
 import { PatientRecordContext } from "@/contexts/patient-record-context";
@@ -21,33 +21,37 @@ import PatientRecordItemCommands from "./patient-record-item-commands";
 import { PatientContext } from "@/contexts/patient-context";
 import { ChatContext } from "@/contexts/chat-context";
 import { ConfigContext } from "@/contexts/config-context";
+import { toast } from "sonner";
+import { DatabaseContext } from "@/contexts/db-context";
 
 
 export default function PatientRecordItem({ record, displayAttachmentPreviews }: { record: PatientRecord, displayAttachmentPreviews: boolean }) {
   // TODO: refactor and extract business logic to a separate files
   const patientRecordContext = useContext(PatientRecordContext)
-  const chatContext = useContext(ChatContext)
+  const chatContext = useContext(ChatContext);
+  const dbContext = useContext(DatabaseContext);
   const config = useContext(ConfigContext);
   const patientContext = useContext(PatientContext)
   const [displayableAttachmentsInProgress, setDisplayableAttachmentsInProgress] = useState(false)
-  const [displayableAttachmentsLoaded, setDisplayableAttachmentsLoaded] = useState(false);
   const [commandsOpen, setCommandsOpen] = useState(false);
   const thisElementRef = useRef(null);
   const [isVisible, setIsVisible] = useState(false);
+  const [lastlyLoadedCacheKey, setLastlyLoadedCacheKey] = useState('');
 
-  const [displayableAttachments, setDisplayableAttachments] = useState<Attachment[]>([]);
+  const [displayableAttachments, setDisplayableAttachments] = useState<DisplayableDataObject[]>([]);
 
-  const loadAttachmentPreviews = () => {
-    if (displayAttachmentPreviews && !displayableAttachmentsInProgress && !displayableAttachmentsLoaded) {
+  const loadAttachmentPreviews = async () => {
+    const currentCacheKey = await record.cacheKey(dbContext?.databaseHashId);
+    if (displayAttachmentPreviews && !displayableAttachmentsInProgress && lastlyLoadedCacheKey !== currentCacheKey) {
       setDisplayableAttachmentsInProgress(true);
-      patientRecordContext?.convertAttachmentsToImages(record, false).then((attachments) => {
-        setDisplayableAttachments(attachments);
+      try {
+        const attachments = await patientRecordContext?.convertAttachmentsToImages(record, false);
+        setDisplayableAttachments(attachments as DisplayableDataObject[]);
         setDisplayableAttachmentsInProgress(false);
-        setDisplayableAttachmentsLoaded(true);
-      }).catch((error) => {
+        setLastlyLoadedCacheKey(currentCacheKey)
+      } catch(error) {
         setDisplayableAttachmentsInProgress(false);
-        setDisplayableAttachmentsLoaded(true);
-      });
+      };
     }    
   }
 
@@ -56,12 +60,11 @@ export default function PatientRecordItem({ record, displayAttachmentPreviews }:
     const observer = new IntersectionObserver(
       ([entry]) => {
         setIsVisible(entry.isIntersecting);
-        if (entry.isIntersecting) loadAttachmentPreviews();
       },
       {
         root: null, // viewport
         rootMargin: '0px', // no margin
-        threshold: 0.5, // 50% of target visible
+        threshold: 0.25, // 50% of target visible
       }
     );
 
@@ -70,11 +73,11 @@ export default function PatientRecordItem({ record, displayAttachmentPreviews }:
     }
 
     // Clean up the observer
-    return () => {
+/*    return () => {
       if (thisElementRef.current) {
         observer.unobserve(thisElementRef.current);
       }
-    };
+    };*/
   }, [])
 
   useEffect(() => {
@@ -84,17 +87,19 @@ export default function PatientRecordItem({ record, displayAttachmentPreviews }:
     }
 
     if (config?.getServerConfig('autoParsePatientRecord') && !record.json && !record.parseInProgress && !record.parseError && (new Date().getTime() - new Date(record.updatedAt).getTime()) < 1000 * 120 /* parse only records changed 30s ago */) { // TODO: maybe we need to add "parsedDate" or kind of checksum (better!) to make sure the record is parseed only when something changed
-      patientRecordContext?.parsePatientRecord(record);
+      setTimeout(() => {
+        patientRecordContext?.parsePatientRecord(record);
+      }, 1000);
     }
 
     patientRecordContext?.processParseQueue();
-  }, [displayAttachmentPreviews, record]);
+  }, [displayAttachmentPreviews, record, isVisible]);
 
 
   return (
     <div className="bg-zinc-100 dark:bg-zinc-800 p-4 rounded-md">
       <div className="flex items-center justify-between">
-        <div className="text-xs text-zinc-500 dark:text-zinc-400 font-medium">{labels.patientRecordItemLabel(record.type, { record })}</div>
+        <div className="text-xs text-zinc-500 dark:text-zinc-400 font-medium">{record.id}: {labels.patientRecordItemLabel(record.type, { record })}</div>
         <div className="text-xs text-zinc-500 dark:text-zinc-400">{record.createdAt}</div>
       </div>
       <div className="mt-5 rose text-sm text-muted-foreground"><Markdown className={styles.markdown} remarkPlugins={[remarkGfm]}>{record.description}</Markdown></div>
@@ -114,7 +119,7 @@ export default function PatientRecordItem({ record, displayAttachmentPreviews }:
         <PatientRecordItemJson record={record} />
         <PatientRecordItemExtra record={record} />
       </div>
-      <div ref={thisElementRef} className="mt-2 flex flex-wrap items-center gap-2 w-100">
+      <div className="mt-2 flex flex-wrap items-center gap-2 w-100">
         {record.attachments.map((attachment, index) => (
           <div key={index} className="text-sm inline-flex w-auto"><Button variant="outline" onClick={() => patientRecordContext?.downloadAttachment(attachment.toDTO(), false)}><PaperclipIcon className="w-4 h-4 mr-2" /> {attachment.displayName}</Button></div>
         ))}
@@ -143,12 +148,12 @@ export default function PatientRecordItem({ record, displayAttachmentPreviews }:
             Loading previews ...
           </div>): null)
       ) : null}
-      <div className="mt-2 flex items-center gap-2">
+      <div ref={thisElementRef} className="mt-2 flex items-center gap-2">
         <Button size="icon" variant="ghost" title="Edit record">
-          <PencilIcon className="w-4 h-4" onClick={() => { patientRecordContext?.setCurrentPatientRecord(record);  patientRecordContext?.setPatientRecordEditMode(true); }} />
+          <PencilIcon className="w-4 h-4" onClick={() => { if(record.parseInProgress) { toast.info('Please wait until record is successfully parsed') } else {  patientRecordContext?.setCurrentPatientRecord(record);  patientRecordContext?.setPatientRecordEditMode(true); } }} />
         </Button>        
         <Button size="icon" variant="ghost" title="Add attachments">
-          <PaperclipIcon className="w-4 h-4"  onClick={() => { patientRecordContext?.setCurrentPatientRecord(record);  patientRecordContext?.setPatientRecordEditMode(true); }} />
+          <PaperclipIcon className="w-4 h-4"  onClick={() => { if(record.parseInProgress) { toast.info('Please wait until record is successfully parsed') } else {   patientRecordContext?.setCurrentPatientRecord(record);  patientRecordContext?.setPatientRecordEditMode(true);}  }} />
         </Button>
         <Button size="icon" variant="ghost" title="Convert to structural data">
           {(record.parseInProgress) ? (
@@ -157,7 +162,7 @@ export default function PatientRecordItem({ record, displayAttachmentPreviews }:
             <RefreshCwIcon className="w-4 h-4"  onClick={async () => {  await patientRecordContext?.sendHealthReacordToChat(record, true); } /* TODO: add prompt UI for altering the prompt */ } />
           )}
         </Button>       
-        {(record.json) ? (
+        {(record.json && !record.parseInProgress) ? (
         <Button size="icon" variant="ghost" title="Insert into AI Chat">
             <MessageCircleIcon className="w-4 h-4"  onClick={async () => {  patientRecordContext?.sendHealthReacordToChat(record, false);  }} />
         </Button>        

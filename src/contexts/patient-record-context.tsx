@@ -91,10 +91,10 @@ export const PatientRecordContextProvider: React.FC<PropsWithChildren> = ({ chil
 
                 return patientRecord;
             } else {
-                const updatedPatientRecord = Object.assign(patientRecord, { id: response.data.id });
-                setPatientRecords(
-                    newRecord ? [...patientRecords, updatedPatientRecord] :
-                    patientRecords.map(pr => pr.id === updatedPatientRecord.id ?  updatedPatientRecord : pr)
+              const updatedPatientRecord = new PatientRecord({ ...patientRecord, id: response.data.id } as PatientRecord);
+              setPatientRecords(prevPatientRecords => 
+                    newRecord ? [...prevPatientRecords, updatedPatientRecord] :
+                    prevPatientRecords.map(pr => pr.id === updatedPatientRecord.id ?  updatedPatientRecord : pr)
                 )
                 //chatContext.setPatientRecordsLoaded(false); // reload context next time - TODO we can reload it but we need time framed throthling #97
                 return updatedPatientRecord;
@@ -164,8 +164,7 @@ export const PatientRecordContextProvider: React.FC<PropsWithChildren> = ({ chil
             return Promise.resolve(false);
         } else {
             toast.success('Patient record removed successfully!')
-            const updatedPatientRecords = patientRecords.filter((pr) => pr.id !== record.id);
-            setPatientRecords(updatedPatientRecords);    
+            setPatientRecords(prvPatientRecords => prvPatientRecords.filter((pr) => pr.id !== record.id));    
             //chatContext.setPatientRecordsLoaded(false); // reload context next time        
             return Promise.resolve(true);
         }
@@ -209,8 +208,8 @@ export const PatientRecordContextProvider: React.FC<PropsWithChildren> = ({ chil
 
       const getAttachmentDataURL = async(attachmentDTO: EncryptedAttachmentDTO, type: URLType, useCache = true): Promise<string> => {
         const cacheStorage = await cache();
-
-        const attachmentDataUrl = await cacheStorage.match(attachmentDTO.storageKey);
+        const cacheKey = `${attachmentDTO.storageKey}-${attachmentDTO.id}-${type}`;
+        const attachmentDataUrl = await cacheStorage.match(cacheKey);
 
         if (attachmentDataUrl && useCache) {
           console.log('Attachment loaded from cache ', attachmentDTO)
@@ -225,11 +224,11 @@ export const PatientRecordContextProvider: React.FC<PropsWithChildren> = ({ chil
         if (type === URLType.blob) {
           const blob = new Blob([arrayBufferData], { type: attachmentDTO.mimeType + ";charset=utf-8" });
           const url = URL.createObjectURL(blob);
-          if(useCache) cacheStorage.put(attachmentDTO.storageKey, new Response(url))
+          if(useCache) cacheStorage.put(cacheKey, new Response(url))
           return url;
         } else {
           const url = 'data:' + attachmentDTO.mimeType +';base64,' + convertDataContentToBase64String(arrayBufferData);
-          if(useCache) cacheStorage.put(attachmentDTO.storageKey, new Response(url))
+          if(useCache) cacheStorage.put(cacheKey, new Response(url))
           return url;
         }
       }
@@ -316,11 +315,14 @@ export const PatientRecordContextProvider: React.FC<PropsWithChildren> = ({ chil
       const updateParseProgress = (record: PatientRecord, inProgress: boolean, error: any = null) => {
         record.parseError = error;
         record.parseInProgress = inProgress;
-        setPatientRecords(patientRecords.map(pr => pr.id === record.id ? record : pr)); // update state
+        setPatientRecords(prevPatientRecords => prevPatientRecords.map(pr => pr.id === record.id ? record : pr)); // update state
       }
 
       const processParseQueue = async () => {
         if (parseQueueInProgress) {
+          for(const pr of parseQueue) {
+            updateParseProgress(pr, true);
+          }
           console.log('Parse queue in progress');
           return;
         }

@@ -3,6 +3,7 @@ import { z } from "zod";
 
 import PasswordValidator from 'password-validator';
 import { getCurrentTS } from "@/lib/utils";
+import { sha256 } from "@/lib/crypto";
 
 
 export enum DataLoadingStatus {
@@ -203,6 +204,12 @@ export class PatientRecord {
   
     static fromDTO(patientRecordDTO: PatientRecordDTO): PatientRecord {
       return new PatientRecord(patientRecordDTO);
+    }
+
+    async cacheKey(databaseHashId: string): Promise<string> {
+        const attachmentsHash = await sha256(this.attachments.map(ea => ea.storageKey).join('-'), 'attachments')
+        const cacheKey = `patientRecord-${this.id}-${attachmentsHash}-${databaseHashId}`;
+        return cacheKey
     }
   
     toDTO(): PatientRecordDTO {

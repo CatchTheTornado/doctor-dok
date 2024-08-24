@@ -103,6 +103,12 @@ export default function PatientRecordForm({ patient }: { patient?: Patient }) {
   
   const onSubmit = async (data: any) => {
     // Handle form submission
+
+    if (!data.note && files?.length == 0)
+    {
+      toast.error('Please upload at least one file or enter note text description');
+      return;
+    }
     if (patientContext?.currentPatient && patientContext?.currentPatient?.id) {
 
       let isStillUploading = false;
@@ -208,8 +214,8 @@ export default function PatientRecordForm({ patient }: { patient?: Patient }) {
                 onFileRemove={(file) => {
                   setRemoveFiles([...removeFiles, file]);
                 }}
-                onUploadSuccess={(file, queue) => { console.log('OK', file, queue) }}
-                onUploadError={(file, queue) => {  console.log('FAIL', file, queue) }}
+                onUploadSuccess={(file, queue) => {}}
+                onUploadError={(file, queue) => {}}
                 dropzoneOptions={dropZoneConfig}
                 className="relative bg-background rounded-lg p-2 w-full h-max"
               >
@@ -229,6 +235,9 @@ export default function PatientRecordForm({ patient }: { patient?: Patient }) {
                     ))}
                 </FileUploaderContent>
               </EncryptedAttachmentUploader>        
+              </div>
+              <div className="pt-5 text-xs">
+                Due to AI provider context limits, if the file contains many findings (eg. blood results) - consider uploading max. 1-2 files per record.
               </div>
               <div className="pt-5 flex items-right">
               <Button>Save</Button>
