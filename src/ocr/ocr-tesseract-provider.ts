@@ -40,7 +40,7 @@ const processFiles = async (files: DisplayableDataObject[], selectedLanguage: st
 
   }
 
-export async function parse(record: PatientRecord, chatContext: ChatContextType, configContext: ConfigContextType | null, patientContext: PatientContextType | null, updateRecordFromText: (text: string, record: PatientRecord) => PatientRecord|null, updateParseProgress: (record: PatientRecord, inProgress: boolean, error: any) => void, sourceImages: DisplayableDataObject[]): Promise<AIResultEventType>  {
+export async function parse(record: PatientRecord, chatContext: ChatContextType, configContext: ConfigContextType | null, patientContext: PatientContextType | null, updateRecordFromText: (text: string, record: PatientRecord, allowNewRecord: boolean) => PatientRecord|null, updateParseProgress: (record: PatientRecord, inProgress: boolean, error: any) => void, sourceImages: DisplayableDataObject[]): Promise<AIResultEventType>  {
     return new Promise (async (resolve, reject) => {
 
         // TODO: add Tesseract parsing logic - then LLM - it should be configurable whichh LLM is being used for data parsing from tesseract text
@@ -62,10 +62,14 @@ export async function parse(record: PatientRecord, chatContext: ChatContextType,
                 },
                 onResult: (resultMessage, result) => {
                     if (result.finishReason !== 'error') {
+                        if (result.finishReason === 'length') {
+                            toast.error('Too many findings for one health record. Try uploading attachments one per health reacord')
+                        }
+
                         resultMessage.recordSaved = true;
                         resultMessage.recordRef = record;
                         updateParseProgress(record, false, null);
-                        updateRecordFromText(resultMessage.content, record);
+                        updateRecordFromText(resultMessage.content, record, false);
                         resolve(result);
                     } else {
                         reject(result);

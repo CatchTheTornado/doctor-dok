@@ -20,6 +20,8 @@ import { PatientContext } from './patient-context';
 import { findCodeBlocks, getCurrentTS } from '@/lib/utils';
 import { parse } from 'path';
 import { sha256 } from '@/lib/crypto';
+import { jsonrepair } from 'jsonrepair'
+
 
 let parseQueueInProgress = false;
 let parseQueue:PatientRecord[] = []
@@ -44,7 +46,7 @@ export type PatientRecordContextType = {
     loaderStatus: DataLoadingStatus;
     operationStatus: DataLoadingStatus;
 
-    updateRecordFromText: (text: string, record: PatientRecord) => PatientRecord|null;
+    updateRecordFromText: (text: string, record: PatientRecord, allowNewRecord: boolean) => PatientRecord|null;
     getAttachmentDataURL: (attachmentDTO: EncryptedAttachmentDTO, type: URLType) => Promise<string>;
     downloadAttachment: (attachment: EncryptedAttachmentDTO, useCache: boolean) => void;
     convertAttachmentsToImages: (record: PatientRecord, statusUpdates: boolean) => Promise<DisplayableDataObject[]>;
@@ -104,7 +106,7 @@ export const PatientRecordContextProvider: React.FC<PropsWithChildren> = ({ chil
         }
     };
 
-    const updateRecordFromText =  (text: string, record: PatientRecord | null = null): PatientRecord|null => {
+    const updateRecordFromText =  (text: string, record: PatientRecord | null = null, allowNewRecord = true): PatientRecord|null => {
         if (text.indexOf('```json') > -1) {
           const codeBlocks = findCodeBlocks(text.trimEnd().endsWith('```') ? text : text + '```', false);
           let recordJSON = [];
@@ -112,7 +114,7 @@ export const PatientRecordContextProvider: React.FC<PropsWithChildren> = ({ chil
           if (codeBlocks.blocks.length > 0) {
               for (const block of codeBlocks.blocks) {
                   if (block.syntax === 'json') {
-                      const jsonObject = JSON.parse(block.code);
+                      const jsonObject = JSON.parse(jsonrepair(block.code));
                       if (Array.isArray(jsonObject)) {
                           for (const recordItem of jsonObject) {
                               recordJSON.push(recordItem);
@@ -129,7 +131,7 @@ export const PatientRecordContextProvider: React.FC<PropsWithChildren> = ({ chil
                   record = new PatientRecord({ ...record, json: recordJSON, text: recordMarkdown, type: discoveredType } as PatientRecord);
                   updatePatientRecord(record);
               } else {
-                  if (patientContext?.currentPatient?.id) { // create new patient Record
+                  if (allowNewRecord && patientContext?.currentPatient?.id) { // create new patient Record
                     record = new PatientRecord({ patientId: patientContext?.currentPatient?.id, type: discoveredType, createdAt: getCurrentTS(), updatedAt: getCurrentTS(), json: recordJSON, text: recordMarkdown } as PatientRecord);
                     updatePatientRecord(record);
                   }
@@ -137,7 +139,7 @@ export const PatientRecordContextProvider: React.FC<PropsWithChildren> = ({ chil
               console.log('JSON repr: ', recordJSON);
           } 
       } else { // create new patient Record
-        if (patientContext?.currentPatient?.id) { // create new patient Record
+        if (allowNewRecord && patientContext?.currentPatient?.id) { // create new patient Record
           record = new PatientRecord({ patientId: patientContext?.currentPatient?.id, type: 'note', createdAt: getCurrentTS(), updatedAt: getCurrentTS(), json: null, text: text } as PatientRecord);
           updatePatientRecord(record);
         }
@@ -242,6 +244,9 @@ export const PatientRecordContextProvider: React.FC<PropsWithChildren> = ({ chil
       };
     
       const convertAttachmentsToImages = async (record: PatientRecord, statusUpdates: boolean = true): Promise<DisplayableDataObject[]> => {
+
+        if (!record.attachments || record.attachments.length == 0) return [];
+
         const attachments = []
         const cacheStorage = await cache();
         const attachmentsHash = await sha256(record.attachments.map(ea => ea.storageKey).join('-'), 'attachments')
@@ -361,7 +366,7 @@ export const PatientRecordContextProvider: React.FC<PropsWithChildren> = ({ chil
       }      
     
       const parsePatientRecord = async (newRecord: PatientRecord)=> {
-        if (!parseQueue.find(pr => pr.id === newRecord.id)) {
+        if (!parseQueue.find(pr => pr.id === newRecord.id) && newRecord.attachments.length > 0) {
           parseQueue.push(newRecord)
           parseQueueLength = parseQueue.length
           console.log('Added to parse queue: ', parseQueue.length);

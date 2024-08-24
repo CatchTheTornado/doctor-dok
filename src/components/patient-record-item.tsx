@@ -30,6 +30,7 @@ export default function PatientRecordItem({ record, displayAttachmentPreviews }:
   const config = useContext(ConfigContext);
   const patientContext = useContext(PatientContext)
   const [displayableAttachmentsInProgress, setDisplayableAttachmentsInProgress] = useState(false)
+  const [displayableAttachmentsLoaded, setDisplayableAttachmentsLoaded] = useState(false);
   const [commandsOpen, setCommandsOpen] = useState(false);
   const thisElementRef = useRef(null);
   const [isVisible, setIsVisible] = useState(false);
@@ -37,13 +38,15 @@ export default function PatientRecordItem({ record, displayAttachmentPreviews }:
   const [displayableAttachments, setDisplayableAttachments] = useState<Attachment[]>([]);
 
   const loadAttachmentPreviews = () => {
-    if (displayAttachmentPreviews && !displayableAttachmentsInProgress) {
+    if (displayAttachmentPreviews && !displayableAttachmentsInProgress && !displayableAttachmentsLoaded) {
       setDisplayableAttachmentsInProgress(true);
       patientRecordContext?.convertAttachmentsToImages(record, false).then((attachments) => {
         setDisplayableAttachments(attachments);
         setDisplayableAttachmentsInProgress(false);
+        setDisplayableAttachmentsLoaded(true);
       }).catch((error) => {
         setDisplayableAttachmentsInProgress(false);
+        setDisplayableAttachmentsLoaded(true);
       });
     }    
   }
