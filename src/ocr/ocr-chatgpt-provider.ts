@@ -1,7 +1,7 @@
     
 import { DataLoadingStatus, DisplayableDataObject, EncryptedAttachment, Patient, PatientRecord } from '@/data/client/models';
 import { findCodeBlocks } from "@/lib/utils";
-import { AIResultEventType, ChatContextType, MessageVisibility } from '@/contexts/chat-context';
+import { AIResultEventType, ChatContextType, MessageType, MessageVisibility } from '@/contexts/chat-context';
 import { ConfigContextType } from '@/contexts/config-context';
 import { PatientContextType } from '@/contexts/patient-context';
 import { PatientRecordContextType } from '@/contexts/patient-record-context';
@@ -15,6 +15,7 @@ export async function parse(record: PatientRecord, chatContext: ChatContextType,
                 role: 'user',
                 // visibility: MessageVisibility.ProgressWhileStreaming,
                 createdAt: new Date(),
+                type: MessageType.Parse,
                 content: prompts.patientRecordParseMultimodal({ record, config: configContext }),
                 experimental_attachments: sourceImages
             },

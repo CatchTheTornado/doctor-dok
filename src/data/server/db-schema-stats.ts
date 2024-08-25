@@ -11,6 +11,7 @@ export const stats = sqliteTable('stats', {
     createdMonth: integer('createdMonth'), // for easier grouping
     createdDay: integer('createdDay'),
     createdYear: integer('createdYear'),
-    createdHour: integer('createdHour')
+    createdHour: integer('createdHour'),
+    counter: integer('counter')
 });
 

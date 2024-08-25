@@ -7,6 +7,9 @@ import { CallWarning, convertToCoreMessages, FinishReason, streamText } from 'ai
 import { ConfigContext } from './config-context';
 import { toast } from 'sonner';
 import { PatientRecord } from '@/data/client/models';
+import { StatDTO } from '@/data/dto';
+import { AggregateStatResponse, StatApiClient } from '@/data/client/stat-api-client';
+import { DatabaseContext } from './db-context';
 
 export enum MessageDisplayMode {
     Text = 'text',
@@ -21,12 +24,17 @@ export enum MessageVisibility {
     ProgressWhileStreaming = 'progressWhileStreaming'
 }
 
+export enum MessageType {
+    Chat = 'chat',
+    Parse = 'parse'
+}
 
 export type MessageEx = Message & {
     prev_sent_attachments?: Attachment[];
     displayMode?: MessageDisplayMode
     finished: boolean
 
+    type: MessageType,
     visibility?: MessageVisibility
 
     recordRef: PatientRecord
@@ -79,6 +87,7 @@ export type ChatContextType = {
     setChatOpen: (value: boolean) => void;
     isStreaming: boolean;
     checkApiConfig: () => Promise<boolean>;
+    aggregateStats: (newItem: StatDTO) => Promise<StatDTO>;
 };
 
 // Create the chat context
@@ -94,7 +103,8 @@ export const ChatContext = createContext<ChatContextType>({
     chatOpen: false,
     setChatOpen: (value: boolean) => {},
     isStreaming: false,
-    checkApiConfig: async () => { return false }
+    checkApiConfig: async () => { return false },
+    aggregateStats: async (newItem) => { return Promise.resolve(newItem); }
 });
 
 // Custom hook to access the chat context
@@ -115,6 +125,7 @@ export const ChatContextProvider: React.FC<PropsWithChildren> = ({ children }) =
     const [arePatientRecordsLoaded, setPatientRecordsLoaded] = useState(false);
 
 
+    const dbContext = useContext(DatabaseContext);
     const config = useContext(ConfigContext);
     const checkApiConfig = async (): Promise<boolean> => {
         const apiKey = await config?.getServerConfig('chatGptApiKey') as string;
@@ -179,20 +190,35 @@ export const ChatContextProvider: React.FC<PropsWithChildren> = ({ children }) =
             content: '',
             createdAt: new Date(),
             role: 'assistant',
-            visibility: MessageVisibility.Visible,
+            visibility: MessageVisibility.Visible
         }
         try {
             if (messages.length > 0) {
+                if (!messages[messages.length - 1].type)
+                    messages[messages.length - 1].type = MessageType.Chat; 
                 if (messages[messages.length - 1].displayMode === MessageDisplayMode.InternalJSONRequest) {
                     resultMessage.visibility = !resultMessage.finished ? MessageVisibility.ProgressWhileStreaming : MessageVisibility.Visible; // hide the response until the request is finished
+                }
+
+                if (messages[messages.length - 1].type == MessageType.Parse) {
+                    messages = [messages[messages.length - 1]] // send only the parse message - context is not required - #111
                 }
             }
             const result = await streamText({
                 model: await aiProvider(providerName),
                 messages: convertToCoreMessages(messages),
                 //maxTokens: 4096,
-                onFinish: (e) =>  {
-                    console.log('AI usage: ', e.usage);
+                onFinish: async (e) =>  {
+                    try {
+                        await aggregateStats({
+                            eventName: messages[messages.length - 1].type ?? MessageType.Chat,
+                            completionTokens: e.usage.completionTokens,
+                            promptTokens: e.usage.promptTokens,
+                            createdAt: new Date().toISOString(),
+                        });
+                    } catch (e) {
+                        toast.error(e);
+                    }
                     e.text.indexOf('```json') > -1 ? resultMessage.displayMode = MessageDisplayMode.InternalJSONResponse : resultMessage.displayMode = MessageDisplayMode.Text
                     resultMessage.finished = true;
                     if (onResult) onResult(resultMessage, e);
@@ -254,6 +280,17 @@ export const ChatContextProvider: React.FC<PropsWithChildren> = ({ children }) =
         }), ...newMessages], envelope.onResult, envelope.providerName);        
     }
 
+    const aggregateStats = async (newItem: StatDTO): Promise<StatDTO> => {
+        const apiClient = new StatApiClient('', dbContext, { useEncryption: false });
+        const aggregatedStats = await apiClient.aggregate(newItem) as AggregateStatResponse;
+        if (aggregatedStats.status === 200) {
+            console.log('Stats aggregated', aggregatedStats);
+            return aggregatedStats.data;
+        } else {
+            throw new Error(aggregatedStats.message)
+        }
+    }
+
     const value = { 
         messages,
         visibleMessages,
@@ -266,7 +303,8 @@ export const ChatContextProvider: React.FC<PropsWithChildren> = ({ children }) =
         isStreaming,
         arePatientRecordsLoaded,
         setPatientRecordsLoaded,
-        checkApiConfig
+        checkApiConfig,
+        aggregateStats
     }
 
     return (

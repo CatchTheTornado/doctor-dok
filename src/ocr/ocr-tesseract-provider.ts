@@ -2,7 +2,7 @@
 import { DataLoadingStatus, DisplayableDataObject, EncryptedAttachment, Patient, PatientRecord } from '@/data/client/models';
 import { findCodeBlocks } from "@/lib/utils";
 import { createWorker, OEM, PSM } from 'tesseract.js';
-import { ChatContextType, MessageVisibility } from '@/contexts/chat-context';
+import { ChatContextType, MessageType, MessageVisibility } from '@/contexts/chat-context';
 import { toast } from 'sonner';
 import { ConfigContextType } from '@/contexts/config-context';
 import { prompts } from '@/data/ai/prompts';
@@ -57,6 +57,7 @@ export async function parse(record: PatientRecord, chatContext: ChatContextType,
                 message: {
                     role: 'user',
                     createdAt: new Date(),
+                    type: MessageType.Parse,
                     // visibility: MessageVisibility.ProgressWhileStreaming,
                     content: prompts.patientRecordParseOCR({ record, config: configContext }, text)
                 },
@@ -112,6 +113,7 @@ export async function parse(record: PatientRecord, chatContext: ChatContextType,
                     message: {
                         role: 'user',
                         createdAt: new Date(),
+                        type: MessageType.Parse,
                         content: prompts.patientRecordRemovePII({ record, config: configContext }, textAfterOcr)
                     },
                     onResult: (resultMessage, result) => {

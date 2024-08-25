@@ -142,15 +142,16 @@ export const defaultKeyACL: KeyACLDTO = { role: 'guest', features: [] };
 
 // Stats DTO's 
 export const statsSchema = z.object({
-  id: z.number().positive().int(),
+  id: z.number().positive().int().optional(),
   eventName: z.string().min(1),
   promptTokens: z.number().positive().int(),
   completionTokens: z.number().positive().int(),
-  finishReasons: z.number().positive().int(),
+  finishReasons: z.string().nullable().optional(),
   createdAt: z.string().default(() => getCurrentTS()),
-  createdMonth:  z.number().positive().int(),
-  createdDay:  z.number().positive().int(),
-  createdYear:  z.number().positive().int(),
-  createdHour:  z.number().positive().int()
+  createdMonth:  z.number().positive().int().nullable().optional(),
+  createdDay:  z.number().positive().int().nullable().optional(),
+  createdYear:  z.number().positive().int().nullable().optional(),
+  createdHour:  z.number().positive().int().nullable().optional(),
+  counter: z.number().positive().int().optional()
 })
 export type StatDTO = z.infer<typeof statsSchema>;
