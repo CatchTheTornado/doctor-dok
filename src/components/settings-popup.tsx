@@ -302,7 +302,7 @@ export function SettingsPopup() {
                           </SelectContent>
                         </Select>
                       </div>
-                      {/* <div className="grid grid-cols-2 items-center gap-2">
+                      {<div className="grid grid-cols-2 items-center gap-2">
                         <Label htmlFor="llmProviderParse">LLM for Parse</Label>
                         <Select id="llmProviderParse" value={llmProviderParse} onValueChange={setLlmProviderParse}>
                           <SelectTrigger className="w-[140px]">
@@ -313,7 +313,7 @@ export function SettingsPopup() {
                             <SelectItem key="ollama" value="ollama">Local: Ollama</SelectItem>
                           </SelectContent>
                         </Select>
-                      </div> */}
+                      </div>}
                       <div>
                         <Label htmlFor="ollamaUrl">Ollama URL:</Label>
                         <Input

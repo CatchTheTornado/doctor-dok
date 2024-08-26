@@ -9,6 +9,8 @@ import { prompts } from '@/data/ai/prompts';
 import { toast } from 'sonner';
 
 export async function parse(record: PatientRecord, chatContext: ChatContextType, configContext: ConfigContextType | null, patientContext: PatientContextType | null, updateRecordFromText: (text: string, record: PatientRecord, allowNewRecord: boolean) => PatientRecord|null,  updateParseProgress: (record: PatientRecord, inProgress: boolean, error: any) => void, sourceImages: DisplayableDataObject[]): Promise<AIResultEventType> {
+    const parseAIProvider = await configContext?.getServerConfig('llmProviderParse') as string;
+
     return new Promise ((resolve, reject) => {
         chatContext.sendMessage({
             message: {
@@ -36,7 +38,8 @@ export async function parse(record: PatientRecord, chatContext: ChatContextType,
                 } else {
                     resolve(result);
                 }
-            }
+            },
+            providerName: parseAIProvider
         });
     });
 }    

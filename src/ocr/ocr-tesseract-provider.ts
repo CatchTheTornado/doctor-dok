@@ -50,7 +50,7 @@ export async function parse(record: PatientRecord, chatContext: ChatContextType,
         console.log(textAfterOcr);
 
         const removePIIMode = await configContext?.getServerConfig('llmProviderRemovePII') as string;
-        const parseAIProvider = await configContext?.getServerConfig('llmProviderChat') as string;
+        const parseAIProvider = await configContext?.getServerConfig('llmProviderParse') as string;
 
         const parseRequest = async (text:string) => {
             return chatContext.sendMessage({ 
