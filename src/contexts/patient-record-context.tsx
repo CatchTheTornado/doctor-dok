@@ -402,12 +402,12 @@ export const PatientRecordContextProvider: React.FC<PropsWithChildren> = ({ chil
 
           if(customMessage) msgs.push(customMessage);
 
-            const preUsage = GPTTokens({
+            const preUsage = new GPTTokens({
               model   : 'gpt-4o',
               messages: msgs
             });
 
-            console.log('Context + current msg tokens', preUsage.usedTokens, preUsage.usedUSD);
+            console.log('Context msg tokens', preUsage.usedTokens, preUsage.usedUSD);
             chatContext.setPatientRecordsLoaded(true);
             chatContext.sendMessages({
                 messages: msgs, providerName, onResult: (resultMessage, result) => {
