@@ -383,20 +383,20 @@ export const PatientRecordContextProvider: React.FC<PropsWithChildren> = ({ chil
           if (patientRecords.length > 0) {
             const msgs:CreateMessageEx[] = [{
               role: 'user',
-              createdAt: new Date(),
+              //createdAt: new Date(),
               visibility: MessageVisibility.Hidden, // we don't show patient records context
               content: prompts.patientRecordsToChat({ patientRecords, config }),
             }, ...patientRecords.map((record) => {
               return {
                 role: 'user',
                 visibility: MessageVisibility.Hidden, // we don't show patient records context
-                createdAt: new Date(),
+                //createdAt: new Date(),
                 content: prompts.patientRecordIntoChatSimplified({ record })
               }
           }), {
             role: 'user',
             visibility: MessageVisibility.Visible, // we don't show patient records context
-            createdAt: new Date(),
+            //createdAt: new Date(),
             content: prompts.patientRecordsToChatDone({ patientRecords, config }),
           }];
 
