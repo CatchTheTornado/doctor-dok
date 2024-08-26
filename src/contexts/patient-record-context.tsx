@@ -21,6 +21,7 @@ import { findCodeBlocks, getCurrentTS } from '@/lib/utils';
 import { parse } from 'path';
 import { sha256 } from '@/lib/crypto';
 import { jsonrepair } from 'jsonrepair'
+import { GPTTokens } from 'gpt-tokens'
 
 
 let parseQueueInProgress = false;
@@ -380,7 +381,7 @@ export const PatientRecordContextProvider: React.FC<PropsWithChildren> = ({ chil
         return new Promise((resolve, reject) => {
           // chatContext.setChatOpen(true);
           if (patientRecords.length > 0) {
-            const msgs:CreateMessageEx = [{
+            const msgs:CreateMessageEx[] = [{
               role: 'user',
               createdAt: new Date(),
               visibility: MessageVisibility.Hidden, // we don't show patient records context
@@ -401,6 +402,12 @@ export const PatientRecordContextProvider: React.FC<PropsWithChildren> = ({ chil
 
           if(customMessage) msgs.push(customMessage);
 
+            const preUsage = GPTTokens({
+              model   : 'gpt-4o',
+              messages: msgs
+            });
+
+            console.log('Context + current msg tokens', preUsage.usedTokens, preUsage.usedUSD);
             chatContext.setPatientRecordsLoaded(true);
             chatContext.sendMessages({
                 messages: msgs, providerName, onResult: (resultMessage, result) => {
