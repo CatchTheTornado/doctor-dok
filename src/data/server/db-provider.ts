@@ -76,6 +76,7 @@ export const Pool = async (maxPool = 50) => {
 
 		const db = new Database(databaseFile)
 		databaseInstances[poolKey] = drizzle(db)
+		db.
 
 		if (requiresMigration) { // we are never skipping running the migrations when first adding database to the pool bc of possible changes in the schema
             console.log('Running migrations')

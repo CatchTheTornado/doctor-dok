@@ -41,6 +41,7 @@ const ChatCommands: React.FC<Props> = ({ open, setOpen }) => {
                         chatContext.setPromptTemplate(promptTpl[1].template({ config }));
                         chatContext.setChatCustomPromptVisible(false);
                         chatContext.setTemplatePromptVisible(true);
+                        setOpen(false);
                     }}><QuestionMarkIcon /> {promptTpl[1].label}</CommandItem>        
                  ))       
                 }

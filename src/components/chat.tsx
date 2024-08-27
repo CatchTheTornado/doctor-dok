@@ -239,7 +239,7 @@ export function Chat() {
                 </div>
 
                 <div className="absolute flex top-3 right-3 gap-2">
-                  <div className="xxs:invisible md:visible">              
+                  <div className="">              
                     <Button type="submit" size="icon" className="w-8 h-8" onClick={() => {
                       handleSubmit();
                     }}>
