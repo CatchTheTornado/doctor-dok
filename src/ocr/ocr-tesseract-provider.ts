@@ -1,5 +1,5 @@
     
-import { DataLoadingStatus, DisplayableDataObject, EncryptedAttachment, Patient, PatientRecord } from '@/data/client/models';
+import { DataLoadingStatus, DisplayableDataObject, EncryptedAttachment, Folder, Record } from '@/data/client/models';
 import { findCodeBlocks } from "@/lib/utils";
 import { createWorker, OEM, PSM } from 'tesseract.js';
 import { ChatContextType, MessageType, MessageVisibility } from '@/contexts/chat-context';
@@ -7,8 +7,8 @@ import { toast } from 'sonner';
 import { ConfigContextType } from '@/contexts/config-context';
 import { prompts } from '@/data/ai/prompts';
 import { removePII } from '@/lib/removePII';
-import { PatientContextType } from '@/contexts/patient-context';
-import { PatientRecordContextType } from '@/contexts/patient-record-context';
+import { FolderContextType } from '@/contexts/folder-context';
+import { RecordContextType } from '@/contexts/record-context';
 
 export type ImageData = {
     base64Content: string;
@@ -40,7 +40,7 @@ const processFiles = async (files: DisplayableDataObject[], selectedLanguage: st
 
   }
 
-export async function parse(record: PatientRecord, chatContext: ChatContextType, configContext: ConfigContextType | null, patientContext: PatientContextType | null, updateRecordFromText: (text: string, record: PatientRecord, allowNewRecord: boolean) => PatientRecord|null, updateParseProgress: (record: PatientRecord, inProgress: boolean, error: any) => void, sourceImages: DisplayableDataObject[]): Promise<AIResultEventType>  {
+export async function parse(record: Record, chatContext: ChatContextType, configContext: ConfigContextType | null, folderContext: FolderContextType | null, updateRecordFromText: (text: string, record: Record, allowNewRecord: boolean) => Record|null, updateParseProgress: (record: Record, inProgress: boolean, error: any) => void, sourceImages: DisplayableDataObject[]): Promise<AIResultEventType>  {
     return new Promise (async (resolve, reject) => {
 
         // TODO: add Tesseract parsing logic - then LLM - it should be configurable whichh LLM is being used for data parsing from tesseract text
@@ -59,7 +59,7 @@ export async function parse(record: PatientRecord, chatContext: ChatContextType,
                     createdAt: new Date(),
                     type: MessageType.Parse,
                     // visibility: MessageVisibility.ProgressWhileStreaming,
-                    content: prompts.patientRecordParseOCR({ record, config: configContext }, text)
+                    content: prompts.recordParseOCR({ record, config: configContext }, text)
                 },
                 onResult: (resultMessage, result) => {
                     if (result.finishReason !== 'error') {
@@ -82,20 +82,17 @@ export async function parse(record: PatientRecord, chatContext: ChatContextType,
         };
 
         if (removePIIMode === 'replace' || removePIIMode === 'both') {
-            // TODO: add programmatical data removal removing all patient personal data - extend patient to store more personal data to be removed
+            // TODO: add programmatical data removal removing all folder personal data - extend folder to store more personal data to be removed
             const piiTokens:string[] = []
-            if (patientContext?.currentPatient) {
-                const patientJsonData = patientContext?.currentPatient.json;
-                if (patientJsonData) {
-                    Object.keys(patientJsonData).forEach((key) => {
-                        const piiToken = patientJsonData[key] as string;
-                        if (piiToken && piiToken.length > 3) piiTokens.push(patientJsonData[key]);
+            if (folderContext?.currentFolder) {
+                const folderJsonData = folderContext?.currentFolder.json;
+                if (folderJsonData) {
+                    Object.keys(folderJsonData).forEach((key) => {
+                        const piiToken = folderJsonData[key] as string;
+                        if (piiToken && piiToken.length > 3) piiTokens.push(folderJsonData[key]);
                     });
                 }
-                piiTokens.push(patientContext?.currentPatient.firstName);
-                piiTokens.push(patientContext?.currentPatient.lastName);
-                if (patientContext?.currentPatient.email) piiTokens.push(patientContext?.currentPatient.email);
-                if (patientContext?.currentPatient.dateOfBirth) piiTokens.push(patientContext?.currentPatient.dateOfBirth);
+                piiTokens.push(folderContext?.currentFolder.name);
                 const piiGeneralData: string = (await configContext?.getServerConfig('piiGeneralData') as string) || '';
                 if (piiGeneralData) piiTokens.push(...piiGeneralData.split("\n"));    
             }
@@ -114,7 +111,7 @@ export async function parse(record: PatientRecord, chatContext: ChatContextType,
                         role: 'user',
                         createdAt: new Date(),
                         type: MessageType.Parse,
-                        content: prompts.patientRecordRemovePII({ record, config: configContext }, textAfterOcr)
+                        content: prompts.recordRemovePII({ record, config: configContext }, textAfterOcr)
                     },
                     onResult: (resultMessage, result) => {
                         if (result.finishReason !== 'error') {

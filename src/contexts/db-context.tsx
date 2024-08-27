@@ -1,6 +1,6 @@
 import React, { createContext, useState,  PropsWithChildren } from 'react';
 import { KeyHashParamsDTO } from '@/data/dto';
-import { DatabaseAuthorizeRequest, DatabaseAuthStatus, DatabaseCreateRequest, DatabaseKeepLoggedInRequest, DatabaseRefreshRequest, DataLoadingStatus, KeyACL, Patient, PatientRecord } from '@/data/client/models';
+import { DatabaseAuthorizeRequest, DatabaseAuthStatus, DatabaseCreateRequest, DatabaseKeepLoggedInRequest, DatabaseRefreshRequest, DataLoadingStatus, KeyACL, Folder, Record } from '@/data/client/models';
 import { AuthorizeDbResponse, DbApiClient, RefreshDbResponse } from '@/data/client/db-api-client';
 import { ConfigContextType } from './config-context';
 import { EncryptionUtils, generateEncryptionKey, sha256 } from '@/lib/crypto';

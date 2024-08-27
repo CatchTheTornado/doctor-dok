@@ -1,9 +1,9 @@
 import '@enhances/with-resolvers';
 import React, { createContext, useState, useEffect, useContext, PropsWithChildren, useRef } from 'react';
-import { EncryptedAttachmentDTO, PatientRecordDTO } from '@/data/dto';
-import { PatientRecordApiClient } from '@/data/client/patient-record-api-client';
+import { EncryptedAttachmentDTO, RecordDTO } from '@/data/dto';
+import { RecordApiClient } from '@/data/client/record-api-client';
 import { ApiEncryptionConfig } from '@/data/client/base-api-client';
-import { DataLoadingStatus, DisplayableDataObject, EncryptedAttachment, Patient, PatientRecord } from '@/data/client/models';
+import { DataLoadingStatus, DisplayableDataObject, EncryptedAttachment, Folder, Record } from '@/data/client/models';
 import { ConfigContext, ConfigContextType } from './config-context';
 import { toast } from 'sonner';
 import { sort } from 'fast-sort';
@@ -16,7 +16,7 @@ import { pdfjs } from 'react-pdf'
 import { prompts } from "@/data/ai/prompts";
 import { parse as chatgptParseRecord } from '@/ocr/ocr-chatgpt-provider';
 import { parse as tesseractParseRecord } from '@/ocr/ocr-tesseract-provider';
-import { PatientContext } from './patient-context';
+import { FolderContext } from './folder-context';
 import { findCodeBlocks, getCurrentTS } from '@/lib/utils';
 import { parse } from 'path';
 import { sha256 } from '@/lib/crypto';
@@ -25,7 +25,7 @@ import { GPTTokens } from 'gpt-tokens'
 
 
 let parseQueueInProgress = false;
-let parseQueue:PatientRecord[] = []
+let parseQueue:Record[] = []
 let parseQueueLength = 0;
 
 
@@ -34,39 +34,39 @@ export enum URLType {
     blob = 'blob'
   }
 
-export type PatientRecordContextType = {
-    patientRecords: PatientRecord[];
-    patientRecordEditMode: boolean;
+export type RecordContextType = {
+    records: Record[];
+    recordEditMode: boolean;
     parseQueueLength: number;
-    setPatientRecordEditMode: (editMode: boolean) => void;
-    currentPatientRecord: PatientRecord | null; 
-    updatePatientRecord: (patientRecord: PatientRecord) => Promise<PatientRecord>;
-    deletePatientRecord: (record: PatientRecord) => Promise<boolean>;
-    listPatientRecords: (forPatient: Patient) => Promise<PatientRecord[]>;
-    setCurrentPatientRecord: (patientRecord: PatientRecord | null) => void; // new method
+    setRecordEditMode: (editMode: boolean) => void;
+    currentRecord: Record | null; 
+    updateRecord: (record: Record) => Promise<Record>;
+    deleteRecord: (record: Record) => Promise<boolean>;
+    listRecords: (forFolder: Folder) => Promise<Record[]>;
+    setCurrentRecord: (record: Record | null) => void; // new method
     loaderStatus: DataLoadingStatus;
     operationStatus: DataLoadingStatus;
 
-    updateRecordFromText: (text: string, record: PatientRecord, allowNewRecord: boolean) => PatientRecord|null;
+    updateRecordFromText: (text: string, record: Record, allowNewRecord: boolean) => Record|null;
     getAttachmentDataURL: (attachmentDTO: EncryptedAttachmentDTO, type: URLType) => Promise<string>;
     downloadAttachment: (attachment: EncryptedAttachmentDTO, useCache: boolean) => void;
-    convertAttachmentsToImages: (record: PatientRecord, statusUpdates: boolean) => Promise<DisplayableDataObject[]>;
-    extraToRecord: (type: string, promptText: string, record: PatientRecord) => void;
-    parsePatientRecord: (record: PatientRecord) => void;
-    sendHealthReacordToChat: (record: PatientRecord, forceRefresh: boolean) => void;
+    convertAttachmentsToImages: (record: Record, statusUpdates: boolean) => Promise<DisplayableDataObject[]>;
+    extraToRecord: (type: string, promptText: string, record: Record) => void;
+    parseRecord: (record: Record) => void;
+    sendHealthReacordToChat: (record: Record, forceRefresh: boolean) => void;
     sendAllRecordsToChat: (customMessage: CreateMessageEx | null, providerName?: string) => void;
 
     processParseQueue: () => void;
 }
 
-export const PatientRecordContext = createContext<PatientRecordContextType | null>(null);
+export const RecordContext = createContext<RecordContextType | null>(null);
 
-export const PatientRecordContextProvider: React.FC<PropsWithChildren> = ({ children }) => {
-    const [patientRecordEditMode, setPatientRecordEditMode] = useState<boolean>(false);
-    const [patientRecords, setPatientRecords] = useState<PatientRecord[]>([]);
+export const RecordContextProvider: React.FC<PropsWithChildren> = ({ children }) => {
+    const [recordEditMode, setRecordEditMode] = useState<boolean>(false);
+    const [records, setRecords] = useState<Record[]>([]);
     const [loaderStatus, setLoaderStatus] = useState<DataLoadingStatus>(DataLoadingStatus.Loading);
     const [operationStatus, setOperationStatus] = useState<DataLoadingStatus>(DataLoadingStatus.Loading);
-    const [currentPatientRecord, setCurrentPatientRecord] = useState<PatientRecord | null>(null); // new state
+    const [currentRecord, setCurrentRecord] = useState<Record | null>(null); // new state
 
     useEffect(() => {
     }, []);
@@ -74,40 +74,40 @@ export const PatientRecordContextProvider: React.FC<PropsWithChildren> = ({ chil
     const config = useContext(ConfigContext);
     const dbContext = useContext(DatabaseContext)
     const chatContext = useContext(ChatContext);
-    const patientContext = useContext(PatientContext)
+    const folderContext = useContext(FolderContext)
 
     const cache = async () => {
-      return await caches.open('patientRecordContext');      
+      return await caches.open('recordContext');      
     }
 
-    const updatePatientRecord = async (patientRecord: PatientRecord): Promise<PatientRecord> => {
+    const updateRecord = async (record: Record): Promise<Record> => {
         try {
             const client = await setupApiClient(config);
-            const patientRecordDTO = patientRecord.toDTO(); // DTOs are common ground between client and server
-            const response = await client.put(patientRecordDTO);
-            const newRecord = typeof patientRecord?.id  === 'undefined'
+            const recordDTO = record.toDTO(); // DTOs are common ground between client and server
+            const response = await client.put(recordDTO);
+            const newRecord = typeof record?.id  === 'undefined'
             if (response.status !== 200) {
-                console.error('Error adding patient record:', response.message);
-                toast.error('Error adding patient record');
+                console.error('Error adding folder record:', response.message);
+                toast.error('Error adding folder record');
 
-                return patientRecord;
+                return record;
             } else {
-              const updatedPatientRecord = new PatientRecord({ ...patientRecord, id: response.data.id } as PatientRecord);
-              setPatientRecords(prevPatientRecords => 
-                    newRecord ? [...prevPatientRecords, updatedPatientRecord] :
-                    prevPatientRecords.map(pr => pr.id === updatedPatientRecord.id ?  updatedPatientRecord : pr)
+              const updatedRecord = new Record({ ...record, id: response.data.id } as Record);
+              setRecords(prevRecords => 
+                    newRecord ? [...prevRecords, updatedRecord] :
+                    prevRecords.map(pr => pr.id === updatedRecord.id ?  updatedRecord : pr)
                 )
-                //chatContext.setPatientRecordsLoaded(false); // reload context next time - TODO we can reload it but we need time framed throthling #97
-                return updatedPatientRecord;
+                //chatContext.setRecordsLoaded(false); // reload context next time - TODO we can reload it but we need time framed throthling #97
+                return updatedRecord;
             }
         } catch (error) {
-            console.error('Error adding patient record:', error);
-            toast.error('Error adding patient record');
-            return patientRecord;
+            console.error('Error adding folder record:', error);
+            toast.error('Error adding folder record');
+            return record;
         }
     };
 
-    const updateRecordFromText =  (text: string, record: PatientRecord | null = null, allowNewRecord = true): PatientRecord|null => {
+    const updateRecordFromText =  (text: string, record: Record | null = null, allowNewRecord = true): Record|null => {
         if (text.indexOf('```json') > -1) {
           const codeBlocks = findCodeBlocks(text.trimEnd().endsWith('```') ? text : text + '```', false);
           let recordJSON = [];
@@ -129,26 +129,26 @@ export const PatientRecordContextProvider: React.FC<PropsWithChildren> = ({ chil
               }
               const discoveredType = recordJSON.length > 0 ? recordJSON.map(item => item.subtype ? item.subtype : item.type).join(", ") : 'note';
               if (record) {
-                  record = new PatientRecord({ ...record, json: recordJSON, text: recordMarkdown, type: discoveredType } as PatientRecord);
-                  updatePatientRecord(record);
+                  record = new Record({ ...record, json: recordJSON, text: recordMarkdown, type: discoveredType } as Record);
+                  updateRecord(record);
               } else {
-                  if (allowNewRecord && patientContext?.currentPatient?.id) { // create new patient Record
-                    record = new PatientRecord({ patientId: patientContext?.currentPatient?.id, type: discoveredType, createdAt: getCurrentTS(), updatedAt: getCurrentTS(), json: recordJSON, text: recordMarkdown } as PatientRecord);
-                    updatePatientRecord(record);
+                  if (allowNewRecord && folderContext?.currentFolder?.id) { // create new folder Record
+                    record = new Record({ folderId: folderContext?.currentFolder?.id, type: discoveredType, createdAt: getCurrentTS(), updatedAt: getCurrentTS(), json: recordJSON, text: recordMarkdown } as Record);
+                    updateRecord(record);
                   }
               }
               console.log('JSON repr: ', recordJSON);
           } 
-      } else { // create new patient Record
-        if (allowNewRecord && patientContext?.currentPatient?.id) { // create new patient Record
-          record = new PatientRecord({ patientId: patientContext?.currentPatient?.id, type: 'note', createdAt: getCurrentTS(), updatedAt: getCurrentTS(), json: null, text: text } as PatientRecord);
-          updatePatientRecord(record);
+      } else { // create new folder Record
+        if (allowNewRecord && folderContext?.currentFolder?.id) { // create new folder Record
+          record = new Record({ folderId: folderContext?.currentFolder?.id, type: 'note', createdAt: getCurrentTS(), updatedAt: getCurrentTS(), json: null, text: text } as Record);
+          updateRecord(record);
         }
       }
       return record;
     }
 
-    const deletePatientRecord = async (record: PatientRecord) => {
+    const deleteRecord = async (record: Record) => {
         const prClient = await setupApiClient(config);
         const attClient = await setupAttachmentsApiClient(config);
         if(record.attachments.length > 0) {
@@ -161,28 +161,28 @@ export const PatientRecordContextProvider: React.FC<PropsWithChildren> = ({ chil
         }
         const result = await prClient.delete(record)
         if(result.status !== 200) {
-            toast.error('Error removing patient record: ' + result.message)
+            toast.error('Error removing folder record: ' + result.message)
             return Promise.resolve(false);
         } else {
-            toast.success('Patient record removed successfully!')
-            setPatientRecords(prvPatientRecords => prvPatientRecords.filter((pr) => pr.id !== record.id));    
-            //chatContext.setPatientRecordsLoaded(false); // reload context next time        
+            toast.success('Folder record removed successfully!')
+            setRecords(prvRecords => prvRecords.filter((pr) => pr.id !== record.id));    
+            //chatContext.setRecordsLoaded(false); // reload context next time        
             return Promise.resolve(true);
         }
     };
 
-    const listPatientRecords = async (forPatient: Patient) => {
+    const listRecords = async (forFolder: Folder) => {
         try {
             const client = await setupApiClient(config);
             setLoaderStatus(DataLoadingStatus.Loading);
-            const response = await client.get(forPatient.toDTO());
-            const fetchedPatientRecords = response.map((patientRecordDTO: PatientRecordDTO) => PatientRecord.fromDTO(patientRecordDTO));
-            setPatientRecords(fetchedPatientRecords);
+            const response = await client.get(forFolder.toDTO());
+            const fetchedRecords = response.map((recordDTO: RecordDTO) => Record.fromDTO(recordDTO));
+            setRecords(fetchedRecords);
             setLoaderStatus(DataLoadingStatus.Success);
-            return fetchedPatientRecords;
+            return fetchedRecords;
         } catch (error) {
             setLoaderStatus(DataLoadingStatus.Error);
-            toast.error('Error listing patient records');            
+            toast.error('Error listing folder records');            
             return Promise.reject(error);
         }    
     };
@@ -193,7 +193,7 @@ export const PatientRecordContextProvider: React.FC<PropsWithChildren> = ({ chil
             secretKey: masterKey,
             useEncryption: true
         };
-        const client = new PatientRecordApiClient('', dbContext, encryptionConfig);
+        const client = new RecordApiClient('', dbContext, encryptionConfig);
         return client;
     }
 
@@ -243,14 +243,14 @@ export const PatientRecordContextProvider: React.FC<PropsWithChildren> = ({ chil
         }
       };
     
-      const convertAttachmentsToImages = async (record: PatientRecord, statusUpdates: boolean = true): Promise<DisplayableDataObject[]> => {
+      const convertAttachmentsToImages = async (record: Record, statusUpdates: boolean = true): Promise<DisplayableDataObject[]> => {
 
         if (!record.attachments || record.attachments.length == 0) return [];
 
         const attachments = []
         const cacheStorage = await cache();
         const attachmentsHash = await sha256(record.attachments.map(ea => ea.storageKey).join('-'), 'attachments')
-        const cacheKey = `patientRecord-${record.id}-${attachmentsHash}-${dbContext?.databaseHashId}`;
+        const cacheKey = `record-${record.id}-${attachmentsHash}-${dbContext?.databaseHashId}`;
         const cachedAttachments = await cacheStorage.match(cacheKey);
 
         if (cachedAttachments) {
@@ -292,7 +292,7 @@ export const PatientRecordContextProvider: React.FC<PropsWithChildren> = ({ chil
         return attachments;
       }
     
-      const extraToRecord = async (type: string, promptText: string, record: PatientRecord) => {
+      const extraToRecord = async (type: string, promptText: string, record: Record) => {
     
         chatContext.setChatOpen(true);
           chatContext.sendMessage({
@@ -306,17 +306,17 @@ export const PatientRecordContextProvider: React.FC<PropsWithChildren> = ({ chil
                 let recordEXTRA = record.extra || []
                 recordEXTRA.find(p => p.type === type) ? recordEXTRA = recordEXTRA.map(p => p.type === type ? { ...p, value: result.text } : p) : recordEXTRA.push({ type: type, value: result.text })
                 console.log(recordEXTRA);
-                record = new PatientRecord({ ...record, extra: recordEXTRA });
-                updatePatientRecord(record);          
+                record = new Record({ ...record, extra: recordEXTRA });
+                updateRecord(record);          
               }
             }
           })
       }
     
-      const updateParseProgress = (record: PatientRecord, inProgress: boolean, error: any = null) => {
+      const updateParseProgress = (record: Record, inProgress: boolean, error: any = null) => {
         record.parseError = error;
         record.parseInProgress = inProgress;
-        setPatientRecords(prevPatientRecords => prevPatientRecords.map(pr => pr.id === record.id ? record : pr)); // update state
+        setRecords(prevRecords => prevRecords.map(pr => pr.id === record.id ? record : pr)); // update state
       }
 
       const processParseQueue = async () => {
@@ -333,7 +333,7 @@ export const PatientRecordContextProvider: React.FC<PropsWithChildren> = ({ chil
         while (parseQueue.length > 0) {
           try {
 //            if (!chatContext.isStreaming) {
-              record = parseQueue[0] as PatientRecord;
+              record = parseQueue[0] as Record;
               console.log('Processing record: ', record, parseQueue.length);
               // TODO: add OSS models and OCR support - #60, #59, #61
               updateParseProgress(record, true);
@@ -347,9 +347,9 @@ export const PatientRecordContextProvider: React.FC<PropsWithChildren> = ({ chil
               console.log('Using OCR provider:', ocrProvider);
 
               if (ocrProvider === 'chatgpt') {
-                await chatgptParseRecord(record, chatContext, config, patientContext, updateRecordFromText, updateParseProgress, attachments);
+                await chatgptParseRecord(record, chatContext, config, folderContext, updateRecordFromText, updateParseProgress, attachments);
               } else if (ocrProvider === 'tesseract') {
-                await tesseractParseRecord(record, chatContext, config, patientContext, updateRecordFromText, updateParseProgress, attachments);
+                await tesseractParseRecord(record, chatContext, config, folderContext, updateRecordFromText, updateParseProgress, attachments);
               }
               console.log('Record parsed, taking next record', record);
               parseQueue = parseQueue.slice(1); // remove one item
@@ -368,7 +368,7 @@ export const PatientRecordContextProvider: React.FC<PropsWithChildren> = ({ chil
         parseQueueInProgress = false;
       }      
     
-      const parsePatientRecord = async (newRecord: PatientRecord)=> {
+      const parseRecord = async (newRecord: Record)=> {
         if (!parseQueue.find(pr => pr.id === newRecord.id) && newRecord.attachments.length > 0) {
           parseQueue.push(newRecord)
           parseQueueLength = parseQueue.length
@@ -380,24 +380,24 @@ export const PatientRecordContextProvider: React.FC<PropsWithChildren> = ({ chil
       const sendAllRecordsToChat = async (customMessage: CreateMessageEx | null = null, providerName?: string) => {
         return new Promise((resolve, reject) => {
           // chatContext.setChatOpen(true);
-          if (patientRecords.length > 0) {
+          if (records.length > 0) {
             const msgs:CreateMessageEx[] = [{
               role: 'user',
               //createdAt: new Date(),
-              visibility: MessageVisibility.Hidden, // we don't show patient records context
-              content: prompts.patientRecordsToChat({ patientRecords, config }),
-            }, ...patientRecords.map((record) => {
+              visibility: MessageVisibility.Hidden, // we don't show folder records context
+              content: prompts.recordsToChat({ records, config }),
+            }, ...records.map((record) => {
               return {
                 role: 'user',
-                visibility: MessageVisibility.Hidden, // we don't show patient records context
+                visibility: MessageVisibility.Hidden, // we don't show folder records context
                 //createdAt: new Date(),
-                content: prompts.patientRecordIntoChatSimplified({ record })
+                content: prompts.recordIntoChatSimplified({ record })
               }
           }), {
             role: 'user',
-            visibility: MessageVisibility.Visible, // we don't show patient records context
+            visibility: MessageVisibility.Visible, // we don't show folder records context
             //createdAt: new Date(),
-            content: prompts.patientRecordsToChatDone({ patientRecords, config }),
+            content: prompts.recordsToChatDone({ records, config }),
           }];
 
           if(customMessage) msgs.push(customMessage);
@@ -408,7 +408,7 @@ export const PatientRecordContextProvider: React.FC<PropsWithChildren> = ({ chil
             });
 
             console.log('Context msg tokens', preUsage.usedTokens, preUsage.usedUSD);
-            chatContext.setPatientRecordsLoaded(true);
+            chatContext.setRecordsLoaded(true);
             chatContext.sendMessages({
                 messages: msgs, providerName, onResult: (resultMessage, result) => {
                 console.log('All records sent to chat');
@@ -423,16 +423,16 @@ export const PatientRecordContextProvider: React.FC<PropsWithChildren> = ({ chil
         });
       }
     
-      const sendHealthReacordToChat = async (record: PatientRecord, forceRefresh: boolean = false) => {
+      const sendHealthReacordToChat = async (record: Record, forceRefresh: boolean = false) => {
         if (!record.json || forceRefresh) {  // first: parse the record
-          await parsePatientRecord(record);
+          await parseRecord(record);
         } else {
           chatContext.setChatOpen(true);
           chatContext.sendMessage({
             message: {
               role: 'user',
               createdAt: new Date(),
-              content: prompts.patientRecordIntoChat({ record, config }),
+              content: prompts.recordIntoChat({ record, config }),
             }
           });
         }
@@ -440,31 +440,31 @@ export const PatientRecordContextProvider: React.FC<PropsWithChildren> = ({ chil
 
 
     return (
-        <PatientRecordContext.Provider
+        <RecordContext.Provider
             value={{
-                 patientRecords, 
+                 records, 
                  parseQueueLength,
                  updateRecordFromText,
-                 updatePatientRecord, 
+                 updateRecord, 
                  loaderStatus, 
                  operationStatus,
-                 setCurrentPatientRecord, 
-                 currentPatientRecord, 
-                 listPatientRecords, 
-                 deletePatientRecord, 
-                 patientRecordEditMode, 
-                 setPatientRecordEditMode,
+                 setCurrentRecord, 
+                 currentRecord, 
+                 listRecords, 
+                 deleteRecord, 
+                 recordEditMode, 
+                 setRecordEditMode,
                  getAttachmentDataURL,
                  downloadAttachment,
                  convertAttachmentsToImages,
                  extraToRecord,
-                 parsePatientRecord,
+                 parseRecord,
                  sendHealthReacordToChat,
                  sendAllRecordsToChat,
                  processParseQueue
                 }}
         >
             {children}
-        </PatientRecordContext.Provider>
+        </RecordContext.Provider>
     );
 };

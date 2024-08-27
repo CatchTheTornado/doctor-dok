@@ -24,9 +24,9 @@ import { Input } from "@/components/ui/input"
 import { useForm } from "react-hook-form"
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from "zod"
-import { PatientContext } from "@/contexts/patient-context"
+import { FolderContext } from "@/contexts/folder-context"
 import { use, useContext, useEffect, useState } from "react"
-import { Patient, PatientRecord } from "@/data/client/models"
+import { Folder, Record } from "@/data/client/models"
 import { Credenza, CredenzaClose, CredenzaContent, CredenzaDescription, CredenzaFooter, CredenzaHeader, CredenzaTitle, CredenzaTrigger } from "./credenza"
 import { JsonEditor } from 'json-edit-react'
 import { useTheme } from "next-themes"
@@ -34,8 +34,8 @@ import { or } from "drizzle-orm"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@radix-ui/react-tabs"
 import { useHookFormMask } from 'use-mask-input';
 
-export function PatientEditPopup() {
-  const patientContext = useContext(PatientContext);
+export function FolderEditPopup() {
+  const folderContext = useContext(FolderContext);
   const { theme, systemTheme } = useTheme();
   const currentTheme = (theme === 'system' ? systemTheme : theme)
   const {
@@ -47,10 +47,7 @@ export function PatientEditPopup() {
   } = useForm({
     resolver: zodResolver(
       z.object({
-        firstName: z.string().min(2, "First name is required"),
-        lastName: z.string().min(2, "Last name is required"),
-        dateOfBirth: z.string().date("Date of birth is required"),
-        email: z.string().email("Invalid email address").optional(),
+        name: z.string().min(2, "Folder name is required"),
         json: z.string().optional(),
       }),
     ),
@@ -67,47 +64,38 @@ export function PatientEditPopup() {
   const [jsonData, setJsonData] = useState(defaultJsonData);
 
   useEffect(() => {
-      if(patientContext?.currentPatient && patientContext?.patientEditOpen && !patientContext?.addingNewPatient) {
-        setJsonData(patientContext?.currentPatient.json);
-        setValue('firstName', patientContext?.currentPatient.firstName);
-        setValue('lastName', patientContext?.currentPatient.lastName);
-        setValue('dateOfBirth', patientContext?.currentPatient.dateOfBirth as string);
-        setValue('email', patientContext?.currentPatient.email);
+      if(folderContext?.currentFolder && folderContext?.folderEditOpen && !folderContext?.addingNewFolder) {
+        setJsonData(folderContext?.currentFolder.json);
+        setValue('name', folderContext?.currentFolder.name);
       }
-  }, [patientContext?.currentPatient, patientContext?.patientEditOpen]);
+  }, [folderContext?.currentFolder, folderContext?.folderEditOpen]);
 
   const onSubmit = (data) => {
-    let pr: Patient;
-    if (patientContext?.currentPatient  && patientContext?.patientEditOpen && !patientContext?.addingNewPatient) {
-      pr = new Patient(patientContext?.currentPatient);
+    let pr: Folder;
+    if (folderContext?.currentFolder  && folderContext?.folderEditOpen && !folderContext?.addingNewFolder) {
+      pr = new Folder(folderContext?.currentFolder);
       pr.json = jsonData;
-      pr.firstName = data.firstName;
-      pr.lastName = data.lastName;
-      pr.dateOfBirth = data.dateOfBirth;
-      pr.email = data.email;
+      pr.name = data.name;
       pr.updatedAt = new Date().toISOString();
     } else {
-      pr = new Patient({
-        firstName: data.firstName,
-        lastName: data.lastName,
-        dateOfBirth: data.dateOfBirth,
-        email: data.email,
+      pr = new Folder({
+        name: data.name,
         json: JSON.stringify(jsonData),
         updatedAt: new Date().toISOString()
       });
     }
-    patientContext?.updatePatient(pr);
-    patientContext?.setPatientEditOpen(false);
-    patientContext?.setAddingNewPatient(false);
+    folderContext?.updateFolder(pr);
+    folderContext?.setFolderEditOpen(false);
+    folderContext?.setAddingNewFolder(false);
     reset();
     setJsonData(defaultJsonData);
   }
   return (
-    <Credenza open={patientContext?.patientEditOpen} onOpenChange={(e) => { patientContext?.setPatientEditOpen(e); if(!e) patientContext?.setAddingNewPatient(false); }}>
+    <Credenza open={folderContext?.folderEditOpen} onOpenChange={(e) => { folderContext?.setFolderEditOpen(e); if(!e) folderContext?.setAddingNewFolder(false); }}>
       <div>
       <Button variant="outline" className="absolute right-5 top-7" size="icon" onClick={(e) => {
-        patientContext?.setAddingNewPatient(true);
-        patientContext?.setPatientEditOpen(true);
+        folderContext?.setAddingNewFolder(true);
+        folderContext?.setFolderEditOpen(true);
       }}>
           <PlusIcon className="w-6 h-6" />
         </Button>
@@ -121,29 +109,12 @@ export function PatientEditPopup() {
                   <TabsTrigger value="additional" className="dark:data-[state=active]:bg-zinc-900 data-[state=active]:bg-zinc-100">Additional</TabsTrigger>
               </TabsList>
               <TabsContent value="general" className="p-4">
-                <div className="grid grid-cols-2 gap-4 mb-4">
+                <div className="grid grid-cols-1 gap-4 mb-4">
                   <div className="space-y-2">
-                    <Label htmlFor="firstName">First Name</Label>
-                    <Input id="firstName" autoFocus error={errors.firstName?.message} {...register("firstName")} />
-                    {errors.firstName && <p className="text-red-500 text-sm">{errors.firstName.message}</p>}
+                    <Label htmlFor="name">Folder Name</Label>
+                    <Input id="name" autoFocus error={errors.name?.message} {...register("name")} />
+                    {errors.name && <p className="text-red-500 text-sm">{errors.name.message}</p>}
                   </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="lastName">Last Name</Label>
-                    <Input id="lastName" error={errors.lastName?.message} {...register("lastName")}/>
-                    {errors.lastName && <p className="text-red-500 text-sm">{errors.lastName.message}</p>}
-                  </div>
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="dateOfBirth">Date of Birth</Label>
-                  <Input id="dateOfBirth" error={errors.dateOfBirth?.message} {...registerWithMask("dateOfBirth", "datetime", {
-                      inputFormat: "yyyy-mm-dd",
-                    })} />
-                  {errors.dateOfBirth && <p className="text-red-500 text-sm">{errors.dateOfBirth.message}</p>}
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="email">Email</Label>
-                  <Input id="email" type="email" error={errors.email?.message} {...register("email")} />
-                  {errors.email && <p className="text-red-500 text-sm">{errors.email.message}</p>}
                 </div>
               </TabsContent>
               <TabsContent value="additional" className="p-4">

@@ -29,7 +29,7 @@ import DataLoader from "./data-loader"
 import { SettingsIcon } from "lucide-react"
 import { coercedVal, ConfigContext } from "@/contexts/config-context"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "./ui/select"
-import { PatientRecordContext } from "@/contexts/patient-record-context"
+import { RecordContext } from "@/contexts/record-context"
 import { toast } from "sonner"
 import { Checkbox } from "@/components/ui/checkbox"
 
@@ -42,13 +42,13 @@ export function Chat() {
   const [llmProvider, setLlmProvider] = useState('chatgpt');
   const messageTextArea = useRef<HTMLTextAreaElement | null>(null);
   const lastMessageRef = useRef<HTMLDivElement | null>(null);
-  const [addPatientContext, setPatientContext] = useState(true);
+  const [addFolderContext, setFolderContext] = useState(true);
 
   const [defaultChatProvider, setDefaultChatProvider] = useState('');
   const [ollamaUrl, setOllamaUrl] = useState('');
   const [showProviders, setShowProviders] = useState(false);
 
-  const patientRecordContext = useContext(PatientRecordContext);
+  const recordContext = useContext(RecordContext);
 
   useEffect(()=> {
     if (chatContext.lastMessage) {
@@ -60,33 +60,33 @@ export function Chat() {
       setOllamaUrl(configOllamaUrl);
       setShowProviders(configOllamaUrl !== null && typeof configOllamaUrl === 'string' && configOllamaUrl.startsWith('http'));
 
-      setPatientContext(coercedVal(await config?.getServerConfig('autoLoadPatientContext'), true) as boolean);
-//      if (chatContext.arePatientRecordsLoaded === false && !chatContext.isStreaming && await chatContext.checkApiConfig()) {
+      setFolderContext(coercedVal(await config?.getServerConfig('autoLoadFolderContext'), true) as boolean);
+//      if (chatContext.areRecordsLoaded === false && !chatContext.isStreaming && await chatContext.checkApiConfig()) {
 //        try {
-          // await patientRecordContext?.sendAllRecordsToChat(); - changed due to too high tokens usage - now it's an option in the chat
+          // await recordContext?.sendAllRecordsToChat(); - changed due to too high tokens usage - now it's an option in the chat
 //        } catch (error) {
 //          console.error(error);
-//          toast.error('Failed to load patient records into chat: ' + error);
+//          toast.error('Failed to load folder records into chat: ' + error);
 //        }
 //      }
     }; 
     loadConfig();
 
     messageTextArea.current?.focus();
-  }, [chatContext.messages, chatContext.lastMessage, chatContext.isStreaming, patientRecordContext?.patientRecords]);
+  }, [chatContext.messages, chatContext.lastMessage, chatContext.isStreaming, recordContext?.records]);
   
 
   const handleSubmit = async () => {
     let messageWasDelivered = false;
     if (currentMessage) {
-      if (addPatientContext) {
-        if (chatContext.arePatientRecordsLoaded === false && !chatContext.isStreaming && await chatContext.checkApiConfig()) {
+      if (addFolderContext) {
+        if (chatContext.areRecordsLoaded === false && !chatContext.isStreaming && await chatContext.checkApiConfig()) {
           try {
-            patientRecordContext?.sendAllRecordsToChat({ role: 'user', name: 'You', content: currentMessage }, llmProvider ?? defaultChatProvider ); // send message along the context
+            recordContext?.sendAllRecordsToChat({ role: 'user', name: 'You', content: currentMessage }, llmProvider ?? defaultChatProvider ); // send message along the context
             messageWasDelivered = true;
           } catch (error) {
             console.error(error);
-            toast.error('Failed to load patient records into chat: ' + error);
+            toast.error('Failed to load folder records into chat: ' + error);
           }
         }        
       } 
@@ -209,13 +209,13 @@ export function Chat() {
           <div className="flex items-center gap-2 w-full">
           <div className="flex items-center gap-2">
               <Checkbox
-                  id="addPatientContext"
-                  checked={addPatientContext}
+                  id="addFolderContext"
+                  checked={addFolderContext}
                   onCheckedChange={(checked) => {
-                      setPatientContext(checked);
+                      setFolderContext(checked);
                   }}
               />
-              <label htmlFor="addPatientContext" className="text-sm">Add patient health context</label>
+              <label htmlFor="addFolderContext" className="text-sm">Add folder health context</label>
             </div>    
           </div>          
           <div className="relative">

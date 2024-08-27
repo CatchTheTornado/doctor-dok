@@ -1,14 +1,14 @@
 import Link from "next/link";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
-import { Patient } from "@/data/client/models";
+import { Folder } from "@/data/client/models";
 import { Trash2Icon } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useContext } from "react";
-import { PatientContext } from "@/contexts/patient-context";
+import { FolderContext } from "@/contexts/folder-context";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "./ui/alert-dialog";
 
-export default function PatientItem({ patient, selected, onClick }: { patient: Patient, selected: boolean, onClick: (e: any) => void}) {
-  const patientContext = useContext(PatientContext);
+export default function FolderItem({ folder, selected, onClick }: { folder: Folder, selected: boolean, onClick: (e: any) => void}) {
+  const folderContext = useContext(FolderContext);
 
   return (
     <Link
@@ -17,11 +17,10 @@ export default function PatientItem({ patient, selected, onClick }: { patient: P
       onClick={onClick}
     >
       <Avatar className="w-10 h-10">
-        <AvatarFallback>{patient.avatarFallback()}</AvatarFallback>
+        <AvatarFallback>{folder.avatarFallback()}</AvatarFallback>
       </Avatar>
-      <div className="flex-1" onClick={(e) => { e.preventDefault(); patientContext?.setPatientListPopup(false); patientContext.setCurrentPatient(patient); }} >
-        <div className="font-medium">{patient.displayName()}</div>
-          <div className="col-span-2 text-sm text-zinc-500 dark:text-zinc-400">Date of birth: {patient.displatDateOfBirth()}</div>
+      <div className="flex-1" onClick={(e) => { e.preventDefault(); folderContext?.setFolderListPopup(false); folderContext.setCurrentFolder(folder); }} >
+        <div className="font-medium">{folder.displayName()}</div>
       </div>
       <div className="w-10">
 
@@ -35,14 +34,14 @@ export default function PatientItem({ patient, selected, onClick }: { patient: P
             <AlertDialogHeader>
               <AlertDialogTitle>Are you sure</AlertDialogTitle>
               <AlertDialogDescription>
-                This action cannot be undone. This will permanently delete your patient data (in case it does not has any health records assigned)
+                This action cannot be undone. This will permanently delete your folder data (in case it does not has any health records assigned)
               </AlertDialogDescription>
             </AlertDialogHeader>
             <AlertDialogFooter>
               <AlertDialogCancel>No</AlertDialogCancel>
               <AlertDialogAction onClick={(e) => 
                 {
-                  patientContext?.deletePatient(patient);
+                  folderContext?.deleteFolder(folder);
                 }
               }>YES</AlertDialogAction>
             </AlertDialogFooter>

@@ -1,4 +1,4 @@
-import { EncryptedAttachmentDTO, KeyACLDTO, KeyDTO, PatientDTO, PatientRecordDTO } from "../dto";
+import { EncryptedAttachmentDTO, KeyACLDTO, KeyDTO, FolderDTO, RecordDTO } from "../dto";
 import { z } from "zod";
 
 import PasswordValidator from 'password-validator';
@@ -21,53 +21,41 @@ export enum DatabaseAuthStatus {
     InProgress = 'InProgress'
 }
 
-export class Patient {
+export class Folder {
     id?: number;
-    firstName: string;
-    lastName: string;
-    email?: string;
-    dateOfBirth?: string;
+    name: string;
     updatedAt?: string;
     json?: Record<string, any>;
 
-    constructor(patientDTO: PatientDTO | Patient) {
-        this.id = patientDTO.id;
-        this.firstName = patientDTO.firstName;
-        this.lastName = patientDTO.lastName;
-        this.email = patientDTO.email;
-        this.dateOfBirth = patientDTO.dateOfBirth;
-        this.updatedAt = patientDTO.updatedAt;
-        if (patientDTO instanceof Patient) {
-            this.json = patientDTO.json;
+    constructor(folderDTO: FolderDTO | Folder) {
+        this.id = folderDTO.id;
+        this.name = folderDTO.name;
+        this.updatedAt = folderDTO.updatedAt;
+        if (folderDTO instanceof Folder) {
+            this.json = folderDTO.json;
         } else {
-            this.json = patientDTO.json ? (typeof patientDTO.json === 'string' ? JSON.parse(patientDTO.json) : patientDTO.json) : null;
+            this.json = folderDTO.json ? (typeof folderDTO.json === 'string' ? JSON.parse(folderDTO.json) : folderDTO.json) : null;
         }   
     }
 
-    static fromDTO(patientDTO: PatientDTO): Patient {
-        return new Patient(patientDTO);
+    static fromDTO(folderDTO: FolderDTO): Folder {
+        return new Folder(folderDTO);
     }    
 
-    toDTO(): PatientDTO {
+    toDTO(): FolderDTO {
         return {
             id: this.id,
-            firstName: this.firstName,
-            lastName: this.lastName,
-            email: this.email,
-            dateOfBirth: this.dateOfBirth,
+            name: this.name,
             updatedAt: this.updatedAt ? this.updatedAt : new Date().toISOString(),
             json: JSON.stringify(this.json),
         };
     }
 
     displayName(): string {
-        return this.firstName + " " + this.lastName;
-    }
-    displatDateOfBirth(): string {
-        return this.dateOfBirth ? new Date(this.dateOfBirth).toLocaleDateString() : '';
+        return this.name;
     }
     avatarFallback(): string {
-        return (this.firstName[0] + this.lastName[0]).toUpperCase();
+        return (this.name[0] + (this.name.length > 1 ? this.name[1] : '')).toUpperCase();
     }    
 }
 
@@ -133,13 +121,13 @@ export class EncryptedAttachment {
     }
 }
 
-export const patientRecordExtraSchema = z.object({
+export const recordExtraSchema = z.object({
     type: z.string().min(1),
     value: z.string().min(1).or(z.array(z.string().min(1))).or(z.object({}))
 });
-export type PatientRecordExtra = z.infer<typeof patientRecordExtraSchema>;
+export type RecordExtra = z.infer<typeof recordExtraSchema>;
 
-export const patientRecordItemSchema = z.object({
+export const recordItemSchema = z.object({
     type: z.string().min(1),
     subtype: z.string().optional(),
     language: z.string().optional(),
@@ -158,17 +146,17 @@ export const patientRecordItemSchema = z.object({
 
   });
   
-export type PatientRecordItem = z.infer<typeof patientRecordItemSchema>;
+export type RecordItem = z.infer<typeof recordItemSchema>;
 
 
-export class PatientRecord {
+export class Record {
     id?: number;
-    patientId: number;
+    folderId: number;
     description?: string;
     type: string;
-    json?: PatientRecordItem[] | null;
+    json?: RecordItem[] | null;
     text?: string;
-    extra?: PatientRecordExtra[] | null;
+    extra?: RecordExtra[] | null;
     createdAt: string;
     updatedAt: string;
     attachments: EncryptedAttachment[] = [];
@@ -176,46 +164,46 @@ export class PatientRecord {
     parseInProgress: boolean = false;
     parseError: any = null;
   
-    constructor(patientRecordSource: PatientRecordDTO | PatientRecord) {
-      this.id = patientRecordSource.id;
-      this.patientId = patientRecordSource.patientId;
-      this.description = patientRecordSource.description;
-      this.type = patientRecordSource.type;
-      this.text = patientRecordSource.text ? patientRecordSource.text : '';
-      if(patientRecordSource instanceof PatientRecord) {
-        this.json = patientRecordSource.json
+    constructor(recordSource: RecordDTO | Record) {
+      this.id = recordSource.id;
+      this.folderId = recordSource.folderId;
+      this.description = recordSource.description;
+      this.type = recordSource.type;
+      this.text = recordSource.text ? recordSource.text : '';
+      if(recordSource instanceof Record) {
+        this.json = recordSource.json
      } else {
-        this.json = patientRecordSource.json ? (typeof patientRecordSource.json === 'string' ? JSON.parse(patientRecordSource.json) : patientRecordSource.json) : null;
+        this.json = recordSource.json ? (typeof recordSource.json === 'string' ? JSON.parse(recordSource.json) : recordSource.json) : null;
      }
 
-     if(patientRecordSource instanceof PatientRecord) {
-        this.extra = patientRecordSource.extra
+     if(recordSource instanceof Record) {
+        this.extra = recordSource.extra
      } else {
-        this.extra = patientRecordSource.extra ? (typeof patientRecordSource.extra === 'string' ? JSON.parse(patientRecordSource.extra) : patientRecordSource.extra) : null;
+        this.extra = recordSource.extra ? (typeof recordSource.extra === 'string' ? JSON.parse(recordSource.extra) : recordSource.extra) : null;
      }
-      this.createdAt = patientRecordSource.createdAt;
-      this.updatedAt = patientRecordSource.updatedAt;
-      if(patientRecordSource instanceof PatientRecord) {
-         this.attachments = patientRecordSource.attachments
+      this.createdAt = recordSource.createdAt;
+      this.updatedAt = recordSource.updatedAt;
+      if(recordSource instanceof Record) {
+         this.attachments = recordSource.attachments
       } else {
-         this.attachments = patientRecordSource.attachments ? (typeof patientRecordSource.attachments === 'string' ? JSON.parse(patientRecordSource.attachments) : patientRecordSource.attachments).map(EncryptedAttachment.fromDTO) : [];
+         this.attachments = recordSource.attachments ? (typeof recordSource.attachments === 'string' ? JSON.parse(recordSource.attachments) : recordSource.attachments).map(EncryptedAttachment.fromDTO) : [];
       }
     }
   
-    static fromDTO(patientRecordDTO: PatientRecordDTO): PatientRecord {
-      return new PatientRecord(patientRecordDTO);
+    static fromDTO(recordDTO: RecordDTO): Record {
+      return new Record(recordDTO);
     }
 
     async cacheKey(databaseHashId: string): Promise<string> {
         const attachmentsHash = await sha256(this.attachments.map(ea => ea.storageKey).join('-'), 'attachments')
-        const cacheKey = `patientRecord-${this.id}-${attachmentsHash}-${databaseHashId}`;
+        const cacheKey = `record-${this.id}-${attachmentsHash}-${databaseHashId}`;
         return cacheKey
     }
   
-    toDTO(): PatientRecordDTO {
+    toDTO(): RecordDTO {
       return {
         id: this.id,
-        patientId: this.patientId,
+        folderId: this.folderId,
         description: this.description,
         type: this.type,
         json: JSON.stringify(this.json),

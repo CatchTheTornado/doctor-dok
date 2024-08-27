@@ -1,11 +1,11 @@
 import { Button } from "./ui/button";
 import { SettingsPopup } from "@/components/settings-popup";
-import PatientListPopup from "./patient-list-popup";
-import PatientRecordForm from "./patient-record-form";
-import { PatientContext } from "@/contexts/patient-context";
+import FolderListPopup from "./folder-list-popup";
+import RecordForm from "./record-form";
+import { FolderContext } from "@/contexts/folder-context";
 import { useContext, useEffect, useState } from "react";
 import { Chat } from "./chat";
-import { Edit3Icon, KeyIcon, LogOutIcon, MenuIcon, MenuSquareIcon, MessageCircleIcon, PlusIcon, Settings2Icon, SettingsIcon, Share2Icon, UsersIcon } from "lucide-react";
+import { Edit3Icon, FoldersIcon, KeyIcon, LogOutIcon, MenuIcon, MenuSquareIcon, MessageCircleIcon, PlusIcon, Settings2Icon, SettingsIcon, Share2Icon, UsersIcon } from "lucide-react";
 import { DatabaseContext } from "@/contexts/db-context";
 import { toast } from "sonner";
 import { useTheme } from 'next-themes';
@@ -15,15 +15,15 @@ import { ChangeKeyPopup } from "./change-key-popup";
 import { CommandDialog, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "./ui/command";
 import { ConfigContext } from "@/contexts/config-context";
 import { ChatContext } from "@/contexts/chat-context";
-import { PatientRecordContext } from "@/contexts/patient-record-context";
+import { RecordContext } from "@/contexts/record-context";
 import { useEffectOnce } from "react-use";
 
 export default function TopHeader() {
-    const patientContext = useContext(PatientContext);
+    const folderContext = useContext(FolderContext);
     const dbContext = useContext(DatabaseContext);
     const keyContext = useContext(KeyContext);
     const chatContext = useContext(ChatContext);
-    const patientRecordContext = useContext(PatientRecordContext);
+    const recordContext = useContext(RecordContext);
     const config = useContext(ConfigContext);
     const { theme, systemTheme } = useTheme();
     const currentTheme = (theme === 'system' ? systemTheme : theme)
@@ -36,14 +36,14 @@ export default function TopHeader() {
       <div className="sticky top-0 z-1000 flex items-center justify-between border-b border-zinc-200 dark:border-zinc-800 p-4 bg-zinc-200 dark:bg-zinc-800 h-12">
         <div className="font-medium flex justify-center items-center">
           <div><img className="h-14 w-14" src={currentTheme === 'dark' ? `/img/doctor-dok-logo-white.svg` : `/img/doctor-dok-logo.svg`} /></div>
-          <div className="xs:invisible xxs:invisible sm:visible">{patientContext?.currentPatient ? ('Doctor Dok for ' + patientContext.currentPatient.displayName()) : 'Doctor Dok'} {patientContext?.currentPatient ? <Button className="ml-3" variant="outline" onClick={(e) => { patientContext?.setPatientListPopup(true); patientContext?.setPatientEditOpen(true); }}>Edit patient</Button> : null}</div>
+          <div className="xs:invisible xxs:invisible sm:visible">{folderContext?.currentFolder ? ('Doctor Dok for ' + folderContext.currentFolder.displayName()) : 'Doctor Dok'} {folderContext?.currentFolder ? <Button className="ml-3" variant="outline" onClick={(e) => { folderContext?.setFolderListPopup(true); folderContext?.setFolderEditOpen(true); }}>Edit folder</Button> : null}</div>
         </div>
         <div className="flex items-center gap-2">
-          <PatientListPopup />
-          {(patientContext?.currentPatient !== null) ? (
-            <PatientRecordForm patient={patientContext?.currentPatient} />
+          <FolderListPopup />
+          {(folderContext?.currentFolder !== null) ? (
+            <RecordForm folder={folderContext?.currentFolder} />
           ) : ("")}
-          {(patientContext?.currentPatient !== null) ? (
+          {(folderContext?.currentFolder !== null) ? (
             <Chat />
           ) : ("")}     
             {!dbContext?.acl || dbContext.acl.role === 'owner' ? (<SharedKeysPopup />) : null}
@@ -58,10 +58,10 @@ export default function TopHeader() {
                 <CommandList>
                   <CommandEmpty>No results found.</CommandEmpty>
                   <CommandGroup heading="Suggestions">
-                  <CommandItem key="cmd-edit-patient" className="cursor-pointer text-xs"  onSelect={(e) => { patientRecordContext?.setPatientRecordEditMode(true); }}><PlusIcon /> Add health record</CommandItem>
+                  <CommandItem key="cmd-edit-folder" className="cursor-pointer text-xs"  onSelect={(e) => { recordContext?.setRecordEditMode(true); }}><PlusIcon /> Add health record</CommandItem>
                   {!dbContext?.acl || dbContext.acl.role === 'owner' ? (<CommandItem key="cmd-settings" className="cursor-pointer text-xs" onSelect={(v) => { config?.setConfigDialogOpen(true);  }}><Settings2Icon className="w-6 h-6" />  Settings</CommandItem>) : null}
-                    <CommandItem key="cmd-list-patients" className="cursor-pointer text-xs"  onSelect={(e) => { patientContext?.setPatientListPopup(true); patientContext?.setPatientEditOpen(false); }}><UsersIcon /> List patients</CommandItem>
-                    <CommandItem key="cmd-edit-current-patient" className="cursor-pointer text-xs"  onSelect={(e) => { patientContext?.setPatientListPopup(true); patientContext?.setPatientEditOpen(true); }}><Edit3Icon /> Edit currrent patient</CommandItem>
+                    <CommandItem key="cmd-list-folders" className="cursor-pointer text-xs"  onSelect={(e) => { folderContext?.setFolderListPopup(true); folderContext?.setFolderEditOpen(false); }}><FoldersIcon /> List folders</CommandItem>
+                    <CommandItem key="cmd-edit-current-folder" className="cursor-pointer text-xs"  onSelect={(e) => { folderContext?.setFolderListPopup(true); folderContext?.setFolderEditOpen(true); }}><Edit3Icon /> Edit currrent folder</CommandItem>
                     <CommandItem key="cmd-open-chat" className="cursor-pointer text-xs"  onSelect={(e) => { chatContext?.setChatOpen(true); }}><MessageCircleIcon /> Open AI Chat</CommandItem>
 
                     {!dbContext?.acl || dbContext.acl.role === 'owner' ? (<CommandItem key="cmd-share" className="cursor-pointer text-xs" onSelect={(v) => { keyContext.setSharedKeysDialogOpen(true);  }}><Share2Icon className="w-6 h-6" />  Shared Keys</CommandItem>) : null}

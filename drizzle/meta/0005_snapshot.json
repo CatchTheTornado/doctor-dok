@@ -35,8 +35,8 @@
       "compositePrimaryKeys": {},
       "uniqueConstraints": {}
     },
-    "patientrRecordAttachments": {
-      "name": "patientrRecordAttachments",
+    "folderrRecordAttachments": {
+      "name": "folderrRecordAttachments",
       "columns": {
         "id": {
           "name": "id",
@@ -45,15 +45,15 @@
           "notNull": true,
           "autoincrement": true
         },
-        "patientId": {
-          "name": "patientId",
+        "folderId": {
+          "name": "folderId",
           "type": "integer",
           "primaryKey": false,
           "notNull": false,
           "autoincrement": false
         },
-        "patientRecordId": {
-          "name": "patientRecordId",
+        "recordId": {
+          "name": "recordId",
           "type": "integer",
           "primaryKey": false,
           "notNull": false,
@@ -126,12 +126,12 @@
       },
       "indexes": {},
       "foreignKeys": {
-        "patientrRecordAttachments_patientId_patients_id_fk": {
-          "name": "patientrRecordAttachments_patientId_patients_id_fk",
-          "tableFrom": "patientrRecordAttachments",
-          "tableTo": "patients",
+        "folderrRecordAttachments_folderId_folders_id_fk": {
+          "name": "folderrRecordAttachments_folderId_folders_id_fk",
+          "tableFrom": "folderrRecordAttachments",
+          "tableTo": "folders",
           "columnsFrom": [
-            "patientId"
+            "folderId"
           ],
           "columnsTo": [
             "id"
@@ -139,12 +139,12 @@
           "onDelete": "no action",
           "onUpdate": "no action"
         },
-        "patientrRecordAttachments_patientRecordId_patientRecords_id_fk": {
-          "name": "patientrRecordAttachments_patientRecordId_patientRecords_id_fk",
-          "tableFrom": "patientrRecordAttachments",
-          "tableTo": "patientRecords",
+        "folderrRecordAttachments_recordId_records_id_fk": {
+          "name": "folderrRecordAttachments_recordId_records_id_fk",
+          "tableFrom": "folderrRecordAttachments",
+          "tableTo": "records",
           "columnsFrom": [
-            "patientRecordId"
+            "recordId"
           ],
           "columnsTo": [
             "id"
@@ -156,8 +156,8 @@
       "compositePrimaryKeys": {},
       "uniqueConstraints": {}
     },
-    "patientRecords": {
-      "name": "patientRecords",
+    "records": {
+      "name": "records",
       "columns": {
         "id": {
           "name": "id",
@@ -166,8 +166,8 @@
           "notNull": true,
           "autoincrement": true
         },
-        "patientId": {
-          "name": "patientId",
+        "folderId": {
+          "name": "folderId",
           "type": "integer",
           "primaryKey": false,
           "notNull": false,
@@ -212,12 +212,12 @@
       },
       "indexes": {},
       "foreignKeys": {
-        "patientRecords_patientId_patients_id_fk": {
-          "name": "patientRecords_patientId_patients_id_fk",
-          "tableFrom": "patientRecords",
-          "tableTo": "patients",
+        "records_folderId_folders_id_fk": {
+          "name": "records_folderId_folders_id_fk",
+          "tableFrom": "records",
+          "tableTo": "folders",
           "columnsFrom": [
-            "patientId"
+            "folderId"
           ],
           "columnsTo": [
             "id"
@@ -229,8 +229,8 @@
       "compositePrimaryKeys": {},
       "uniqueConstraints": {}
     },
-    "patients": {
-      "name": "patients",
+    "folders": {
+      "name": "folders",
       "columns": {
         "id": {
           "name": "id",

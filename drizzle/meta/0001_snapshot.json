@@ -35,8 +35,8 @@
       "compositePrimaryKeys": {},
       "uniqueConstraints": {}
     },
-    "patients": {
-      "name": "patients",
+    "folders": {
+      "name": "folders",
       "columns": {
         "id": {
           "name": "id",

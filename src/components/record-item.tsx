@@ -1,37 +1,37 @@
 import { Button } from "@/components/ui/button";
 import { PaperclipIcon, Trash2Icon } from "./icons";
-import { DisplayableDataObject, PatientRecord } from "@/data/client/models";
+import { DisplayableDataObject, Record } from "@/data/client/models";
 import { useContext, useEffect, useRef, useState } from "react";
 import { PencilIcon, Wand2Icon } from "lucide-react";
-import { PatientRecordContext } from "@/contexts/patient-record-context";
+import { RecordContext } from "@/contexts/record-context";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "./ui/alert-dialog";
 import { MessageCircleIcon } from '@/components/chat'
 import Markdown from "react-markdown";
 import { Attachment } from 'ai/react';
-import PatientRecordItemJson from "./patient-record-item-json";
+import RecordItemJson from "./record-item-json";
 import { prompts } from "@/data/ai/prompts";
 import remarkGfm from 'remark-gfm'
 import { Accordion, AccordionTrigger, AccordionContent, AccordionItem } from "./ui/accordion";
-import styles from './patient-record-item.module.css'
+import styles from './record-item.module.css'
 import ZoomableImage from './zoomable-image';
 import { labels } from '@/data/ai/labels';
-import PatientRecordItemExtra from './patient-record-item-extra';
+import RecordItemExtra from './record-item-extra';
 import DataLoader from './data-loader';
-import PatientRecordItemCommands from "./patient-record-item-commands";
-import { PatientContext } from "@/contexts/patient-context";
+import RecordItemCommands from "./record-item-commands";
+import { FolderContext } from "@/contexts/folder-context";
 import { ChatContext } from "@/contexts/chat-context";
 import { ConfigContext } from "@/contexts/config-context";
 import { toast } from "sonner";
 import { DatabaseContext } from "@/contexts/db-context";
 
 
-export default function PatientRecordItem({ record, displayAttachmentPreviews }: { record: PatientRecord, displayAttachmentPreviews: boolean }) {
+export default function RecordItem({ record, displayAttachmentPreviews }: { record: Record, displayAttachmentPreviews: boolean }) {
   // TODO: refactor and extract business logic to a separate files
-  const patientRecordContext = useContext(PatientRecordContext)
+  const recordContext = useContext(RecordContext)
   const chatContext = useContext(ChatContext);
   const dbContext = useContext(DatabaseContext);
   const config = useContext(ConfigContext);
-  const patientContext = useContext(PatientContext)
+  const folderContext = useContext(FolderContext)
   const [displayableAttachmentsInProgress, setDisplayableAttachmentsInProgress] = useState(false)
   const [commandsOpen, setCommandsOpen] = useState(false);
   const thisElementRef = useRef(null);
@@ -45,7 +45,7 @@ export default function PatientRecordItem({ record, displayAttachmentPreviews }:
     if (displayAttachmentPreviews && !displayableAttachmentsInProgress && lastlyLoadedCacheKey !== currentCacheKey) {
       setDisplayableAttachmentsInProgress(true);
       try {
-        const attachments = await patientRecordContext?.convertAttachmentsToImages(record, false);
+        const attachments = await recordContext?.convertAttachmentsToImages(record, false);
         setDisplayableAttachments(attachments as DisplayableDataObject[]);
         setDisplayableAttachmentsInProgress(false);
         setLastlyLoadedCacheKey(currentCacheKey)
@@ -86,20 +86,20 @@ export default function PatientRecordItem({ record, displayAttachmentPreviews }:
       loadAttachmentPreviews();
     }
 
-    if (config?.getServerConfig('autoParsePatientRecord') && !record.json && !record.parseInProgress && !record.parseError && (new Date().getTime() - new Date(record.updatedAt).getTime()) < 1000 * 120 /* parse only records changed 30s ago */) { // TODO: maybe we need to add "parsedDate" or kind of checksum (better!) to make sure the record is parseed only when something changed
+    if (config?.getServerConfig('autoParseRecord') && !record.json && !record.parseInProgress && !record.parseError && (new Date().getTime() - new Date(record.updatedAt).getTime()) < 1000 * 120 /* parse only records changed 30s ago */) { // TODO: maybe we need to add "parsedDate" or kind of checksum (better!) to make sure the record is parseed only when something changed
       setTimeout(() => {
-        patientRecordContext?.parsePatientRecord(record);
+        recordContext?.parseRecord(record);
       }, 1000);
     }
 
-    patientRecordContext?.processParseQueue();
+    recordContext?.processParseQueue();
   }, [displayAttachmentPreviews, record, isVisible]);
 
 
   return (
     <div className="bg-zinc-100 dark:bg-zinc-800 p-4 rounded-md">
       <div className="flex items-center justify-between">
-        <div className="text-xs text-zinc-500 dark:text-zinc-400 font-medium">{record.id}: {labels.patientRecordItemLabel(record.type, { record })}</div>
+        <div className="text-xs text-zinc-500 dark:text-zinc-400 font-medium">{record.id}: {labels.recordItemLabel(record.type, { record })}</div>
         <div className="text-xs text-zinc-500 dark:text-zinc-400">{record.createdAt}</div>
       </div>
       <div className="mt-5 rose text-sm text-muted-foreground"><Markdown className={styles.markdown} remarkPlugins={[remarkGfm]}>{record.description}</Markdown></div>
@@ -116,12 +116,12 @@ export default function PatientRecordItem({ record, displayAttachmentPreviews }:
                 </Accordion>
             </div>        
           ): null }
-        <PatientRecordItemJson record={record} />
-        <PatientRecordItemExtra record={record} />
+        <RecordItemJson record={record} />
+        <RecordItemExtra record={record} />
       </div>
       <div className="mt-2 flex flex-wrap items-center gap-2 w-100">
         {record.attachments.map((attachment, index) => (
-          <div key={index} className="text-sm inline-flex w-auto"><Button variant="outline" onClick={() => patientRecordContext?.downloadAttachment(attachment.toDTO(), false)}><PaperclipIcon className="w-4 h-4 mr-2" /> {attachment.displayName}</Button></div>
+          <div key={index} className="text-sm inline-flex w-auto"><Button variant="outline" onClick={() => recordContext?.downloadAttachment(attachment.toDTO(), false)}><PaperclipIcon className="w-4 h-4 mr-2" /> {attachment.displayName}</Button></div>
         ))}
       </div>
       {displayAttachmentPreviews && record.attachments.length > 0 ? (
@@ -150,21 +150,21 @@ export default function PatientRecordItem({ record, displayAttachmentPreviews }:
       ) : null}
       <div ref={thisElementRef} className="mt-2 flex items-center gap-2">
         <Button size="icon" variant="ghost" title="Edit record">
-          <PencilIcon className="w-4 h-4" onClick={() => { if(record.parseInProgress) { toast.info('Please wait until record is successfully parsed') } else {  patientRecordContext?.setCurrentPatientRecord(record);  patientRecordContext?.setPatientRecordEditMode(true); } }} />
+          <PencilIcon className="w-4 h-4" onClick={() => { if(record.parseInProgress) { toast.info('Please wait until record is successfully parsed') } else {  recordContext?.setCurrentRecord(record);  recordContext?.setRecordEditMode(true); } }} />
         </Button>        
         <Button size="icon" variant="ghost" title="Add attachments">
-          <PaperclipIcon className="w-4 h-4"  onClick={() => { if(record.parseInProgress) { toast.info('Please wait until record is successfully parsed') } else {   patientRecordContext?.setCurrentPatientRecord(record);  patientRecordContext?.setPatientRecordEditMode(true);}  }} />
+          <PaperclipIcon className="w-4 h-4"  onClick={() => { if(record.parseInProgress) { toast.info('Please wait until record is successfully parsed') } else {   recordContext?.setCurrentRecord(record);  recordContext?.setRecordEditMode(true);}  }} />
         </Button>
         <Button size="icon" variant="ghost" title="Convert to structural data">
           {(record.parseInProgress) ? (
             <div className="cursor-pointer" onClick={(e) => chatContext.setChatOpen(true) }><DataLoader /></div>
           ) : (
-            <RefreshCwIcon className="w-4 h-4"  onClick={async () => {  await patientRecordContext?.sendHealthReacordToChat(record, true); } /* TODO: add prompt UI for altering the prompt */ } />
+            <RefreshCwIcon className="w-4 h-4"  onClick={async () => {  await recordContext?.sendHealthReacordToChat(record, true); } /* TODO: add prompt UI for altering the prompt */ } />
           )}
         </Button>       
         {(record.json && !record.parseInProgress) ? (
         <Button size="icon" variant="ghost" title="Insert into AI Chat">
-            <MessageCircleIcon className="w-4 h-4"  onClick={async () => {  patientRecordContext?.sendHealthReacordToChat(record, false);  }} />
+            <MessageCircleIcon className="w-4 h-4"  onClick={async () => {  recordContext?.sendHealthReacordToChat(record, false);  }} />
         </Button>        
         ) : (          
           null
@@ -172,7 +172,7 @@ export default function PatientRecordItem({ record, displayAttachmentPreviews }:
         {(record.json) ? (
           <Button size="icon" variant="ghost" title="AI features">
             <Wand2Icon className="w-4 h-4"  onClick={() => { setCommandsOpen(true) }} />
-              <PatientRecordItemCommands record={record} patient={patientContext?.currentPatient} open={commandsOpen} setOpen={setCommandsOpen} />
+              <RecordItemCommands record={record} folder={folderContext?.currentFolder} open={commandsOpen} setOpen={setCommandsOpen} />
           </Button>                
         ): (null) }
         <AlertDialog>
@@ -190,7 +190,7 @@ export default function PatientRecordItem({ record, displayAttachmentPreviews }:
             </AlertDialogHeader>
             <AlertDialogFooter>
               <AlertDialogCancel>No</AlertDialogCancel>
-              <AlertDialogAction onClick={(e) => patientRecordContext?.deletePatientRecord(record)}>YES</AlertDialogAction>
+              <AlertDialogAction onClick={(e) => recordContext?.deleteRecord(record)}>YES</AlertDialogAction>
             </AlertDialogFooter>
           </AlertDialogContent>
         </AlertDialog>               

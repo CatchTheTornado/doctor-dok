@@ -4,9 +4,9 @@ import { Input } from "@/components/ui/input"
 import { set, useForm } from "react-hook-form"
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from "zod"
-import { PatientContext } from "@/contexts/patient-context"
+import { FolderContext } from "@/contexts/folder-context"
 import { useContext, useEffect, useState } from "react"
-import { Patient } from "@/data/client/models"
+import { Folder } from "@/data/client/models"
 import { Credenza, CredenzaClose, CredenzaContent, CredenzaDescription, CredenzaFooter, CredenzaHeader, CredenzaTitle, CredenzaTrigger } from "./credenza"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "./ui/card"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "./ui/select";

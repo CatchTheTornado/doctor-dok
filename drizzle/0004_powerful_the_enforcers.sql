@@ -1,1 +1,1 @@
-ALTER TABLE `patientrRecordAttachments` ADD `storageKey` text;
+ALTER TABLE `folderrRecordAttachments` ADD `storageKey` text;

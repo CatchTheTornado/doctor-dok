@@ -1,14 +1,14 @@
     
-import { DataLoadingStatus, DisplayableDataObject, EncryptedAttachment, Patient, PatientRecord } from '@/data/client/models';
+import { DataLoadingStatus, DisplayableDataObject, EncryptedAttachment, Folder, Record } from '@/data/client/models';
 import { findCodeBlocks } from "@/lib/utils";
 import { AIResultEventType, ChatContextType, MessageType, MessageVisibility } from '@/contexts/chat-context';
 import { ConfigContextType } from '@/contexts/config-context';
-import { PatientContextType } from '@/contexts/patient-context';
-import { PatientRecordContextType } from '@/contexts/patient-record-context';
+import { FolderContextType } from '@/contexts/folder-context';
+import { RecordContextType } from '@/contexts/record-context';
 import { prompts } from '@/data/ai/prompts';
 import { toast } from 'sonner';
 
-export async function parse(record: PatientRecord, chatContext: ChatContextType, configContext: ConfigContextType | null, patientContext: PatientContextType | null, updateRecordFromText: (text: string, record: PatientRecord, allowNewRecord: boolean) => PatientRecord|null,  updateParseProgress: (record: PatientRecord, inProgress: boolean, error: any) => void, sourceImages: DisplayableDataObject[]): Promise<AIResultEventType> {
+export async function parse(record: Record, chatContext: ChatContextType, configContext: ConfigContextType | null, folderContext: FolderContextType | null, updateRecordFromText: (text: string, record: Record, allowNewRecord: boolean) => Record|null,  updateParseProgress: (record: Record, inProgress: boolean, error: any) => void, sourceImages: DisplayableDataObject[]): Promise<AIResultEventType> {
     const parseAIProvider = await configContext?.getServerConfig('llmProviderParse') as string;
 
     return new Promise ((resolve, reject) => {
@@ -18,7 +18,7 @@ export async function parse(record: PatientRecord, chatContext: ChatContextType,
                 // visibility: MessageVisibility.ProgressWhileStreaming,
                 createdAt: new Date(),
                 type: MessageType.Parse,
-                content: prompts.patientRecordParseMultimodal({ record, config: configContext }),
+                content: prompts.recordParseMultimodal({ record, config: configContext }),
                 experimental_attachments: sourceImages
             },
             onResult: (resultMessage, result) => {

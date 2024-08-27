@@ -12,12 +12,12 @@ import {
   FileUploadStatus,
 } from "@/components/encrypted-attachment-uploader";
 import { use, useCallback, useContext, useEffect, useState } from "react";
-import { EncryptedAttachment, Patient, PatientRecord } from "@/data/client/models";
+import { EncryptedAttachment, Folder, Record } from "@/data/client/models";
 import { Credenza, CredenzaContent, CredenzaDescription, CredenzaHeader, CredenzaTitle, CredenzaTrigger } from "./credenza";
 import { PlusIcon } from "lucide-react";
 import { useForm, useFormContext } from "react-hook-form";
-import { PatientContext } from "@/contexts/patient-context";
-import { PatientRecordContext } from "@/contexts/patient-record-context";
+import { FolderContext } from "@/contexts/folder-context";
+import { RecordContext } from "@/contexts/record-context";
 import { getCurrentTS } from "@/lib/utils";
 import { toast } from "sonner";
 import { EncryptedAttachmentDTO } from "@/data/dto";
@@ -57,11 +57,11 @@ const FileSvgDraw = () => {
   );
 };
 
-export default function PatientRecordForm({ patient }: { patient?: Patient }) {
-  const patientContext = useContext(PatientContext);
+export default function RecordForm({ folder }: { folder?: Folder }) {
+  const folderContext = useContext(FolderContext);
   const configContext = useContext(ConfigContext);
   const dbContext = useContext(DatabaseContext);
-  const patientRecordContext = useContext(PatientRecordContext);
+  const recordContext = useContext(RecordContext);
   const [files, setFiles] = useState<UploadedFile[] | null>(null);
   const [removeFiles, setRemoveFiles] = useState<UploadedFile[]>([]);
   const [dialogOpen, setDialogOpen] = useState(false);
@@ -82,11 +82,11 @@ export default function PatientRecordForm({ patient }: { patient?: Patient }) {
   });  
 
   useEffect(() => {
-    setValue("note", patientRecordContext?.currentPatientRecord?.description as string);
+    setValue("note", recordContext?.currentRecord?.description as string);
     let existingFiles:UploadedFile[] = []
-    if (patientRecordContext?.currentPatientRecord) {
+    if (recordContext?.currentRecord) {
       let idx = 0
-      existingFiles = patientRecordContext?.currentPatientRecord?.attachments.map((attachment) => {
+      existingFiles = recordContext?.currentRecord?.attachments.map((attachment) => {
         idx ++;
         return {
           id: attachment.id, 
@@ -99,7 +99,7 @@ export default function PatientRecordForm({ patient }: { patient?: Patient }) {
       }) as UploadedFile[];
     }
     setFiles(existingFiles);    
-  }, [patientRecordContext?.currentPatientRecord]);
+  }, [recordContext?.currentRecord]);
   
   const onSubmit = async (data: any) => {
     // Handle form submission
@@ -109,7 +109,7 @@ export default function PatientRecordForm({ patient }: { patient?: Patient }) {
       toast.error('Please upload at least one file or enter note text description');
       return;
     }
-    if (patientContext?.currentPatient && patientContext?.currentPatient?.id) {
+    if (folderContext?.currentFolder && folderContext?.currentFolder?.id) {
 
       let isStillUploading = false;
       const uploadedAttachments: EncryptedAttachment[] = [];
@@ -130,33 +130,33 @@ export default function PatientRecordForm({ patient }: { patient?: Patient }) {
         toast('Please wait until all files are uploaded');
         return;
       }
-      let pr: PatientRecord;
-      if (patientRecordContext?.currentPatientRecord && patientRecordContext?.patientRecordEditMode) { // edit mode
-        pr = new PatientRecord(patientRecordContext?.currentPatientRecord);
+      let pr: Record;
+      if (recordContext?.currentRecord && recordContext?.recordEditMode) { // edit mode
+        pr = new Record(recordContext?.currentRecord);
         pr.description = data.note;
         pr.attachments = uploadedAttachments;
         pr.updatedAt = getCurrentTS();
       } else {  // add mode
-        pr = new PatientRecord({
-          patientId: patientContext?.currentPatient?.id as number,
+        pr = new Record({
+          folderId: folderContext?.currentFolder?.id as number,
           type: 'note',
           description: data.note,
           updatedAt: getCurrentTS(),
           createdAt: getCurrentTS(),
           attachments: uploadedAttachments
-        } as PatientRecord)
+        } as Record)
       }
 
-      const savedPatientRecord = await patientRecordContext?.updatePatientRecord(pr); // TODO: add attachments processing
+      const savedRecord = await recordContext?.updateRecord(pr); // TODO: add attachments processing
 
-      if(savedPatientRecord?.id) // if patient record is saved successfully
+      if(savedRecord?.id) // if folder record is saved successfully
       {
          const eaac = new EncryptedAttachmentApiClient('', dbContext, {
           secretKey: dbContext?.masterKey,
           useEncryption: true
         });
         uploadedAttachments?.forEach(async (attachmentToUpdate) => {
-          attachmentToUpdate.assignedTo = [{ id: savedPatientRecord.id as number, type: "patient_record" }, { id: patientContext?.currentPatient?.id as number, type: "patient" }];
+          attachmentToUpdate.assignedTo = [{ id: savedRecord.id as number, type: "folder_record" }, { id: folderContext?.currentFolder?.id as number, type: "folder" }];
           await eaac.put(attachmentToUpdate.toDTO());
         }); 
         console.log('Clearing removed attachments', removeFiles);
@@ -173,17 +173,17 @@ export default function PatientRecordForm({ patient }: { patient?: Patient }) {
         setRemoveFiles([]); // clear form
         setFiles([]); // clear form
         reset(); 
-        toast.success("Patient record saved successfully");
+        toast.success("Folder record saved successfully");
         setDialogOpen(false);
-        patientRecordContext?.setPatientRecordEditMode(false);
+        recordContext?.setRecordEditMode(false);
       }
     } else {
-      toast.error("Please select a patient first");
+      toast.error("Please select a folder first");
     }
   };
 
   return (
-    <Credenza open={dialogOpen || patientRecordContext?.patientRecordEditMode} onOpenChange={(value) => { setDialogOpen(value); if(!value) patientRecordContext?.setPatientRecordEditMode(false); }}>
+    <Credenza open={dialogOpen || recordContext?.recordEditMode} onOpenChange={(value) => { setDialogOpen(value); if(!value) recordContext?.setRecordEditMode(false); }}>
       <CredenzaTrigger asChild>
         <Button variant="outline" size="icon">
           <PlusIcon className="w-6 h-6" />
@@ -191,10 +191,7 @@ export default function PatientRecordForm({ patient }: { patient?: Patient }) {
       </CredenzaTrigger>
       <CredenzaContent className="sm:max-w-[600px] bg-white dark:bg-zinc-950">
         <CredenzaHeader>
-          <CredenzaTitle>{patient?.displayName()}</CredenzaTitle>
-          <CredenzaDescription>
-            Birth date: {patient?.displatDateOfBirth()}
-          </CredenzaDescription>
+          <CredenzaTitle>{folder?.displayName()}</CredenzaTitle>
         </CredenzaHeader>
         <div className="mb-6 bg-white dark:bg-zinc-900 p-4 rounded-lg shadow-sm">
           <form onSubmit={handleSubmit(onSubmit)}>
