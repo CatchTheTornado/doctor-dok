@@ -1,4 +1,4 @@
-import { EncryptedAttachmentDTO, KeyACLDTO, KeyDTO, FolderDTO, RecordDTO } from "../dto";
+import { EncryptedAttachmentDTO, KeyACLDTO, KeyDTO, FolderDTO, RecordDTO } from "@/data/dto";
 import { z } from "zod";
 
 import PasswordValidator from 'password-validator';

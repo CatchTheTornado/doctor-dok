@@ -1,12 +1,11 @@
 import { ConfigContextType } from "@/contexts/config-context";
-import { Record, recordItemSchema } from "../client/models";
+import { Record, recordItemSchema } from "@/data/client/models";
 import { zodToJsonSchema } from "zod-to-json-schema";
 
 type PromptContext = {
     record?: Record;
     config?: ConfigContextType | null;
 }
-
 const itemSchema = zodToJsonSchema(recordItemSchema);
 
 export const prompts = {

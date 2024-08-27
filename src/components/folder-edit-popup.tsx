@@ -33,6 +33,7 @@ import { useTheme } from "next-themes"
 import { or } from "drizzle-orm"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@radix-ui/react-tabs"
 import { useHookFormMask } from 'use-mask-input';
+import defaultJsonData from '@/defaults/folder-data.json'
 
 export function FolderEditPopup() {
   const folderContext = useContext(FolderContext);
@@ -54,13 +55,7 @@ export function FolderEditPopup() {
   })
   const registerWithMask = useHookFormMask(register);
 
-  const defaultJsonData = {
-    "Personal ID Number": "",
-    "Address": "",
-    "Gender": "M",
-    "City": "",
-    "Zip Code": ""        
-  };
+
   const [jsonData, setJsonData] = useState(defaultJsonData);
 
   useEffect(() => {
@@ -106,7 +101,7 @@ export function FolderEditPopup() {
               <Tabs defaultValue="general">
                 <TabsList className="grid w-full grid-cols-2">
                   <TabsTrigger value="general" className="dark:data-[state=active]:bg-zinc-900 data-[state=active]:bg-zinc-100">General</TabsTrigger>
-                  <TabsTrigger value="additional" className="dark:data-[state=active]:bg-zinc-900 data-[state=active]:bg-zinc-100">Additional</TabsTrigger>
+                  <TabsTrigger value="additional" className="dark:data-[state=active]:bg-zinc-900 data-[state=active]:bg-zinc-100">Meta data</TabsTrigger>
               </TabsList>
               <TabsContent value="general" className="p-4">
                 <div className="grid grid-cols-1 gap-4 mb-4">
