@@ -39,6 +39,6 @@ export class FolderApiClient extends ApiClient {
     }
 
     async delete(folder: FolderDTO): Promise<DeleteFolderResponse> {
-      return this.request<DeleteFolderResponse>('/api/folder/' + folder.id, 'DELETE') as Promise<DeleteFolderResponse>;
+      return this.request<DeleteFolderResponse>('/api/folder/' + folder.id, 'DELETE', { ecnryptedFields: [] }) as Promise<DeleteFolderResponse>;
     }      
   }
