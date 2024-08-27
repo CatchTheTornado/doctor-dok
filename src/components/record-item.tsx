@@ -17,7 +17,7 @@ import ZoomableImage from './zoomable-image';
 import { labels } from '@/data/ai/labels';
 import RecordItemExtra from './record-item-extra';
 import DataLoader from './data-loader';
-import RecordItemCommands from "./record-item-commands";
+import RecordItemCommands from "@/components/record-item-commands";
 import { FolderContext } from "@/contexts/folder-context";
 import { ChatContext } from "@/contexts/chat-context";
 import { ConfigContext } from "@/contexts/config-context";
