@@ -131,34 +131,54 @@ export default function RecordForm({ folder }: { folder?: Folder }) {
         return;
       }
       let pr: Record;
-      if (recordContext?.currentRecord && recordContext?.recordEditMode) { // edit mode
-        pr = new Record(recordContext?.currentRecord);
-        pr.description = data.note;
-        pr.attachments = uploadedAttachments;
-        pr.updatedAt = getCurrentTS();
-      } else {  // add mode
-        pr = new Record({
-          folderId: folderContext?.currentFolder?.id as number,
-          type: 'note',
-          description: data.note,
-          updatedAt: getCurrentTS(),
-          createdAt: getCurrentTS(),
-          attachments: uploadedAttachments
-        } as Record)
-      }
+      const savedRecords:Record[] = []
 
-      const savedRecord = await recordContext?.updateRecord(pr); // TODO: add attachments processing
+      const eaac = new EncryptedAttachmentApiClient('', dbContext, {
+        secretKey: dbContext?.masterKey,
+        useEncryption: true
+      });
 
-      if(savedRecord?.id) // if folder record is saved successfully
-      {
-         const eaac = new EncryptedAttachmentApiClient('', dbContext, {
-          secretKey: dbContext?.masterKey,
-          useEncryption: true
-        });
+      const assignAttachments = async (savedRecord: Record) => {
         uploadedAttachments?.forEach(async (attachmentToUpdate) => {
-          attachmentToUpdate.assignedTo = [{ id: savedRecord.id as number, type: "folder_record" }, { id: folderContext?.currentFolder?.id as number, type: "folder" }];
+          attachmentToUpdate.assignedTo = [{ id: savedRecord.id as number, type: "record" }, { id: folderContext?.currentFolder?.id as number, type: "folder" }];
           await eaac.put(attachmentToUpdate.toDTO());
         }); 
+      }      
+
+
+      try {
+        if (recordContext?.currentRecord && recordContext?.recordEditMode) { // edit mode
+          pr = new Record(recordContext?.currentRecord);
+          pr.description = data.note;
+          pr.attachments = uploadedAttachments;
+          pr.updatedAt = getCurrentTS();
+          const savedRecord = await recordContext?.updateRecord(pr) as Record;
+          savedRecords.push(savedRecord);
+          await assignAttachments(savedRecord);
+        } else {  // add mode
+
+          for(const uploadedAttachment of uploadedAttachments) {
+            pr = new Record({
+              folderId: folderContext?.currentFolder?.id as number,
+              type: 'note',
+              description: data.note,
+              updatedAt: getCurrentTS(),
+              createdAt: getCurrentTS(),
+              attachments: [uploadedAttachment]
+            } as Record)
+            const savedRecord = await recordContext?.updateRecord(pr) as Record;
+            savedRecords.push(savedRecord);
+            await assignAttachments(savedRecord);
+          }
+        }
+      } catch (err) {
+        toast.error('Error saving record ' + err);
+        console.log(err);
+        return;
+      }
+
+      if(savedRecords.length > 0) // if  record is saved successfully
+      {
         console.log('Clearing removed attachments', removeFiles);
         removeFiles.forEach(async (attachmentToRemove) => {
           if (attachmentToRemove) {
@@ -173,9 +193,12 @@ export default function RecordForm({ folder }: { folder?: Folder }) {
         setRemoveFiles([]); // clear form
         setFiles([]); // clear form
         reset(); 
-        toast.success("Folder record saved successfully");
+        toast.success("Record saved successfully");
         setDialogOpen(false);
         recordContext?.setRecordEditMode(false);
+      } else {
+        toast.error('Error adding records. Please try again later');
+        setDialogOpen(false);
       }
     } else {
       toast.error("Please select a folder first");
@@ -195,15 +218,16 @@ export default function RecordForm({ folder }: { folder?: Folder }) {
         </CredenzaHeader>
         <div className="mb-6 bg-white dark:bg-zinc-900 p-4 rounded-lg shadow-sm">
           <form onSubmit={handleSubmit(onSubmit)}>
-            <div className="flex items-center gap-4 resize-x">
-              <Textarea
-                className="block w-full resize-none border-none focus:ring-0 h-auto"
-                placeholder="Add a new note..."
-                rows={5}
-                {...register("note", { required: false })}
-              />
-            </div>
-            {errors.note && <div className="text-red-500 text-sm">Note is required</div>}
+            {recordContext?.currentRecord ? (
+              <div className="flex items-center gap-4 resize-x">
+                <Textarea
+                  className="block w-full resize-none border-none focus:ring-0 h-auto"
+                  placeholder="Add a new note..."
+                  rows={5}
+                  {...register("note", { required: false })}
+                />
+              </div>
+            ): ''}
             <div className="flex w-full pv-5">
               <EncryptedAttachmentUploader
                 value={files}
@@ -233,9 +257,11 @@ export default function RecordForm({ folder }: { folder?: Folder }) {
                 </FileUploaderContent>
               </EncryptedAttachmentUploader>        
               </div>
-              <div className="pt-5 text-xs">
-                Due to AI provider context limits, if the file contains many findings (eg. blood results) - consider uploading max. 1-2 files per record.
-              </div>
+              {recordContext?.currentRecord ? (
+                <div className="pt-5 text-xs">
+                  Due to AI provider context limits, if the file contains many findings (eg. blood results) - consider uploading max. 1-2 files per record.
+                </div>
+              ): ''} 
               <div className="pt-5 flex items-right">
               <Button>Save</Button>
             </div>
