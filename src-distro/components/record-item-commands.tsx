@@ -12,6 +12,9 @@ import { RecordContext } from '@/contexts/record-context';
 import { prompts } from '@/data/ai/prompts';
 import { ClipboardPasteIcon, LanguagesIcon, MoveRight, TextQuoteIcon, Wand2Icon } from 'lucide-react';
 import { ChatContext } from '@/contexts/chat-context';
+import { promptTemplates } from '@/data/ai/prompt-templates';
+import { QuestionMarkIcon } from '@radix-ui/react-icons';
+import { ConfigContext } from '@/contexts/config-context';
 
 interface Props {
     record: Record;
@@ -111,6 +114,7 @@ const supportedLanguages = [
 const RecordItemCommands: React.FC<Props> = ({ record, folder, open, setOpen }) => {
     const recordContext = useContext(RecordContext);
     const chatContext = useContext(ChatContext)
+    const config = useContext(ConfigContext);
     return (<CommandDialog open={open} onOpenChange={setOpen}>
     <CommandInput className="text-sm" placeholder="Type a command or search..." />
         <CommandList>
@@ -118,8 +122,17 @@ const RecordItemCommands: React.FC<Props> = ({ record, folder, open, setOpen }) 
             <CommandGroup heading="Suggestions">
                 <CommandItem key="cmd-interpret" className="text-xs" onSelect={(v) => { recordContext?.extraToRecord('interpretation', prompts.recordInterpretation({ record }), record) }}><Wand2Icon /> AI Interpretation</CommandItem>
                 <CommandItem key="cmd-summary" className="text-xs" onSelect={(v) => { recordContext?.extraToRecord('summary', prompts.recordSummary({ record }), record) }}><TextQuoteIcon /> Summary in one sentence</CommandItem>
-                <CommandItem key="cmd-send-all" className="text-xs" onSelect={(v) => { recordContext?.sendAllRecordsToChat(); chatContext.setChatOpen(true); }}><ClipboardPasteIcon /> Add all records to chat context</CommandItem>
-                <CommandItem key="cmd-best-next-steps" className="text-xs" onSelect={(v) => { 
+                {Object.entries(promptTemplates).map(promptTpl => (
+                    <CommandItem key={promptTpl[0]} className="text-xs" onSelect={(v) => {
+                        chatContext.setPromptTemplate(promptTpl[1].template({ config }));
+                        chatContext.setChatCustomPromptVisible(false);
+                        chatContext.setTemplatePromptVisible(true);
+                        chatContext.setChatOpen(true);
+                    }}><QuestionMarkIcon /> {promptTpl[1].label}</CommandItem>        
+                 ))       
+                }                
+                {/* <CommandItem key="cmd-send-all" className="text-xs" onSelect={(v) => { recordContext?.sendAllRecordsToChat(); chatContext.setChatOpen(true); }}><ClipboardPasteIcon /> Add all records to chat context</CommandItem> */}
+                {/* <CommandItem key="cmd-best-next-steps" className="text-xs" onSelect={(v) => { 
                         chatContext.setChatOpen(true);
                         chatContext.sendMessage({
                           message: {
@@ -128,7 +141,7 @@ const RecordItemCommands: React.FC<Props> = ({ record, folder, open, setOpen }) 
                             content: prompts.bestNextSteps({ record }),
                           }
                         });                    
-                 }}><MoveRight /> What are best next steps?</CommandItem>
+                 }}><MoveRight /> What are best next steps?</CommandItem> */}
             </CommandGroup>
             <CommandSeparator />
             <CommandGroup heading="Translations">

@@ -26,12 +26,15 @@ import { useContext, useEffect, useRef, useState } from "react"
 import { ChatContext, MessageVisibility } from "@/contexts/chat-context"
 import ChatMessage from "./chat-message"
 import DataLoader from "./data-loader"
-import { SettingsIcon } from "lucide-react"
+import { SettingsIcon, Wand2 } from "lucide-react"
 import { coercedVal, ConfigContext } from "@/contexts/config-context"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "./ui/select"
 import { RecordContext } from "@/contexts/record-context"
 import { toast } from "sonner"
 import { Checkbox } from "@/components/ui/checkbox"
+import ChatCommands from "@/components/chat-commands"
+import { MagicWandIcon } from "@radix-ui/react-icons"
+import TemplateStringRenderer from "./template-string-renderer"
 
 
 export function Chat() {
@@ -47,6 +50,8 @@ export function Chat() {
   const [defaultChatProvider, setDefaultChatProvider] = useState('');
   const [ollamaUrl, setOllamaUrl] = useState('');
   const [showProviders, setShowProviders] = useState(false);
+
+  const [chatCommandsOpen, setChatCommandsOpen] = useState(false);
 
   const recordContext = useContext(RecordContext);
 
@@ -206,7 +211,7 @@ export function Chat() {
           </div>
         </div>
         <DrawerFooter className="bg-muted py-2 px-4">
-          <div className="flex items-center gap-2 w-full">
+          {/* <div className="flex items-center gap-2 w-full">
           <div className="flex items-center gap-2">
               <Checkbox
                   id="addFolderContext"
@@ -217,47 +222,78 @@ export function Chat() {
               />
               <label htmlFor="addFolderContext" className="text-sm">Add all records context</label>
             </div>    
-          </div>          
-          <div className="relative">
-            <Textarea
-              placeholder="Type your message..."
-              name="message"
-              autoFocus
-              ref={messageTextArea}
-              value={currentMessage}
-              onChange={(e) => setCurrentMessage(e.target.value)}
-              id="message"
-              rows={1}
-              onKeyDown={(e) => {
-                if(e.key === "Enter" && !e.shiftKey) {
-                  e.preventDefault();
-                  handleSubmit()
-                }
-              }}
-              className="min-h-[48px] rounded-2xl resize-none p-4 border border-neutral-400 shadow-sm pr-16"
-            />
-            <div className="absolute flex top-3 right-3 gap-2">
-              <div className="xxs:invisible md:visible">
-                <Select id="llmProvider" value={llmProvider} onValueChange={setLlmProvider}>
-                    <SelectTrigger className="w-[180px]">
-                      <SelectValue placeholder="Default: Chat GPT" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem key="chatgpt" value="chatgpt">Cloud: Chat GPT</SelectItem>
-                      {showProviders ? (
-                        <SelectItem key="ollama" value="ollama">Local: Ollama</SelectItem>
-                      ): null}
-                    </SelectContent>
-                  </Select>
+          </div> */}
+          
+          <div className="flex">
+            <Button variant="ghost" size="icon" className="m-3" onClick={(e) => {
+              setChatCommandsOpen(true);
+            }}><Wand2 /></Button>
+            <ChatCommands open={chatCommandsOpen} setOpen={setChatCommandsOpen} />
+
+            {chatContext.chatTemplatePromptVisible ? (
+              <div className="relative">
+                <div className="min-h-[48px] rounded-2xl resize-none p-4 border border-neutral-400 shadow-sm pr-16">
+                  <TemplateStringRenderer template={chatContext.promptTemplate} onChange={(v) => {
+                    setCurrentMessage(v);
+                  }} />
                 </div>
 
-              <Button type="submit" size="icon" className="w-8 h-8" onClick={() => {
-                handleSubmit();
-              }}>
-                <ArrowUpIcon className="w-4 h-4" />
-                <span className="sr-only">Send</span>
-              </Button>
-              </div>     
+                <div className="absolute flex top-3 right-3 gap-2">
+                  <div className="xxs:invisible md:visible">              
+                    <Button type="submit" size="icon" className="w-8 h-8" onClick={() => {
+                      handleSubmit();
+                    }}>
+                      <ArrowUpIcon className="w-4 h-4" />
+                      <span className="sr-only">Send</span>
+                    </Button>              
+                    </div>
+                  </div>
+              </div>
+            ) : ''}
+
+            {chatContext.chatCustomPromptVisible ? (
+            <div className="relative grow">
+              <Textarea
+                placeholder="Type your message..."
+                name="message"
+                autoFocus
+                ref={messageTextArea}
+                value={currentMessage}
+                onChange={(e) => setCurrentMessage(e.target.value)}
+                id="message"
+                rows={1}
+                onKeyDown={(e) => {
+                  if(e.key === "Enter" && !e.shiftKey) {
+                    e.preventDefault();
+                    handleSubmit()
+                  }
+                }}
+                className="min-h-[48px] rounded-2xl resize-none p-4 border border-neutral-400 shadow-sm pr-16"
+              />
+              <div className="absolute flex top-3 right-3 gap-2">
+                <div className="xxs:invisible md:visible">
+                  <Select id="llmProvider" value={llmProvider} onValueChange={setLlmProvider}>
+                      <SelectTrigger className="w-[180px]">
+                        <SelectValue placeholder="Default: Chat GPT" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem key="chatgpt" value="chatgpt">Cloud: Chat GPT</SelectItem>
+                        {showProviders ? (
+                          <SelectItem key="ollama" value="ollama">Local: Ollama</SelectItem>
+                        ): null}
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                <Button type="submit" size="icon" className="w-8 h-8" onClick={() => {
+                  handleSubmit();
+                }}>
+                  <ArrowUpIcon className="w-4 h-4" />
+                  <span className="sr-only">Send</span>
+                </Button>
+                </div>     
+            </div>
+            ) : ''}
           </div>
         </DrawerFooter>
       </DrawerContent>

@@ -24,7 +24,7 @@ const ChatMessage: React.FC<ChatMessageProps> = ({ message, ref }) => {
     const shTheme = (theme === 'system' ? systemTheme : theme) === 'dark' ? 'material-dark' : 'material-light';
     return (
     <div id={'msg-' + message.id} ref={ref} className={message.role === 'user' ?  "flex items-start gap-4 justify-end" :  "flex items-start gap-4"}>
-        <div className={message.role === 'user' ?  "p-4 gap-4 text-right rounded-lg max-w-[70%] bg-gray dark:bg-zinc-500" :  "p-4 gap-1 rounded-lg max-w-[70%] bg-white dark:bg-zinc-950"}>
+        <div className={message.role === 'user' ?  "p-4 gap-4 text-right rounded-lg max-w-[90%] bg-gray dark:bg-zinc-500" :  "p-4 gap-1 rounded-lg max-w-[90%] bg-white dark:bg-zinc-950"}>
           <div className="font-bold">{message.name}</div>
           <div className="prose text-sm text-muted-foreground">
             {(message.visibility === MessageVisibility.ProgressWhileStreaming  && !message.finished) ? (

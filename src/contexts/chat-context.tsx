@@ -85,9 +85,15 @@ export type ChatContextType = {
     sendMessages: (msg: CreateMessagesEnvelope) => void;
     chatOpen: boolean,
     setChatOpen: (value: boolean) => void;
+    chatCustomPromptVisible: boolean;
+    setChatCustomPromptVisible: (value: boolean) => void;
+    chatTemplatePromptVisible: boolean;
+    setTemplatePromptVisible: (value: boolean) => void;
     isStreaming: boolean;
     checkApiConfig: () => Promise<boolean>;
     aggregateStats: (newItem: StatDTO) => Promise<StatDTO>;
+    promptTemplate: string;
+    setPromptTemplate: (value: string) => void;
 };
 
 // Create the chat context
@@ -104,7 +110,14 @@ export const ChatContext = createContext<ChatContextType>({
     setChatOpen: (value: boolean) => {},
     isStreaming: false,
     checkApiConfig: async () => { return false },
-    aggregateStats: async (newItem) => { return Promise.resolve(newItem); }
+    aggregateStats: async (newItem) => { return Promise.resolve(newItem); },
+    chatCustomPromptVisible: false,
+    setChatCustomPromptVisible: (value: boolean) => {},
+    chatTemplatePromptVisible: false,
+    setTemplatePromptVisible: (value: boolean) => {},
+    promptTemplate: '',
+    setPromptTemplate: (value: string) => {}
+
 });
 
 // Custom hook to access the chat context
@@ -123,6 +136,9 @@ export const ChatContextProvider: React.FC<PropsWithChildren> = ({ children }) =
     const [chatOpen, setChatOpen] = useState(false);
     const [isStreaming, setIsStreaming] = useState(false);
     const [areRecordsLoaded, setRecordsLoaded] = useState(false);
+    const [chatCustomPromptVisible, setChatCustomPromptVisible] = useState(false);
+    const [chatTemplatePromptVisible, setTemplatePromptVisible] = useState(false);
+    const [promptTemplate, setPromptTemplate] = useState('');
 
 
     const dbContext = useContext(DatabaseContext);
@@ -303,7 +319,13 @@ export const ChatContextProvider: React.FC<PropsWithChildren> = ({ children }) =
         areRecordsLoaded,
         setRecordsLoaded,
         checkApiConfig,
-        aggregateStats
+        aggregateStats,
+        chatCustomPromptVisible,
+        setChatCustomPromptVisible,
+        chatTemplatePromptVisible,
+        setTemplatePromptVisible,
+        promptTemplate,
+        setPromptTemplate
     }
 
     return (
