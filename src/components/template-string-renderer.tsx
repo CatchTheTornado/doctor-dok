@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 
 const TemplateStringRenderer = ({ template, onChange }) => {
   const parseTemplate = (template) => {
@@ -52,12 +52,7 @@ const TemplateStringRenderer = ({ template, onChange }) => {
     })
   );
 
-  const handleChange = (index, value) => {
-    const newValues = [...values];
-    newValues[index] = value;
-    setValues(newValues);
-
-    // Combine the segments into the final string
+  const renderValues = (newValues: any[]) => {
     let combinedString = '';
     let segmentIndex = 0;
     segments.forEach((segment) => {
@@ -75,10 +70,29 @@ const TemplateStringRenderer = ({ template, onChange }) => {
       }
     });
 
+    return combinedString;
+  }
+
+  const handleChange = (index, value) => {
+    const newValues = [...values];
+    newValues[index] = value;
+    setValues(newValues);
+
+    // Combine the segments into the final string
+    const combinedString = renderValues(newValues)
     if (onChange) {
       onChange(combinedString);
     }
   };
+
+  useEffect(() => {
+    const combinedString = renderValues(values);
+    if (onChange) {
+      onChange(combinedString);
+    }
+
+  }, []);
+ 
 
   return (
     <div>
