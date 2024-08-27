@@ -28,7 +28,7 @@ export default function RecordList({ folder }) {
   });
 
   return (
-    <div className="bg-white dark:bg-zinc-900 p-6 rounded-lg shadow-sm">
+    <div className="bg-white dark:bg-zinc-900 md:p-6 rounded-lg shadow-sm">
       <div className="space-y-4">
         { (recordContext?.loaderStatus === "loading") ? (
           <div className="flex justify-center">

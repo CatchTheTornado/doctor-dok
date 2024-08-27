@@ -25,7 +25,7 @@ export default function RecordsWrapper({}) {
     
   return (
     <div className="grid min-h-screen w-full bg-zinc-100 dark:bg-zinc-950">
-      <div className="p-6">
+      <div className="md:p-6 xs:p-2">
         { (folderContext?.currentFolder !== null) ? (
           <div>
             <div className="flex-1 overflow-auto">

@@ -55,6 +55,13 @@ export default function RecordItem({ record, displayAttachmentPreviews }: { reco
     }    
   }
 
+  const shorten = (str: string) => {
+    if(str) {
+      if(str.length > 16) return str.slice(0, 16 ) + '...'; else return str;
+    }
+  return str;
+  }
+
   useEffect(() => {
 
     const observer = new IntersectionObserver(
@@ -121,7 +128,7 @@ export default function RecordItem({ record, displayAttachmentPreviews }: { reco
       </div>
       <div className="mt-2 flex flex-wrap items-center gap-2 w-100">
         {record.attachments.map((attachment, index) => (
-          <div key={index} className="text-sm inline-flex w-auto"><Button variant="outline" onClick={() => recordContext?.downloadAttachment(attachment.toDTO(), false)}><PaperclipIcon className="w-4 h-4 mr-2" /> {attachment.displayName}</Button></div>
+          <div key={index} className="text-sm inline-flex w-auto"><Button variant="outline" onClick={() => recordContext?.downloadAttachment(attachment.toDTO(), false)}><PaperclipIcon className="w-4 h-4 mr-2" /> {shorten(attachment.displayName)}</Button></div>
         ))}
       </div>
       {displayAttachmentPreviews && record.attachments.length > 0 ? (
