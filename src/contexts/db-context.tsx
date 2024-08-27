@@ -2,7 +2,7 @@ import React, { createContext, useState,  PropsWithChildren } from 'react';
 import { KeyHashParamsDTO } from '@/data/dto';
 import { DatabaseAuthorizeRequest, DatabaseAuthStatus, DatabaseCreateRequest, DatabaseKeepLoggedInRequest, DatabaseRefreshRequest, DataLoadingStatus, KeyACL, Folder, Record } from '@/data/client/models';
 import { AuthorizeDbResponse, DbApiClient, RefreshDbResponse } from '@/data/client/db-api-client';
-import { ConfigContextType } from './config-context';
+import { ConfigContextType } from '@/contexts/config-context';
 import { EncryptionUtils, generateEncryptionKey, sha256 } from '@/lib/crypto';
 import { toast } from 'sonner';
 const argon2 = require("argon2-browser");

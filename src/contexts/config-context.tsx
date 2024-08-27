@@ -46,7 +46,6 @@ export type ConfigContextType = {
     setServerConfig(key: string, value: ConfigSupportedValueType): Promise<boolean>;
     getServerConfig(key: string): Promise<ConfigSupportedValueType>;
     setSaveToLocalStorage(value: boolean): void;
-    loadServerConfigOnce(): Promise<Record<string, ConfigSupportedValueType>>;
 
     isConfigDialogOpen: boolean;
     setConfigDialogOpen: (value: boolean) => void;
@@ -63,6 +62,7 @@ function getConfigApiClient(encryptionKey: string, dbContext?: DatabaseContextTy
 export const ConfigContext = React.createContext<ConfigContextType | null>(null);
 export const ConfigContextProvider: React.FC<PropsWithChildren> = ({ children }) => {
 let serverConfigLoaded = false;
+let serverConfigLoading = false;
 let serverConfig: Record<string, ConfigSupportedValueType> = {};
 let localConfig: Record<string, ConfigSupportedValueType> = {};
 
@@ -70,18 +70,33 @@ const dbContext = useContext(DatabaseContext);
 const [isConfigDialogOpen, setConfigDialogOpen] = React.useState(false);
 
   const loadServerConfig = async (forceReload: boolean = false): Promise<Record<string, ConfigSupportedValueType>>  => { 
+    let loaderCounter = 0;
+    while (serverConfigLoading && (loaderCounter < 20)) {
+      await new Promise(f => setTimeout(f, 1000));
+      loaderCounter ++;
+      console.log('Waiting for config to be loaded');
+    }
+    if (serverConfigLoading) { // if still loading after 10 tries
+      throw new Error('Error while loading config. Please try again');
+    }
     if((!serverConfigLoaded || forceReload) && dbContext?.authStatus === DatabaseAuthStatus.Authorized) {
-      const client = getConfigApiClient(dbContext?.masterKey as string, dbContext);
-      let serverConfigData: Record<string, ConfigSupportedValueType> = {};
+      serverConfigLoading = true;
+      try {
+        const client = getConfigApiClient(dbContext?.masterKey as string, dbContext);
+        let serverConfigData: Record<string, ConfigSupportedValueType> = {};
 
-      const configs = await client.get();
-      for (const config of configs) {
-        serverConfigData[config.key] = config.value; // convert out from ConfigDTO to key=>value
+        const configs = await client.get();
+        for (const config of configs) {
+          serverConfigData[config.key] = config.value; // convert out from ConfigDTO to key=>value
+        }
+        serverConfig = serverConfigData;
+        serverConfigLoaded = true;
+        serverConfigLoading = false;
+        return serverConfigData
+      } catch (e){ 
+        serverConfigLoading = false;
+        throw e;
       }
-      serverConfig = serverConfigData;
-      serverConfigLoaded = true;
-
-      return serverConfigData
     } else {
       return serverConfig;       // already loaded
     }

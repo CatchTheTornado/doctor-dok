@@ -4,7 +4,7 @@ import { nanoid } from 'nanoid';
 import { createOpenAI, openai } from '@ai-sdk/openai';
 import { ollama, createOllama } from 'ollama-ai-provider';
 import { CallWarning, convertToCoreMessages, FinishReason, streamText } from 'ai';
-import { ConfigContext } from './config-context';
+import { ConfigContext } from '@/contexts/config-context';
 import { toast } from 'sonner';
 import { Record } from '@/data/client/models';
 import { StatDTO } from '@/data/dto';

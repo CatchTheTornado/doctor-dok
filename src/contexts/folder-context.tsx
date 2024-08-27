@@ -5,7 +5,7 @@ import { ApiEncryptionConfig } from '@/data/client/base-api-client';
 
 
 import { DataLoadingStatus, Folder } from '@/data/client/models';
-import { ConfigContext, ConfigContextType } from './config-context';
+import { ConfigContext, ConfigContextType } from '@/contexts/config-context';
 import { DatabaseContext } from './db-context';
 import { toast } from 'sonner';
 

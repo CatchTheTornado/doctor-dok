@@ -4,7 +4,7 @@ import { EncryptedAttachmentDTO, RecordDTO } from '@/data/dto';
 import { RecordApiClient } from '@/data/client/record-api-client';
 import { ApiEncryptionConfig } from '@/data/client/base-api-client';
 import { DataLoadingStatus, DisplayableDataObject, EncryptedAttachment, Folder, Record } from '@/data/client/models';
-import { ConfigContext, ConfigContextType } from './config-context';
+import { ConfigContext, ConfigContextType } from '@/contexts/config-context';
 import { toast } from 'sonner';
 import { sort } from 'fast-sort';
 import { EncryptedAttachmentApiClient } from '@/data/client/encrypted-attachment-api-client';

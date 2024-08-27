@@ -5,7 +5,7 @@ import { DatabaseContext, DatabaseContextType, defaultDatabaseIdHashSalt, defaul
 import { toast } from 'sonner';
 import { KeyACLDTO, KeyDTO } from '@/data/dto';
 import { KeyApiClient, PutKeyResponse, PutKeyResponseError } from '@/data/client/key-api-client';
-import { ConfigContextType } from './config-context';
+import { ConfigContextType } from '@/contexts/config-context';
 import { getCurrentTS } from '@/lib/utils';
 const argon2 = require("argon2-browser");
 
