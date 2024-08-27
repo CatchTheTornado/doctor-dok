@@ -6,7 +6,7 @@ import { ollama, createOllama } from 'ollama-ai-provider';
 import { CallWarning, convertToCoreMessages, FinishReason, streamText } from 'ai';
 import { ConfigContext } from './config-context';
 import { toast } from 'sonner';
-import { PatientRecord } from '@/data/client/models';
+import { Record } from '@/data/client/models';
 import { StatDTO } from '@/data/dto';
 import { AggregateStatResponse, StatApiClient } from '@/data/client/stat-api-client';
 import { DatabaseContext } from './db-context';
@@ -37,7 +37,7 @@ export type MessageEx = Message & {
     type: MessageType,
     visibility?: MessageVisibility
 
-    recordRef: PatientRecord
+    recordRef: Record
     recordSaved: boolean
 }
 
@@ -79,8 +79,8 @@ export type ChatContextType = {
     visibleMessages: MessageEx[];
     lastMessage: MessageEx | null;
     providerName?: string;
-    arePatientRecordsLoaded: boolean;
-    setPatientRecordsLoaded: (value: boolean) => void;
+    areRecordsLoaded: boolean;
+    setRecordsLoaded: (value: boolean) => void;
     sendMessage: (msg: CreateMessageEnvelope) => void;
     sendMessages: (msg: CreateMessagesEnvelope) => void;
     chatOpen: boolean,
@@ -96,8 +96,8 @@ export const ChatContext = createContext<ChatContextType>({
     visibleMessages: [],
     lastMessage: null,
     providerName: '',
-    arePatientRecordsLoaded: false,
-    setPatientRecordsLoaded: (value: boolean) => {},
+    areRecordsLoaded: false,
+    setRecordsLoaded: (value: boolean) => {},
     sendMessage: (msg: CreateMessageEnvelope) => {},
     sendMessages: (msg: CreateMessagesEnvelope) => {},
     chatOpen: false,
@@ -122,7 +122,7 @@ export const ChatContextProvider: React.FC<PropsWithChildren> = ({ children }) =
     const [providerName, setProviderName] = useState('');
     const [chatOpen, setChatOpen] = useState(false);
     const [isStreaming, setIsStreaming] = useState(false);
-    const [arePatientRecordsLoaded, setPatientRecordsLoaded] = useState(false);
+    const [areRecordsLoaded, setRecordsLoaded] = useState(false);
 
 
     const dbContext = useContext(DatabaseContext);
@@ -222,7 +222,6 @@ export const ChatContextProvider: React.FC<PropsWithChildren> = ({ children }) =
                     e.text.indexOf('```json') > -1 ? resultMessage.displayMode = MessageDisplayMode.InternalJSONResponse : resultMessage.displayMode = MessageDisplayMode.Text
                     resultMessage.finished = true;
                     if (onResult) onResult(resultMessage, e);
-                    // TODO: add chat persistency and maybe extract health records / other data for #43
                 }
             });
             
@@ -301,8 +300,8 @@ export const ChatContextProvider: React.FC<PropsWithChildren> = ({ children }) =
         chatOpen,
         setChatOpen,
         isStreaming,
-        arePatientRecordsLoaded,
-        setPatientRecordsLoaded,
+        areRecordsLoaded,
+        setRecordsLoaded,
         checkApiConfig,
         aggregateStats
     }

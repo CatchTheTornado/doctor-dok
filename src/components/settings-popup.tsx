@@ -134,8 +134,8 @@ export function SettingsPopup() {
       defaultValues: {
         chatGptApiKey: "",
         displayAttachmentPreviews: true,
-        autoLoadPatientContext: true,
-        autoParsePatientRecord: true,
+        autoLoadFolderContext: true,
+        autoParseRecord: true,
         ocrProvider: "chatgpt",
         ocrLanguage: "eng",
         ollamaUrl: "",
@@ -148,8 +148,8 @@ export function SettingsPopup() {
     async function fetchDefaultConfig() {
       const chatGptKey = await config?.getServerConfig('chatGptApiKey');
       const displayAttachmentPreviews = await config?.getServerConfig('displayAttachmentPreviews');
-      const autoLoadPatientContext = await config?.getServerConfig('autoLoadPatientContext');
-      const autoParsePatientRecord = await config?.getServerConfig('autoParsePatientRecord');
+      const autoLoadFolderContext = await config?.getServerConfig('autoLoadFolderContext');
+      const autoParseRecord = await config?.getServerConfig('autoParseRecord');
       const ocr = await config?.getServerConfig('ocrProvider') as string      
       const ocrLang = await config?.getServerConfig('ocrLanguage') as string
       const ollamaUrl = await config?.getServerConfig('ollamaUrl') as string
@@ -168,8 +168,8 @@ export function SettingsPopup() {
 
       setValue("chatGptApiKey", chatGptKey as string);
       setValue("displayAttachmentPreviews", coercedVal(displayAttachmentPreviews, true) as boolean);
-      setValue("autoLoadPatientContext", coercedVal(autoLoadPatientContext, true) as boolean);
-      setValue("autoParsePatientRecord", coercedVal(autoParsePatientRecord, true) as boolean);
+      setValue("autoLoadFolderContext", coercedVal(autoLoadFolderContext, true) as boolean);
+      setValue("autoParseRecord", coercedVal(autoParseRecord, true) as boolean);
       setValue("ocrProvider", ocr);
       setValue("ocrLanguage", "eng");
       setValue("ollamaUrl", ollamaUrl);
@@ -182,8 +182,8 @@ export function SettingsPopup() {
     config?.setServerConfig('chatGptApiKey', formData['chatGptApiKey']);
     config?.setServerConfig('ocrProvider', ocrProvider as string || 'chatgpt');
     config?.setServerConfig('displayAttachmentPreviews', formData['displayAttachmentPreviews'] as string);
-    config?.setServerConfig('autoLoadPatientContext', formData['autoLoadPatientContext'] as string);
-    config?.setServerConfig('autoParsePatientRecord', formData['autoParsePatientRecord'] as string);
+    config?.setServerConfig('autoLoadFolderContext', formData['autoLoadFolderContext'] as string);
+    config?.setServerConfig('autoParseRecord', formData['autoParseRecord'] as string);
     config?.setServerConfig('ocrLanguage', ocrLanguage as string || "eng");
     config?.setServerConfig('llmProviderChat', llmProviderChat as string || 'chatgpt');
     config?.setServerConfig('llmProviderParse', llmProviderParse as string || 'chatgpt');
@@ -222,16 +222,16 @@ export function SettingsPopup() {
                     <div className="flex items-center gap-2">
                       <Input className="w-4 h-4" 
                         type="checkbox"
-                        id="autoLoadPatientContext"
-                        {...register("autoLoadPatientContext")}/>
-                      <Label htmlFor="autoLoadPatientContext">Auto load patient context to chat</Label>
+                        id="autoLoadFolderContext"
+                        {...register("autoLoadFolderContext")}/>
+                      <Label htmlFor="autoLoadFolderContext">Auto load folder context to chat</Label>
                     </div>
                     <div className="flex items-center gap-2">
                       <Input className="w-4 h-4" 
                         type="checkbox"
-                        id="autoParsePatientRecord"
-                        {...register("autoParsePatientRecord")}/>
-                      <Label htmlFor="autoParsePatientRecord">Auto parse patient record after uploaded</Label>
+                        id="autoParseRecord"
+                        {...register("autoParseRecord")}/>
+                      <Label htmlFor="autoParseRecord">Auto parse folder record after uploaded</Label>
                     </div>
                     <div className="grid grid-cols-2 items-center gap-2">
                         <Label htmlFor="llmProviderRemovePII">Remove PII mode</Label>

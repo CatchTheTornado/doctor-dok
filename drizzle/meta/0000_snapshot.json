@@ -4,8 +4,8 @@
   "id": "78064a77-7ff4-440c-ab92-7a57a757cc97",
   "prevId": "00000000-0000-0000-0000-000000000000",
   "tables": {
-    "patients": {
-      "name": "patients",
+    "folders": {
+      "name": "folders",
       "columns": {
         "id": {
           "name": "id",

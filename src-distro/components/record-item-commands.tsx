@@ -1,21 +1,21 @@
 "use client"
 import React, { useContext } from 'react';
-import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from './ui/accordion';
-import { Patient, PatientRecord } from '@/data/client/models';
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '../../src/components/ui/accordion';
+import { Folder, Record } from '@/data/client/models';
 import { labels } from '@/data/ai/labels';
 import { formatString } from 'typescript-string-operations';
 import Markdown from 'react-markdown';
-import styles from './patient-record-item.module.css'
+import styles from './record-item.module.css'
 import remarkGfm from 'remark-gfm'
-import { Command, CommandDialog, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList, CommandSeparator } from './ui/command';
-import { PatientRecordContext } from '@/contexts/patient-record-context';
+import { Command, CommandDialog, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList, CommandSeparator } from '../../src/components/ui/command';
+import { RecordContext } from '@/contexts/record-context';
 import { prompts } from '@/data/ai/prompts';
 import { ClipboardPasteIcon, LanguagesIcon, MoveRight, TextQuoteIcon, Wand2Icon } from 'lucide-react';
 import { ChatContext } from '@/contexts/chat-context';
 
 interface Props {
-    record: PatientRecord;
-    patient?: Patient | null;
+    record: Record;
+    folder?: Folder | null;
     open: boolean;
     setOpen: (value: boolean) => void;
 }
@@ -108,17 +108,17 @@ const supportedLanguages = [
     {"name": "Wu", "code": "wuu", "country": "China"}
 ];
 
-const PatientRecordItemCommands: React.FC<Props> = ({ record, patient, open, setOpen }) => {
-    const patientRecordContext = useContext(PatientRecordContext);
+const RecordItemCommands: React.FC<Props> = ({ record, folder, open, setOpen }) => {
+    const recordContext = useContext(RecordContext);
     const chatContext = useContext(ChatContext)
     return (<CommandDialog open={open} onOpenChange={setOpen}>
     <CommandInput className="text-sm" placeholder="Type a command or search..." />
         <CommandList>
             <CommandEmpty>No results found.</CommandEmpty>
             <CommandGroup heading="Suggestions">
-                <CommandItem key="cmd-interpret" className="text-xs" onSelect={(v) => { patientRecordContext?.extraToRecord('interpretation', prompts.patientRecordInterpretation({ record }), record) }}><Wand2Icon /> AI Interpretation</CommandItem>
-                <CommandItem key="cmd-summary" className="text-xs" onSelect={(v) => { patientRecordContext?.extraToRecord('summary', prompts.patientRecordSummary({ record }), record) }}><TextQuoteIcon /> Summary in one sentence</CommandItem>
-                <CommandItem key="cmd-send-all" className="text-xs" onSelect={(v) => { patientRecordContext?.sendAllRecordsToChat(); chatContext.setChatOpen(true); }}><ClipboardPasteIcon /> Add all records to chat context</CommandItem>
+                <CommandItem key="cmd-interpret" className="text-xs" onSelect={(v) => { recordContext?.extraToRecord('interpretation', prompts.recordInterpretation({ record }), record) }}><Wand2Icon /> AI Interpretation</CommandItem>
+                <CommandItem key="cmd-summary" className="text-xs" onSelect={(v) => { recordContext?.extraToRecord('summary', prompts.recordSummary({ record }), record) }}><TextQuoteIcon /> Summary in one sentence</CommandItem>
+                <CommandItem key="cmd-send-all" className="text-xs" onSelect={(v) => { recordContext?.sendAllRecordsToChat(); chatContext.setChatOpen(true); }}><ClipboardPasteIcon /> Add all records to chat context</CommandItem>
                 <CommandItem key="cmd-best-next-steps" className="text-xs" onSelect={(v) => { 
                         chatContext.setChatOpen(true);
                         chatContext.sendMessage({
@@ -150,11 +150,11 @@ const PatientRecordItemCommands: React.FC<Props> = ({ record, patient, open, set
     </CommandDialog>)
 };
 
-export default PatientRecordItemCommands;
+export default RecordItemCommands;
 
 
 //   {(record.json) ? (
 //     <Button size="icon" variant="ghost" title="Analyze & Suggest by AI">
-//       <Wand2Icon className="w-4 h-4"  onClick={() => { patientRecordContext?.extraToRecord('interpretation', prompts.patientRecordInterpretation({ record }), record) }} />
+//       <Wand2Icon className="w-4 h-4"  onClick={() => { recordContext?.extraToRecord('interpretation', prompts.recordInterpretation({ record }), record) }} />
 //     </Button>                
 //   ): (null) }

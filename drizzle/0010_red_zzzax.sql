@@ -1,1 +1,1 @@
-ALTER TABLE `patientRecords` ADD `text` text;
+ALTER TABLE `records` ADD `text` text;

@@ -1,1 +1,1 @@
-ALTER TABLE `patients` ADD `json` text;
+ALTER TABLE `folders` ADD `json` text;

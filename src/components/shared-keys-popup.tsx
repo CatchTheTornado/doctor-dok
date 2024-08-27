@@ -1,6 +1,6 @@
 import { useContext, useEffect, useState } from "react";
-import PatientItem from "./patient-item";
-import { PatientContext } from "@/contexts/patient-context";
+import FolderItem from "./folder-item";
+import { FolderContext } from "@/contexts/folder-context";
 import { DatabaseAuthStatus, DataLoadingStatus } from "@/data/client/models";
 import DataLoader from "./data-loader";
 import { ConfigContext } from "@/contexts/config-context";
@@ -9,7 +9,7 @@ import { ListIcon, PlusIcon, Share2Icon, Terminal } from "lucide-react";
 import { Credenza, CredenzaContent, CredenzaDescription, CredenzaHeader, CredenzaTitle, CredenzaTrigger } from "./credenza";
 import { Button } from "./ui/button";
 import DatabaseLinkAlert from "./shared/database-link-alert";
-import { PatientEditPopup } from "./patient-edit-popup";
+import { FolderEditPopup } from "./folder-edit-popup";
 import { NoRecordsAlert } from "./shared/no-records-alert";
 import { DatabaseContext } from "@/contexts/db-context";
 import { KeyContext, KeyContextProvider } from "@/contexts/key-context";

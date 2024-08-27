@@ -8,7 +8,7 @@
 
 **Convert all your Blood Tests, MRI Scans, TK Scans, After Visit reports, Hospital Admission Reports to JSON, safely store in the cloud and discuss, annotate, translate it with AI.**
 
-Doctor Dok is a secure storage, digitization, sharing and AI discovery platform for all your family and/or patients health data.
+Doctor Dok is a secure storage, digitization, sharing and AI discovery platform for all your family and/or folders health data.
 
 All health history - digitalized - accesible anywhere from Mobile or Desktop. Using AI you may **translate your health records to one of 50+ languages** - making abroad health services more accesible.
 
@@ -22,7 +22,7 @@ Chat GPT, LLama 3.1 and other Ollama supported AI models avaialble.
             <a href="readme-assets/screen0.png"><img src="readme-assets/screen0.png" alt="Example record view" /></a>
         </td>
         <td>
-            <a href="readme-assets/screen1.png"><img src="readme-assets/screen1.png" alt="Multi patients support" /></a>
+            <a href="readme-assets/screen1.png"><img src="readme-assets/screen1.png" alt="Multi folders support" /></a>
         </td>
         <td>
             <a href="readme-assets/screen2.png"><img src="readme-assets/screen2.png" alt="Adding health data in any format" /></a>
@@ -55,18 +55,18 @@ Chat GPT, LLama 3.1 and other Ollama supported AI models avaialble.
 - Standarized JSON data format storage,
 - Multi page attachments support,
 - Supports All types of medical records: Blood results, MRI Scans, RTG Scans, After-Visit reports ...
-- Multi Patients support,
+- Multi Folders support,
 - PII (Personaly Identifiable Information) removal using AI or Blacklisting,
 - End 2 End data encryption - [read about the architecture](https://github.com/CatchTheTornado/doctor-dok/issues/65)
 - Safe sharing within your family, with your physician etc - using Sharing Key feature,
 - Access from Mobile or Desktop,
 - Dark and Light themes supported,
-- Full Rest API with JWT authorization for managing `patients`, `patinet-records`, `encrypted-attachments`, ai integrations and so on.
+- Full Rest API with JWT authorization for managing `folders`, `patinet-records`, `encrypted-attachments`, ai integrations and so on.
 - 100% TypeScript, Next JS, React + Shadcn-ui tech stack.
 
 ## Use cases
 - **End user** - using Doctor Dok as health AI cloud,
-- **Med provider** - using Doctor Dok as secure framework EHR with per-patient sharing,
+- **Med provider** - using Doctor Dok as secure framework EHR with per-folder sharing,
 - **Med tech** - using Doctor Dok as a framework for product development
 
 ## Structured data
@@ -79,7 +79,7 @@ All the health records (including file attachments) are **encrypted in the brows
 
 ## Getting Started
 
-Virtually no external dependencies. This app uses SQLite to store per-user database of patients and health records. To start the app just run:
+Virtually no external dependencies. This app uses SQLite to store per-user database of folders and health records. To start the app just run:
 
 ```bash
 yarn dev

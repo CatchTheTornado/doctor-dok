@@ -5,18 +5,15 @@ export type DTOEncryptionSettings = {
   ecnryptedFields: string[]
 }
 
-export const patientDTOSchema = z.object({
+export const folderDTOSchema = z.object({
   id: z.number().positive().optional(),
-  firstName: z.string().min(1),
-  lastName: z.string().min(1),
-  email: z.string().optional(),
-  dateOfBirth: z.string().optional(),
+  name: z.string().min(1),
   json: z.string().optional().nullable(), // all additional fields are located in JSON field
   updatedAt: z.string().default(() => getCurrentTS()),
 });
 
-export const PatientDTOEncSettings: DTOEncryptionSettings =  { ecnryptedFields: ['firstName', 'lastName', 'dateOfBirth', 'email', 'json'] }
-export type PatientDTO = z.infer<typeof patientDTOSchema>;
+export const FolderDTOEncSettings: DTOEncryptionSettings =  { ecnryptedFields: ['name', 'json'] }
+export type FolderDTO = z.infer<typeof folderDTOSchema>;
 
 export const configDTOSchema = z.object({
   key: z.string().min(1),
@@ -71,9 +68,9 @@ export const EncryptedAttachmentDTOSchema = z.object({
 export const EncryptedAttachmentDTOEncSettings = { ecnryptedFields: ['displayName', 'description', 'mimeType', 'type', 'json', 'extra'] };
 export type EncryptedAttachmentDTO = z.infer<typeof EncryptedAttachmentDTOSchema>;
 
-export const patientRecordDTOSchema = z.object({
+export const recordDTOSchema = z.object({
   id: z.number().positive().optional(),
-  patientId: z.number().positive().int(),
+  folderId: z.number().positive().int(),
 
   description: z.string().optional(),
   type: z.string().min(1),
@@ -88,8 +85,8 @@ export const patientRecordDTOSchema = z.object({
   attachments: z.string().optional().nullable()
 });
 
-export const PatientRecordDTOEncSettings = { ecnryptedFields: ['description', 'type', 'json', 'extra', 'text', 'attachments'] }
-export type PatientRecordDTO = z.infer<typeof patientRecordDTOSchema>;
+export const RecordDTOEncSettings = { ecnryptedFields: ['description', 'type', 'json', 'extra', 'text', 'attachments'] }
+export type RecordDTO = z.infer<typeof recordDTOSchema>;
 
 
 

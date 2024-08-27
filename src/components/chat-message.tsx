@@ -11,7 +11,7 @@ import dynamic from 'next/dynamic';
 import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
 import { Button } from '@/components/ui/button';
 import { SaveIcon } from 'lucide-react';
-import { PatientRecordContext } from '@/contexts/patient-record-context';
+import { RecordContext } from '@/contexts/record-context';
 
 interface ChatMessageProps {
     message: MessageEx;
@@ -20,7 +20,7 @@ interface ChatMessageProps {
 
 const ChatMessage: React.FC<ChatMessageProps> = ({ message, ref }) => {
     const { theme, systemTheme } = useTheme();
-    const patientRecordContext = useContext(PatientRecordContext);
+    const recordContext = useContext(RecordContext);
     const shTheme = (theme === 'system' ? systemTheme : theme) === 'dark' ? 'material-dark' : 'material-light';
     return (
     <div id={'msg-' + message.id} ref={ref} className={message.role === 'user' ?  "flex items-start gap-4 justify-end" :  "flex items-start gap-4"}>
@@ -28,7 +28,7 @@ const ChatMessage: React.FC<ChatMessageProps> = ({ message, ref }) => {
           <div className="font-bold">{message.name}</div>
           <div className="prose text-sm text-muted-foreground">
             {(message.visibility === MessageVisibility.ProgressWhileStreaming  && !message.finished) ? (
-              <div className="flex"><span className="text-xs">Parsing data in progress ({message.recordRef ? 'rec: ' + message.recordRef.id + ', ' : ''}queue length: {patientRecordContext?.parseQueueLength ? patientRecordContext?.parseQueueLength : 1})... <Button className="h-6" onClick={(e) => message.visibility = MessageVisibility.Visible }>Show progress</Button></span></div>
+              <div className="flex"><span className="text-xs">Parsing data in progress ({message.recordRef ? 'rec: ' + message.recordRef.id + ', ' : ''}queue length: {recordContext?.parseQueueLength ? recordContext?.parseQueueLength : 1})... <Button className="h-6" onClick={(e) => message.visibility = MessageVisibility.Visible }>Show progress</Button></span></div>
             ) : (
               (message.displayMode === 'internalJSONRequest') ? (
               <div>
@@ -101,7 +101,7 @@ const ChatMessage: React.FC<ChatMessageProps> = ({ message, ref }) => {
             {message.role !== 'user'  && message.finished && !message.recordSaved ? (
               <div className="flex-wrap flex items-center justify-left">
                 <Button title="Save message as record" variant="ghost" size="icon" onClick={() => {
-                  patientRecordContext?.updateRecordFromText(message.content, message.recordRef);
+                  recordContext?.updateRecordFromText(message.content, message.recordRef);
                 }}><SaveIcon /></Button>
               </div>
               ): null }

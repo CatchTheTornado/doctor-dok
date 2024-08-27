@@ -1,13 +1,10 @@
 import { sqliteTable, text, integer } from "drizzle-orm/sqlite-core";
 import { sql } from "drizzle-orm";
 
-export const patients = sqliteTable('patients', {
+export const folders = sqliteTable('folders', {
     id: integer('id', { mode: 'number' }).primaryKey({ autoIncrement: true }),
-    firstName: text('firstName'),
-    lastName: text('lastName'),     
-    email: text('email'),
+    name: text('name'),
     json: text('json', { mode: 'json' }),
-    dateOfBirth: text('dateOfBirth'),   
     updatedAt: text('updatedAt').notNull().default(sql`CURRENT_TIMESTAMP`)
 });
 
@@ -31,9 +28,9 @@ export const keys = sqliteTable('keys', {
     updatedAt: text('updatedAt').notNull().default(sql`CURRENT_TIMESTAMP`)
 }); 
 
-export const patientRecords = sqliteTable('patientRecords', {
+export const records = sqliteTable('records', {
     id: integer('id', { mode: 'number' }).primaryKey({ autoIncrement: true }),
-    patientId: integer('patientId', { mode: 'number' }).references(() => patients.id),
+    folderId: integer('folderId', { mode: 'number' }).references(() => folders.id),
     description: text('description'),
     type: text('type'),
     

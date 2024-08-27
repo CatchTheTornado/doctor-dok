@@ -8,7 +8,7 @@ const inter = Inter({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
   title: "Doctor Dok",
-  description: "End 2 End encrypted vault for your health data",
+  description: "End 2 End encrypted vault for your most precious data",
 };
 
 

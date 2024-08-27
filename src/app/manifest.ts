@@ -4,7 +4,7 @@ export default function manifest(): MetadataRoute.Manifest {
   return {
     name: 'Doctor Dok',
     short_name: 'Doctor Dok',
-    description: 'Secure Health folder with AI assistant',
+    description: 'Secure Data Folder folder with AI assistant',
     start_url: '/',
     display: 'standalone',
     background_color: '#fff',

@@ -1,4 +1,4 @@
-CREATE TABLE `patients` (
+CREATE TABLE `folders` (
 	`id` integer PRIMARY KEY AUTOINCREMENT NOT NULL,
 	`firstName` text,
 	`lastName` text,

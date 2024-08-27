@@ -31,7 +31,7 @@ export const ENV_PROVIDED_CONFIG = {
   llmProviderParse: process.env.NEXT_PUBLIC_LLM_PROVIDER_PARSE,
   llmProviderRemovePII: process.env.NEXT_PUBLIC_LLM_PROVIDER_REMOVE_PII,
   piiGeneralData: process.env.NEXT_PUBLIC_PII_GENERAL_DATA,
-  autoLoadPatientContext: process.env.NEXT_PUBLIC_AUTO_LOAD_PATIENT_CONTEXT,
+  autoLoadFolderContext: process.env.NEXT_PUBLIC_AUTO_LOAD_PATIENT_CONTEXT,
 }
 
 type ConfigSupportedValueType = string | number | boolean | null | undefined;

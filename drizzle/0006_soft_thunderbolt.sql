@@ -1,1 +1,1 @@
-ALTER TABLE `patientrRecordAttachments` RENAME TO `encryptedAttachments`;
+ALTER TABLE `folderrRecordAttachments` RENAME TO `encryptedAttachments`;

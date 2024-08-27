@@ -1,24 +1,24 @@
 "use client"
 import React from 'react';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from './ui/accordion';
-import { PatientRecord } from '@/data/client/models';
+import { Record } from '@/data/client/models';
 import { labels } from '@/data/ai/labels';
 import { formatString } from 'typescript-string-operations';
 import Markdown from 'react-markdown';
-import styles from './patient-record-item.module.css'
+import styles from './record-item.module.css'
 import remarkGfm from 'remark-gfm'
 
 interface Props {
-    record: PatientRecord;
+    record: Record;
 }
-const PatientRecordItemExtra: React.FC<Props> = ({ record }) => {
+const RecordItemExtra: React.FC<Props> = ({ record }) => {
     if (Array.isArray(record.extra)) {
         return (
             <div className="w-full">
                 <Accordion type="single" collapsible className="w-full">
                     {(record.extra as any[]).map((item, index) => (
                         <AccordionItem key={index} value={'item-' + index}>
-                            <AccordionTrigger>{formatString('{0}', labels.patientRecordItemLabel(item.type, { record }))}</AccordionTrigger>
+                            <AccordionTrigger>{formatString('{0}', labels.recordItemLabel(item.type, { record }))}</AccordionTrigger>
                             <AccordionContent>
                                 <Markdown className={styles.markdown} remarkPlugins={[remarkGfm]}>{item.value}</Markdown>
                             </AccordionContent>
@@ -43,4 +43,4 @@ const PatientRecordItemExtra: React.FC<Props> = ({ record }) => {
     }
 };
 
-export default PatientRecordItemExtra;
+export default RecordItemExtra;
