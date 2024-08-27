@@ -159,12 +159,12 @@ export default function RecordItem({ record, displayAttachmentPreviews }: { reco
           {(record.parseInProgress) ? (
             <div className="cursor-pointer" onClick={(e) => chatContext.setChatOpen(true) }><DataLoader /></div>
           ) : (
-            <RefreshCwIcon className="w-4 h-4"  onClick={async () => {  await recordContext?.sendHealthReacordToChat(record, true); } /* TODO: add prompt UI for altering the prompt */ } />
+            <RefreshCwIcon className="w-4 h-4"  onClick={async () => {  await recordContext?.sendRecordToChat(record, true); } /* TODO: add prompt UI for altering the prompt */ } />
           )}
         </Button>       
         {(record.json && !record.parseInProgress) ? (
         <Button size="icon" variant="ghost" title="Insert into AI Chat">
-            <MessageCircleIcon className="w-4 h-4"  onClick={async () => {  recordContext?.sendHealthReacordToChat(record, false);  }} />
+            <MessageCircleIcon className="w-4 h-4"  onClick={async () => {  recordContext?.sendRecordToChat(record, false);  }} />
         </Button>        
         ) : (          
           null
@@ -185,7 +185,7 @@ export default function RecordItem({ record, displayAttachmentPreviews }: { reco
             <AlertDialogHeader>
               <AlertDialogTitle>Are you sure</AlertDialogTitle>
               <AlertDialogDescription>
-                This action cannot be undone. This will permanently delete your health data record
+                This action cannot be undone. This will permanently delete your data record
               </AlertDialogDescription>
             </AlertDialogHeader>
             <AlertDialogFooter>

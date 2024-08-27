@@ -34,7 +34,7 @@ export default function FolderItem({ folder, selected, onClick }: { folder: Fold
             <AlertDialogHeader>
               <AlertDialogTitle>Are you sure</AlertDialogTitle>
               <AlertDialogDescription>
-                This action cannot be undone. This will permanently delete your folder data (in case it does not has any health records assigned)
+                This action cannot be undone. This will permanently delete your folder data (in case it does not has any records assigned)
               </AlertDialogDescription>
             </AlertDialogHeader>
             <AlertDialogFooter>

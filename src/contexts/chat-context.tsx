@@ -222,7 +222,6 @@ export const ChatContextProvider: React.FC<PropsWithChildren> = ({ children }) =
                     e.text.indexOf('```json') > -1 ? resultMessage.displayMode = MessageDisplayMode.InternalJSONResponse : resultMessage.displayMode = MessageDisplayMode.Text
                     resultMessage.finished = true;
                     if (onResult) onResult(resultMessage, e);
-                    // TODO: add chat persistency and maybe extract health records / other data for #43
                 }
             });
             

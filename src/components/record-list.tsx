@@ -44,8 +44,8 @@ export default function RecordList({ folder }) {
           </Alert>
         ) : (null) }
         { (recordContext?.loaderStatus === "success" && recordContext?.records.length === 0) ? (
-          <NoRecordsAlert title="No health records found">
-            No health records found in the database. Please add a new folder using <strong>+</strong> icon above.
+          <NoRecordsAlert title="No records found">
+            No records found in the database. Please add a new folder using <strong>+</strong> icon above.
           </NoRecordsAlert>
         ) : (null) }
         { (recordContext?.loaderStatus === "success" && recordContext?.records.length > 0) ? (

@@ -58,7 +58,7 @@ export default function TopHeader() {
                 <CommandList>
                   <CommandEmpty>No results found.</CommandEmpty>
                   <CommandGroup heading="Suggestions">
-                  <CommandItem key="cmd-edit-folder" className="cursor-pointer text-xs"  onSelect={(e) => { recordContext?.setRecordEditMode(true); }}><PlusIcon /> Add health record</CommandItem>
+                  <CommandItem key="cmd-edit-folder" className="cursor-pointer text-xs"  onSelect={(e) => { recordContext?.setRecordEditMode(true); }}><PlusIcon /> Add record</CommandItem>
                   {!dbContext?.acl || dbContext.acl.role === 'owner' ? (<CommandItem key="cmd-settings" className="cursor-pointer text-xs" onSelect={(v) => { config?.setConfigDialogOpen(true);  }}><Settings2Icon className="w-6 h-6" />  Settings</CommandItem>) : null}
                     <CommandItem key="cmd-list-folders" className="cursor-pointer text-xs"  onSelect={(e) => { folderContext?.setFolderListPopup(true); folderContext?.setFolderEditOpen(false); }}><FoldersIcon /> List folders</CommandItem>
                     <CommandItem key="cmd-edit-current-folder" className="cursor-pointer text-xs"  onSelect={(e) => { folderContext?.setFolderListPopup(true); folderContext?.setFolderEditOpen(true); }}><Edit3Icon /> Edit currrent folder</CommandItem>

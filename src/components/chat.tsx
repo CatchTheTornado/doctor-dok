@@ -215,7 +215,7 @@ export function Chat() {
                       setFolderContext(checked);
                   }}
               />
-              <label htmlFor="addFolderContext" className="text-sm">Add folder health context</label>
+              <label htmlFor="addFolderContext" className="text-sm">Add all records context</label>
             </div>    
           </div>          
           <div className="relative">

@@ -53,7 +53,7 @@ export type RecordContextType = {
     convertAttachmentsToImages: (record: Record, statusUpdates: boolean) => Promise<DisplayableDataObject[]>;
     extraToRecord: (type: string, promptText: string, record: Record) => void;
     parseRecord: (record: Record) => void;
-    sendHealthReacordToChat: (record: Record, forceRefresh: boolean) => void;
+    sendRecordToChat: (record: Record, forceRefresh: boolean) => void;
     sendAllRecordsToChat: (customMessage: CreateMessageEx | null, providerName?: string) => void;
 
     processParseQueue: () => void;
@@ -423,7 +423,7 @@ export const RecordContextProvider: React.FC<PropsWithChildren> = ({ children })
         });
       }
     
-      const sendHealthReacordToChat = async (record: Record, forceRefresh: boolean = false) => {
+      const sendRecordToChat = async (record: Record, forceRefresh: boolean = false) => {
         if (!record.json || forceRefresh) {  // first: parse the record
           await parseRecord(record);
         } else {
@@ -459,7 +459,7 @@ export const RecordContextProvider: React.FC<PropsWithChildren> = ({ children })
                  convertAttachmentsToImages,
                  extraToRecord,
                  parseRecord,
-                 sendHealthReacordToChat,
+                 sendRecordToChat,
                  sendAllRecordsToChat,
                  processParseQueue
                 }}

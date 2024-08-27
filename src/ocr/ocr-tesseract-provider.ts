@@ -64,7 +64,7 @@ export async function parse(record: Record, chatContext: ChatContextType, config
                 onResult: (resultMessage, result) => {
                     if (result.finishReason !== 'error') {
                         if (result.finishReason === 'length') {
-                            toast.error('Too many findings for one health record. Try uploading attachments one per health reacord')
+                            toast.error('Too many findings for one record. Try uploading attachments one per record')
                         }
 
                         resultMessage.recordSaved = true;
