@@ -24,6 +24,7 @@ import { ConfigContext } from "@/contexts/config-context";
 import { toast } from "sonner";
 import { DatabaseContext } from "@/contexts/db-context";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@radix-ui/react-tabs";
+import { DotsHorizontalIcon } from "@radix-ui/react-icons";
 
 
 export default function RecordItem({ record, displayAttachmentPreviews }: { record: Record, displayAttachmentPreviews: boolean }) {
@@ -38,6 +39,7 @@ export default function RecordItem({ record, displayAttachmentPreviews }: { reco
   const thisElementRef = useRef(null);
   const [isVisible, setIsVisible] = useState(false);
   const [lastlyLoadedCacheKey, setLastlyLoadedCacheKey] = useState('');
+  const [isTextExpanded, setIsTextExpanded] = useState(false);
 
   const [displayableAttachments, setDisplayableAttachments] = useState<DisplayableDataObject[]>([]);
 
@@ -124,15 +126,8 @@ export default function RecordItem({ record, displayAttachmentPreviews }: { reco
             ): '' }
             <div className="mt-2 flex flex-wrap items-center gap-2 w-100">
             {record.text ? (
-              <div className="w-full">
-                    <Accordion type="single" collapsible className="w-full">
-                        <AccordionItem value="item-1">
-                            <AccordionTrigger>Full text results and findings</AccordionTrigger>
-                            <AccordionContent>
-                              <Markdown className={styles.markdown} remarkPlugins={[remarkGfm]}>{record.text}</Markdown>                          
-                            </AccordionContent>
-                        </AccordionItem>
-                    </Accordion>
+              <div className="w-full cursor-pointer" onClick={(e) => setIsTextExpanded(!isTextExpanded)}>
+                  <Markdown className={styles.markdown} remarkPlugins={[remarkGfm]}>{isTextExpanded ? record.text : record.text?.slice(0, 256)}</Markdown>{!isTextExpanded ? (<DotsHorizontalIcon />):''}                          
                 </div>        
               ): null }
               <div className="mt-2 flex flex-wrap items-center gap-2 w-100">
