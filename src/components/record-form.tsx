@@ -3,6 +3,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
 import { PaperclipIcon } from "./icons";
+import { Tag, TagInput } from 'emblor';
 import {
   FileUploaderContent,
   FileUploaderItem,
@@ -11,7 +12,7 @@ import {
   EncryptedAttachmentUploader,
   FileUploadStatus,
 } from "@/components/encrypted-attachment-uploader";
-import { use, useCallback, useContext, useEffect, useState } from "react";
+import { SetStateAction, use, useCallback, useContext, useEffect, useState } from "react";
 import { EncryptedAttachment, Folder, Record } from "@/data/client/models";
 import { Credenza, CredenzaContent, CredenzaDescription, CredenzaHeader, CredenzaTitle, CredenzaTrigger } from "./credenza";
 import { PlusIcon } from "lucide-react";
@@ -65,6 +66,7 @@ export default function RecordForm({ folder }: { folder?: Folder }) {
   const [files, setFiles] = useState<UploadedFile[] | null>(null);
   const [removeFiles, setRemoveFiles] = useState<UploadedFile[]>([]);
   const [dialogOpen, setDialogOpen] = useState(false);
+  const [tags, setTags] = useState<Tag[]>([]);
 
   const dropZoneConfig = {
     maxFiles: 10,
@@ -82,6 +84,9 @@ export default function RecordForm({ folder }: { folder?: Folder }) {
   });  
 
   useEffect(() => {
+    setTags(recordContext?.currentRecord?.tags?.map((tag) => {
+      return {text: tag, id: tag, label: tag, value: tag}
+    }) as Tag[]);
     setValue("note", recordContext?.currentRecord?.description as string);
     let existingFiles:UploadedFile[] = []
     if (recordContext?.currentRecord) {
@@ -152,25 +157,41 @@ export default function RecordForm({ folder }: { folder?: Folder }) {
           pr.description = data.note;
           pr.attachments = uploadedAttachments;
           pr.updatedAt = getCurrentTS();
+          pr.tags = tags.map((tag) => tag.text);
           pr.updateChecksum();
           const savedRecord = await recordContext?.updateRecord(pr) as Record;
           savedRecords.push(savedRecord);
           await assignAttachments(savedRecord);
         } else {  // add mode
 
-          for(const uploadedAttachment of uploadedAttachments) {
-            pr = new Record({
+          if (uploadedAttachments.length == 0 && data.note !== "") {
+            pr = new Record({ // only note no attachments
               folderId: folderContext?.currentFolder?.id as number,
               type: 'note',
+              tags: tags.map((tag) => tag.text),
               description: data.note,
               updatedAt: getCurrentTS(),
-              createdAt: getCurrentTS(),
-              attachments: [uploadedAttachment]
+              createdAt: getCurrentTS()
             } as Record)
             pr.updateChecksum();
             const savedRecord = await recordContext?.updateRecord(pr) as Record;
             savedRecords.push(savedRecord);
-            await assignAttachments(savedRecord);
+          } else {
+            for(const uploadedAttachment of uploadedAttachments) {
+              pr = new Record({
+                folderId: folderContext?.currentFolder?.id as number,
+                type: 'note',
+                tags: tags.map((tag) => tag.text),
+                description: data.note,
+                updatedAt: getCurrentTS(),
+                createdAt: getCurrentTS(),
+                attachments: [uploadedAttachment]
+              } as Record)
+              pr.updateChecksum();
+              const savedRecord = await recordContext?.updateRecord(pr) as Record;
+              savedRecords.push(savedRecord);
+              await assignAttachments(savedRecord);
+            }
           }
         }
       } catch (err) {
@@ -194,6 +215,7 @@ export default function RecordForm({ folder }: { folder?: Folder }) {
         });
         setRemoveFiles([]); // clear form
         setFiles([]); // clear form
+        setTags([]); // clear form
         reset(); 
         toast.success("Record saved successfully");
         setDialogOpen(false);
@@ -208,7 +230,13 @@ export default function RecordForm({ folder }: { folder?: Folder }) {
   };
 
   return (
-    <Credenza open={dialogOpen || recordContext?.recordEditMode} onOpenChange={(value) => { setDialogOpen(value); if(!value) recordContext?.setRecordEditMode(false); }}>
+    <Credenza open={dialogOpen || recordContext?.recordEditMode} onOpenChange={(value) => { setDialogOpen(value); if(!value) {
+      setFiles([]);
+      setTags([]);
+      setRemoveFiles([]);
+      reset();
+      recordContext?.setRecordEditMode(false); 
+    } }}>
       <CredenzaTrigger asChild>
         <Button variant="outline" size="icon">
           <PlusIcon className="w-6 h-6" />
@@ -221,13 +249,31 @@ export default function RecordForm({ folder }: { folder?: Folder }) {
         <div className="mb-6 bg-white dark:bg-zinc-900 p-4 rounded-lg shadow-sm">
           <form onSubmit={handleSubmit(onSubmit)}>
             {recordContext?.currentRecord ? (
-              <div className="flex items-center gap-4 resize-x">
-                <Textarea
-                  className="block w-full resize-none border-none focus:ring-0 h-auto"
-                  placeholder="Add a new note..."
-                  rows={5}
-                  {...register("note", { required: false })}
-                />
+              <div>
+                <div className="flex items-center gap-4 resize-x">
+                  <Textarea
+                    className="block w-full resize-none border-none focus:ring-0 h-auto m-2"
+                    placeholder="Add a new note..."
+                    rows={5}
+                    {...register("note", { required: false })}
+                  />
+                </div>
+                <div className="flex items-center gap-4 p-2">
+                  <TagInput
+                      placeholder="Enter a topic"
+                      tags={tags}
+                      styleClasses={{
+                        tag: {
+                          body: 'flex items-center p-2',
+                          closeButton: 'text-red-500 hover:text-red-600',
+                        },
+                      }}
+                      className="sm:min-w-[450px] p-2"
+                      setTags={(newTags) => {
+                        setTags(newTags);
+                      } } activeTagIndex={null} setActiveTagIndex={function (value: SetStateAction<number | null>): void {
+                      } }                        />
+                </div>
               </div>
             ): ''}
             <div className="flex w-full pv-5">

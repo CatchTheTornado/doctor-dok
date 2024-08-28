@@ -110,14 +110,16 @@ export const RecordContextProvider: React.FC<PropsWithChildren> = ({ children })
               if (record.json[0].summary && !record.description) {
                 record.description = record.json[0].summary;
               }
-              const uniqueTags = record.json.reduce((tags: string[], item: any) => {
-                if (item.tags && Array.isArray(item.tags)) {
-                  const newTags = item.tags.filter((tag: string) => !tags.includes(tag));
-                  return [...tags, ...newTags];
-                }
-                return tags;
-              }, []);
-              record.tags = uniqueTags;
+              if (!record.tags) {
+                const uniqueTags = record.json.reduce((tags: string[], item: any) => {
+                  if (item.tags && Array.isArray(item.tags)) {
+                    const newTags = item.tags.filter((tag: string) => !tags.includes(tag));
+                    return [...tags, ...newTags];
+                  }
+                  return tags;
+                }, []);
+                record.tags = uniqueTags;
+              }
             }
 
 
