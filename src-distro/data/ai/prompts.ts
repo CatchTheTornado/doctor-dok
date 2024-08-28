@@ -14,7 +14,7 @@ export const prompts = {
                 First: JSON should be all in original language. \
                 Each medical record should a row of returned JSON array of objects in format given below. If value contains multiple data (eg. numbers) store it as separate items. Freely extend it when needed to not miss any data!\
                 Include the type of this results in english (eg. "blood_results", "rmi") in "type" key of JSON and then more detailed type in "subtype" key.  \
-                Summary the record to one nice sentence and put it under "title". Extract 5 keywords and put it in "tags" key including one tag equal to year of this record tags can not be personal data. \
+                Summary the record to one nice sentence and put it under "title". Extract max 3 keywords (min 4 chars each) and put it in "tags" key including one tag equal to year of this record tags can not be personal data. \
                 Include the language of the document inside "language" key.  If the result is single block of text please try additionaly to saving text result  \
                 extract very detailed and all features from it and put it as an array under "findings" key. Second: Markdown text - please do kind of OCR - so convert all the \
                 attachments to text. Please use markdown to format it nicely and return after JSON object, \
@@ -26,7 +26,7 @@ export const prompts = {
                 First: JSON should be all in original language. \
                 Each medical record should a row of returned JSON array of objects in format given below. If value contains multiple data (eg. numbers) store it as separate items. Freely extend it when needed to not miss any data!\
                 Include the type of this results in english (eg. "blood_results", "rmi") in "type" key of JSON and then more detailed type in "subtype" key.  \
-                Summary the record to one nice sentence and put it under "title". Extract 5 keywords and put it in "tags" key including one tag equal to year of this record tags can not be personal data. \
+                Summary the record to one nice sentence and put it under "title". Extract max 3 keywords (min 4 chars each) and put it in "tags" key including one tag equal to year of this record tags can not be personal data. \
                 Include the language of the document inside "language" key.  If the result is single block of text please try additionaly to saving text result  \
                 extract very detailed and all features from it and put it as an array under "findings" key. \n\r\n\rSecond: Fix all the original text issues and glitches. Please use markdown to format the nicely and return after JSON object, \
                 wrap it with  ```markdown on start and  ``` on end of the text. Do not add to the text anything not explicitly existing in the source documents. \r\n\r\n: \r\n\r\n```json\r\n' +
