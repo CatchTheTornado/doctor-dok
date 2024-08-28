@@ -170,7 +170,7 @@ export class Record {
     constructor(recordSource: RecordDTO | Record) {
       this.id = recordSource.id;
       this.folderId = recordSource.folderId;
-      this.description = recordSource.description;
+      this.description = recordSource.description ? recordSource.description : '';
       this.type = recordSource.type;
       this.text = recordSource.text ? recordSource.text : '';
       this.checksum = recordSource.checksum ? recordSource.checksum : '';
