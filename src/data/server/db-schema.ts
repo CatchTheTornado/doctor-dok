@@ -37,6 +37,9 @@ export const records = sqliteTable('records', {
     json: text('json', { mode: 'json' }),
     text: text('text'),
 
+    checksum: text('checksum'),
+    checksumLastParsed: text('checksumLastParsed'),
+
     extra: text('extra', { mode: 'json' }),
     attachments: text('attachments', { mode: 'json' }),
     

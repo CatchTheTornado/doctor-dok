@@ -86,6 +86,7 @@ export const RecordContextProvider: React.FC<PropsWithChildren> = ({ children })
             const recordDTO = record.toDTO(); // DTOs are common ground between client and server
             const response = await client.put(recordDTO);
             const newRecord = typeof record?.id  === 'undefined'
+
             if (response.status !== 200) {
                 console.error('Error adding folder record:', response.message);
                 toast.error('Error adding folder record');
@@ -243,19 +244,25 @@ export const RecordContextProvider: React.FC<PropsWithChildren> = ({ children })
         }
       };
     
+      const calcChecksum = async (record: Record): Promise<string> => {
+        const attachmentsHash = await sha256(record.attachments.map(ea => ea.storageKey).join('-'), 'attachments')
+        const cacheKey = `record-${record.id}-${attachmentsHash}-${dbContext?.databaseHashId}`;
+
+        return cacheKey;
+      }
+
       const convertAttachmentsToImages = async (record: Record, statusUpdates: boolean = true): Promise<DisplayableDataObject[]> => {
 
         if (!record.attachments || record.attachments.length == 0) return [];
 
         const attachments = []
         const cacheStorage = await cache();
-        const attachmentsHash = await sha256(record.attachments.map(ea => ea.storageKey).join('-'), 'attachments')
-        const cacheKey = `record-${record.id}-${attachmentsHash}-${dbContext?.databaseHashId}`;
+        const cacheKey = await calcChecksum(record);
         const cachedAttachments = await cacheStorage.match(cacheKey);
 
         if (cachedAttachments) {
           const deserializedAttachments = await cachedAttachments.json() as DisplayableDataObject[];
-          console.log(`Attachment images loaded from cache for ${record.id} - pages: ` + deserializedAttachments.length + ' (' + attachmentsHash + ')');
+          console.log(`Attachment images loaded from cache for ${record.id} - pages: ` + deserializedAttachments.length + ' (' + cacheKey + ')');
           return deserializedAttachments;
         }
 

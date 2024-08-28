@@ -152,6 +152,7 @@ export default function RecordForm({ folder }: { folder?: Folder }) {
           pr.description = data.note;
           pr.attachments = uploadedAttachments;
           pr.updatedAt = getCurrentTS();
+          pr.updateChecksum();
           const savedRecord = await recordContext?.updateRecord(pr) as Record;
           savedRecords.push(savedRecord);
           await assignAttachments(savedRecord);
@@ -166,6 +167,7 @@ export default function RecordForm({ folder }: { folder?: Folder }) {
               createdAt: getCurrentTS(),
               attachments: [uploadedAttachment]
             } as Record)
+            pr.updateChecksum();
             const savedRecord = await recordContext?.updateRecord(pr) as Record;
             savedRecords.push(savedRecord);
             await assignAttachments(savedRecord);

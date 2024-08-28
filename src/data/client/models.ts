@@ -161,6 +161,9 @@ export class Record {
     updatedAt: string;
     attachments: EncryptedAttachment[] = [];
 
+    checksum: string;
+    checksumLastParsed: string;
+
     parseInProgress: boolean = false;
     parseError: any = null;
   
@@ -170,6 +173,9 @@ export class Record {
       this.description = recordSource.description;
       this.type = recordSource.type;
       this.text = recordSource.text ? recordSource.text : '';
+      this.checksum = recordSource.checksum ? recordSource.checksum : '';
+      this.checksumLastParsed = recordSource.checksumLastParsed ? recordSource.checksumLastParsed : '';
+
       if(recordSource instanceof Record) {
         this.json = recordSource.json
      } else {
@@ -199,6 +205,15 @@ export class Record {
         const cacheKey = `record-${this.id}-${attachmentsHash}-${databaseHashId}`;
         return cacheKey
     }
+
+    async updateChecksum(): Promise<void> {
+        this.checksum = await this.cacheKey('');
+        console.log('Checksum updated ', this.id, this.checksum);
+    }
+    async updateChecksumLastParsed(): Promise<void> {
+        this.checksumLastParsed = await this.cacheKey('');
+        console.log('Checksum last parsed updated ', this.id, this.checksumLastParsed);
+    }
   
     toDTO(): RecordDTO {
       return {
@@ -211,6 +226,8 @@ export class Record {
         extra: JSON.stringify(this.extra),
         createdAt: this.createdAt,
         updatedAt: this.updatedAt,
+        checksum: this.checksum,
+        checksumLastParsed: this.checksumLastParsed,
         attachments: JSON.stringify(this.attachments.map(attachment => attachment.toDTO()))
       };
     }  

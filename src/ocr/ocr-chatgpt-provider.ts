@@ -21,7 +21,7 @@ export async function parse(record: Record, chatContext: ChatContextType, config
                 content: prompts.recordParseMultimodal({ record, config: configContext }),
                 experimental_attachments: sourceImages
             },
-            onResult: (resultMessage, result) => {
+            onResult: async (resultMessage, result) => {
                 if (result.finishReason !== 'error') {
                     if (result.finishReason === 'length') {
                         toast.error('Too many findings for one record. Try uploading attachments one per record')
@@ -30,6 +30,7 @@ export async function parse(record: Record, chatContext: ChatContextType, config
                     resultMessage.recordRef = record;
                     updateParseProgress(record, false, null);
                     resultMessage.recordSaved = true;
+                    await record.updateChecksumLastParsed();
                     updateRecordFromText(resultMessage.content, record, false);
                 }
 
