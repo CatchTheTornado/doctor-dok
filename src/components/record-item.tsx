@@ -114,8 +114,8 @@ export default function RecordItem({ record, displayAttachmentPreviews }: { reco
       <Tabs defaultValue="text" className="w-full text-sm">
         {(record.json || record.extra) ? (
           <TabsList className="grid grid-cols-2 gap-2">
-            <TabsTrigger value="text" className="dark:data-[state=active]:bg-zinc-900 data-[state=active]:bg-zinc-100 rounded-md">Basic view</TabsTrigger>
-            <TabsTrigger value="json" className="dark:data-[state=active]:bg-zinc-900 data-[state=active]:bg-zinc-100 rounded-md">Detailed view</TabsTrigger>
+            <TabsTrigger value="text" className="dark:data-[state=active]:bg-zinc-900 data-[state=active]:bg-zinc-100 rounded-md p-2">Basic view</TabsTrigger>
+            <TabsTrigger value="json" className="dark:data-[state=active]:bg-zinc-900 data-[state=active]:bg-zinc-100 rounded-md p-2">Detailed view</TabsTrigger>
           </TabsList>
         ): ''}
           <TabsContent value="text" className="max-w-600">
