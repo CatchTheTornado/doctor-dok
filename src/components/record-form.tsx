@@ -157,7 +157,7 @@ export default function RecordForm({ folder }: { folder?: Folder }) {
           pr.description = data.note;
           pr.attachments = uploadedAttachments;
           pr.updatedAt = getCurrentTS();
-          pr.tags = tags.map((tag) => tag.text);
+          pr.tags = tags ? tags.map((tag) => tag.text) : [];
           pr.updateChecksum();
           const savedRecord = await recordContext?.updateRecord(pr) as Record;
           savedRecords.push(savedRecord);
@@ -168,7 +168,7 @@ export default function RecordForm({ folder }: { folder?: Folder }) {
             pr = new Record({ // only note no attachments
               folderId: folderContext?.currentFolder?.id as number,
               type: 'note',
-              tags: tags.map((tag) => tag.text),
+              tags: tags ? tags.map((tag) => tag.text) : [],
               description: data.note,
               updatedAt: getCurrentTS(),
               createdAt: getCurrentTS()
@@ -181,7 +181,7 @@ export default function RecordForm({ folder }: { folder?: Folder }) {
               pr = new Record({
                 folderId: folderContext?.currentFolder?.id as number,
                 type: 'note',
-                tags: tags.map((tag) => tag.text),
+                tags: tags ? tags.map((tag) => tag.text) : [],
                 description: data.note,
                 updatedAt: getCurrentTS(),
                 createdAt: getCurrentTS(),
