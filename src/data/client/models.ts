@@ -128,6 +128,9 @@ export const recordExtraSchema = z.object({
 export type RecordExtra = z.infer<typeof recordExtraSchema>;
 
 export const recordItemSchema = z.object({
+    title: z.string().min(1),
+    summary: z.string().min(1),
+    tags: z.array(z.string()),
     type: z.string().min(1),
     subtype: z.string().optional(),
     language: z.string().optional(),
@@ -153,6 +156,8 @@ export class Record {
     id?: number;
     folderId: number;
     description?: string;
+    title?: string;
+    tags?: string[];
     type: string;
     json?: RecordItem[] | null;
     text?: string;
@@ -170,11 +175,18 @@ export class Record {
     constructor(recordSource: RecordDTO | Record) {
       this.id = recordSource.id;
       this.folderId = recordSource.folderId;
+      this.title = recordSource.title ? recordSource.title : '';
       this.description = recordSource.description ? recordSource.description : '';
       this.type = recordSource.type;
       this.text = recordSource.text ? recordSource.text : '';
       this.checksum = recordSource.checksum ? recordSource.checksum : '';
       this.checksumLastParsed = recordSource.checksumLastParsed ? recordSource.checksumLastParsed : '';
+
+    if(recordSource instanceof Record) {
+        this.tags = recordSource.tags
+     } else {
+        this.tags = recordSource.tags ? (typeof recordSource.tags === 'string' ? JSON.parse(recordSource.tags) : recordSource.tags) : null;
+     }
 
       if(recordSource instanceof Record) {
         this.json = recordSource.json
@@ -226,6 +238,8 @@ export class Record {
       return {
         id: this.id,
         folderId: this.folderId,
+        title: this.title,
+        tags: JSON.stringify(this.tags),
         description: this.description,
         type: this.type,
         json: JSON.stringify(this.json),

@@ -33,6 +33,9 @@ export const records = sqliteTable('records', {
     folderId: integer('folderId', { mode: 'number' }).references(() => folders.id),
     description: text('description'),
     type: text('type'),
+
+    title: text('title'),
+    tags: text('tags'),
     
     json: text('json', { mode: 'json' }),
     text: text('text'),

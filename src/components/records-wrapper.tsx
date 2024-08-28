@@ -5,11 +5,12 @@ import { FolderContext } from "@/contexts/folder-context";
 import DatabaseLinkAlert from "./shared/database-link-alert";
 import { ConfigContext } from "@/contexts/config-context";
 import { NoRecordsAlert } from "./shared/no-records-alert";
-import { FoldersIcon, ListIcon, UsersIcon } from "lucide-react";
+import { FoldersIcon, ListIcon, TagIcon, UsersIcon } from "lucide-react";
 import { useEffectOnce } from "react-use";
 import { RecordContext } from "@/contexts/record-context";
 import { DatabaseContext } from "@/contexts/db-context";
 import { DatabaseAuthStatus } from "@/data/client/models";
+import { Button } from "./ui/button";
 
 export default function RecordsWrapper({}) {
   const folderContext = useContext(FolderContext);
@@ -21,7 +22,7 @@ export default function RecordsWrapper({}) {
     if(recordContext && folderContext && folderContext.currentFolder) {
       recordContext?.listRecords(folderContext?.currentFolder);
     };
-  }, [folderContext?.currentFolder]);
+  }, [folderContext?.currentFolder, recordContext?.filterSelectedTags]);
     
   return (
     <div className="grid min-h-screen w-full bg-zinc-100 dark:bg-zinc-950">

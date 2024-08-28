@@ -2,7 +2,7 @@ import { Button } from "@/components/ui/button";
 import { PaperclipIcon, Trash2Icon } from "./icons";
 import { DisplayableDataObject, Record } from "@/data/client/models";
 import { useContext, useEffect, useRef, useState } from "react";
-import { PencilIcon, Wand2Icon } from "lucide-react";
+import { PencilIcon, TagIcon, Wand2Icon } from "lucide-react";
 import { RecordContext } from "@/contexts/record-context";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "./ui/alert-dialog";
 import { MessageCircleIcon } from '@/components/chat'
@@ -108,9 +108,17 @@ export default function RecordItem({ record, displayAttachmentPreviews }: { reco
 
 
   return (
-    <div className="bg-zinc-100 dark:bg-zinc-800 p-4 rounded-md">
+    <div className="bg-zinc-100 dark:bg-zinc-800 md:p-4 xs:p-2 rounded-md">
       <div className="flex items-center justify-between mb-4">
-        <div className="text-xs text-zinc-500 dark:text-zinc-400 font-medium">{record.id}: {labels.recordItemLabel(record.type, { record })}</div>
+        {record.title ? (
+          <div className="text-xs text-zinc-500 dark:text-zinc-400 font-medium">{record.title}</div>
+        ) : (
+          (record.json) ? (
+            <div className="text-xs text-zinc-500 dark:text-zinc-400 font-medium">{record.id}: {labels.recordItemLabel(record.type, { record })}</div>
+          ) : (
+            <div className="text-xs text-zinc-500 dark:text-zinc-400 font-medium">Parsing record in progres...</div>
+          ) 
+        )}
         <div className="text-xs text-zinc-500 dark:text-zinc-400">{record.createdAt}</div>
       </div>
       <Tabs defaultValue="text" className="w-full text-sm">
@@ -130,7 +138,20 @@ export default function RecordItem({ record, displayAttachmentPreviews }: { reco
                   <Markdown className={styles.markdown} remarkPlugins={[remarkGfm]}>{isTextExpanded ? record.text : record.text?.slice(0, 256)}</Markdown>{!isTextExpanded ? (<DotsHorizontalIcon />):''}                          
                 </div>        
               ): null }
-              <div className="mt-2 flex flex-wrap items-center gap-2 w-100">
+              {record.tags && record.tags.length > 0 ? (
+              <div className="mt-2 flex flex-wrap items-center gap-2 w-full">
+                {record.tags.map((tag, index) => (
+                  <div key={index} className="text-sm inline-flex w-auto"><Button variant="outline" onClick={() => {
+                    if (folderContext?.currentFolder) {
+                      recordContext?.filterToggleTag(tag);
+                    }      
+                  }
+                 }><TagIcon className="w-4 h-4 mr-2" /> {shorten(tag)}</Button></div>
+                ))}
+              </div>
+              ): '' }
+
+              <div className="mt-2 flex flex-wrap items-center gap-2 w-full">
                 {record.attachments.map((attachment, index) => (
                   <div key={index} className="text-sm inline-flex w-auto"><Button variant="outline" onClick={() => recordContext?.downloadAttachment(attachment.toDTO(), false)}><PaperclipIcon className="w-4 h-4 mr-2" /> {shorten(attachment.displayName)}</Button></div>
                 ))}

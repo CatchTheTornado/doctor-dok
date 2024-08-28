@@ -74,6 +74,8 @@ export const recordDTOSchema = z.object({
 
   description: z.string().optional().nullable(),
   type: z.string().min(1),
+  title: z.string().nullable().optional(),
+  tags: z.string().nullable().optional(),
   text: z.string().nullable(),
   json: z.string().optional().nullable(),
   extra: z.string().optional().nullable(),

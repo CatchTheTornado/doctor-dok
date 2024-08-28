@@ -29,6 +29,11 @@ let parseQueue:Record[] = []
 let parseQueueLength = 0;
 
 
+export type FilterTag = {
+  tag: string; 
+  freq: number; 
+}
+
 export enum URLType {
     data = 'data',
     blob = 'blob'
@@ -57,6 +62,10 @@ export type RecordContextType = {
     sendAllRecordsToChat: (customMessage: CreateMessageEx | null, providerName?: string) => void;
 
     processParseQueue: () => void;
+    filterAvailableTags: FilterTag[];
+    filterSelectedTags: string[];
+    setFilterSelectedTags: (selectedTags: string[]) => void;
+    filterToggleTag: (tag: string) => void;
 }
 
 export const RecordContext = createContext<RecordContextType | null>(null);
@@ -67,6 +76,8 @@ export const RecordContextProvider: React.FC<PropsWithChildren> = ({ children })
     const [loaderStatus, setLoaderStatus] = useState<DataLoadingStatus>(DataLoadingStatus.Loading);
     const [operationStatus, setOperationStatus] = useState<DataLoadingStatus>(DataLoadingStatus.Loading);
     const [currentRecord, setCurrentRecord] = useState<Record | null>(null); // new state
+    const [filterAvailableTags, setFilterAvailableTags] = useState<FilterTag[]>([]);
+    const [filterSelectedTags, setFilterSelectedTags] = useState<string[]>([]);
 
     useEffect(() => {
     }, []);
@@ -80,9 +91,36 @@ export const RecordContextProvider: React.FC<PropsWithChildren> = ({ children })
       return await caches.open('recordContext');      
     }
 
+    const filterToggleTag = (tag: string) => {
+      if (filterSelectedTags.includes(tag)) {
+        setFilterSelectedTags(filterSelectedTags.filter(t => t !== tag));
+      } else {
+        setFilterSelectedTags([...filterSelectedTags, tag]);
+      }
+    }
+
     const updateRecord = async (record: Record): Promise<Record> => {
         try {
             const client = await setupApiClient(config);
+
+            if (record.json && record.json.length > 0) {
+              if (record.json[0].title && !record.title) {
+                record.title = record.json[0].title;
+              }
+              if (record.json[0].summary && !record.description) {
+                record.description = record.json[0].summary;
+              }
+              const uniqueTags = record.json.reduce((tags: string[], item: any) => {
+                if (item.tags && Array.isArray(item.tags)) {
+                  const newTags = item.tags.filter((tag: string) => !tags.includes(tag));
+                  return [...tags, ...newTags];
+                }
+                return tags;
+              }, []);
+              record.tags = uniqueTags;
+            }
+
+
             const recordDTO = record.toDTO(); // DTOs are common ground between client and server
             const response = await client.put(recordDTO);
             const newRecord = typeof record?.id  === 'undefined'
@@ -178,7 +216,30 @@ export const RecordContextProvider: React.FC<PropsWithChildren> = ({ children })
             setLoaderStatus(DataLoadingStatus.Loading);
             const response = await client.get(forFolder.toDTO());
             const fetchedRecords = response.map((recordDTO: RecordDTO) => Record.fromDTO(recordDTO));
-            setRecords(fetchedRecords);
+
+            if (filterSelectedTags.length === 0) { // only when full list
+              const fetchedTags = fetchedRecords.reduce((tags: FilterTag[], record: Record) => {
+                const uniqueTags = record.tags && record.tags.length > 0 ? record.tags : []; //.filter(tag => !tags.some(t => t.tag === tag)) : [];
+                uniqueTags.forEach(tag => {
+                const existingTag = tags.find(t => t.tag === tag);
+                if (existingTag) {
+                  existingTag.freq++;
+                } else {
+                  tags.push({ tag, freq: 1 });
+                }
+                });
+                return tags;
+              }, []);
+
+              setFilterAvailableTags(fetchedTags);
+              setRecords(fetchedRecords);
+            } else {
+              console.log('Selected tags', filterSelectedTags);
+              const filteredRecords = fetchedRecords.filter(record => { // filtering
+                return record.tags ? record.tags.some(tag => filterSelectedTags.includes(tag)) : false;
+              });
+              setRecords(filteredRecords);
+            }
             setLoaderStatus(DataLoadingStatus.Success);
             return fetchedRecords;
         } catch (error) {
@@ -468,7 +529,11 @@ export const RecordContextProvider: React.FC<PropsWithChildren> = ({ children })
                  parseRecord,
                  sendRecordToChat,
                  sendAllRecordsToChat,
-                 processParseQueue
+                 processParseQueue,
+                 filterAvailableTags,
+                 filterSelectedTags,
+                 setFilterSelectedTags,
+                 filterToggleTag
                 }}
         >
             {children}
