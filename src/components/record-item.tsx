@@ -116,7 +116,7 @@ export default function RecordItem({ record, displayAttachmentPreviews }: { reco
           (record.json) ? (
             <div className="text-xs text-zinc-500 dark:text-zinc-400 font-medium">{record.id}: {labels.recordItemLabel(record.type, { record })}</div>
           ) : (
-            <div className="text-xs text-zinc-500 dark:text-zinc-400 font-medium">Parsing record in progres...</div>
+            <div className="text-xs text-zinc-500 dark:text-zinc-400 font-medium">{record.parseInProgress ? 'Parsing record in progres...' : 'Record uploaded, no additional data.' }</div>
           ) 
         )}
         <div className="text-xs text-zinc-500 dark:text-zinc-400">{record.createdAt}</div>
