@@ -95,6 +95,7 @@ export default function RecordItem({ record, displayAttachmentPreviews }: { reco
     }
 
     if (config?.getServerConfig('autoParseRecord') && (record.checksum !== record.checksumLastParsed) && !record.parseInProgress && !record.parseError && (new Date().getTime() - new Date(record.updatedAt).getTime()) < 1000 * 120 /* parse only records changed 30s ago */) { // TODO: maybe we need to add "parsedDate" or kind of checksum (better!) to make sure the record is parseed only when something changed
+      console.log('Adding to parse queue due to checksum mismatch ', record.id, record.checksum, record.checksumLastParsed);
       setTimeout(() => {
         recordContext?.parseRecord(record);
       }, 1000);

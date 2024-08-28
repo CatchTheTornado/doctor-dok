@@ -200,18 +200,25 @@ export class Record {
       return new Record(recordDTO);
     }
 
-    async cacheKey(databaseHashId: string): Promise<string> {
+    async cacheKey(databaseHashId: string = ''): Promise<string> {
         const attachmentsHash = await sha256(this.attachments.map(ea => ea.storageKey).join('-'), 'attachments')
-        const cacheKey = `record-${this.id}-${attachmentsHash}-${databaseHashId}`;
+        const cacheKey = `record-${this.description}-${attachmentsHash}-${databaseHashId}`;
+        return cacheKey
+    }
+
+    async attachmentsKey(databaseHashId: string = ''): Promise<string> {
+        const attachmentsHash = await sha256(this.attachments.map(ea => ea.storageKey).join('-'), 'attachments')
+        const cacheKey = `record-${attachmentsHash}-${databaseHashId}`;
         return cacheKey
     }
 
     async updateChecksum(): Promise<void> {
-        this.checksum = await this.cacheKey('');
+        this.checksum = await this.attachmentsKey();
         console.log('Checksum updated ', this.id, this.checksum);
     }
     async updateChecksumLastParsed(): Promise<void> {
-        this.checksumLastParsed = await this.cacheKey('');
+        this.checksum = await this.attachmentsKey();
+        this.checksumLastParsed = await this.attachmentsKey();
         console.log('Checksum last parsed updated ', this.id, this.checksumLastParsed);
     }
   

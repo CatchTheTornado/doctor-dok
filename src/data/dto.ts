@@ -72,7 +72,7 @@ export const recordDTOSchema = z.object({
   id: z.number().positive().optional(),
   folderId: z.number().positive().int(),
 
-  description: z.string().optional(),
+  description: z.string().optional().nullable(),
   type: z.string().min(1),
   text: z.string().nullable(),
   json: z.string().optional().nullable(),
