@@ -141,7 +141,7 @@ export default function RecordItem({ record, displayAttachmentPreviews }: { reco
               {record.tags && record.tags.length > 0 ? (
               <div className="mt-2 flex flex-wrap items-center gap-2 w-full">
                 {record.tags.map((tag, index) => (
-                  <div key={index} className="text-sm inline-flex w-auto"><Button variant="outline" onClick={() => {
+                  <div key={index} className="text-sm inline-flex w-auto"><Button variant={recordContext?.filterSelectedTags.includes(tag) ? 'default' : 'outline' }  onClick={() => {
                     if (folderContext?.currentFolder) {
                       recordContext?.filterToggleTag(tag);
                     }      
