@@ -3,9 +3,10 @@ import { ApiEncryptionConfig } from '@/data/client/base-api-client';
 import { ConfigApiClient } from '@/data/client/config-api-client';
 import { getCurrentTS } from '@/lib/utils';
 import { useEffectOnce } from 'react-use';
-import React, { PropsWithChildren, useContext, useReducer } from 'react';
+import React, { PropsWithChildren, useContext, useReducer, useRef } from 'react';
 import { DatabaseContext, DatabaseContextType } from './db-context';
 import { DatabaseAuthStatus } from '@/data/client/models';
+import {Mutex, Semaphore, withTimeout} from 'async-mutex';
 
 function isNumber(value:any){
   return !isNaN(value);
@@ -61,45 +62,36 @@ function getConfigApiClient(encryptionKey: string, dbContext?: DatabaseContextTy
 
 export const ConfigContext = React.createContext<ConfigContextType | null>(null);
 export const ConfigContextProvider: React.FC<PropsWithChildren> = ({ children }) => {
-let serverConfigLoaded = false;
-let serverConfigLoading = false;
-let serverConfig: Record<string, ConfigSupportedValueType> = {};
+let serverConfigLoaded = useRef(false);
+const configMutex = useRef(new Mutex());
+let serverConfig = useRef<Record<string, ConfigSupportedValueType>>({});
 let localConfig: Record<string, ConfigSupportedValueType> = {};
 
 const dbContext = useContext(DatabaseContext);
 const [isConfigDialogOpen, setConfigDialogOpen] = React.useState(false);
 
   const loadServerConfig = async (forceReload: boolean = false): Promise<Record<string, ConfigSupportedValueType>>  => { 
-    let loaderCounter = 0;
-    while (serverConfigLoading && (loaderCounter < 20)) {
-      await new Promise(f => setTimeout(f, 1000));
-      loaderCounter ++;
-      console.log('Waiting for config to be loaded');
-    }
-    if (serverConfigLoading) { // if still loading after 10 tries
-      throw new Error('Error while loading config. Please try again');
-    }
-    if((!serverConfigLoaded || forceReload) && dbContext?.authStatus === DatabaseAuthStatus.Authorized) {
-      serverConfigLoading = true;
-      try {
-        const client = getConfigApiClient(dbContext?.masterKey as string, dbContext);
-        let serverConfigData: Record<string, ConfigSupportedValueType> = {};
+      return await configMutex.current.runExclusive(async () => {
+        if((!serverConfigLoaded.current || forceReload) && dbContext?.authStatus === DatabaseAuthStatus.Authorized) {
+          try {
+            console.log('Mutex acquired. Loading server config');
+            const client = getConfigApiClient(dbContext?.masterKey as string, dbContext);
+            let serverConfigData: Record<string, ConfigSupportedValueType> = {};
 
-        const configs = await client.get();
-        for (const config of configs) {
-          serverConfigData[config.key] = config.value; // convert out from ConfigDTO to key=>value
+            const configs = await client.get();
+            for (const config of configs) {
+              serverConfigData[config.key] = config.value; // convert out from ConfigDTO to key=>value
+            }
+            serverConfig.current = serverConfigData;
+            serverConfigLoaded.current = true;
+            return serverConfigData
+          } catch (e){ 
+            throw e;
+          }
+        } else {
+          return serverConfig.current;       // already loaded
         }
-        serverConfig = serverConfigData;
-        serverConfigLoaded = true;
-        serverConfigLoading = false;
-        return serverConfigData
-      } catch (e){ 
-        serverConfigLoading = false;
-        throw e;
-      }
-    } else {
-      return serverConfig;       // already loaded
-    }
+    });
   }
 
 
@@ -108,7 +100,7 @@ const [isConfigDialogOpen, setConfigDialogOpen] = React.useState(false);
   
     const value = {
       localConfig,
-      serverConfig,
+      serverConfig: serverConfig.current,
       isConfigDialogOpen,
       setConfigDialogOpen,
       setLocalConfig: (key: string, value: ConfigSupportedValueType) =>

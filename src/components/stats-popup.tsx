@@ -52,7 +52,7 @@ export default function FolderListPopup() {
         </CredenzaHeader>
         <div className="bg-white dark:bg-zinc-900 border-r border-zinc-200 dark:border-zinc-800">
           <div className="h-auto overflow-auto">
-            {(dbContext?.authStatus == DatabaseAuthStatus.Authorized) ? (
+            {(dbContext?.authStatus == DatabaseAuthStatus.Authorized && aggregatedStats && aggregatedStats.thisMonth && aggregatedStats.today) ? (
               <div>
                 <div className="p-4 space-y-4">
                   <div className="text-sm font-bold w-full">Today</div>
