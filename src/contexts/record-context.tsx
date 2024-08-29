@@ -52,7 +52,7 @@ export type RecordContextType = {
     loaderStatus: DataLoadingStatus;
     operationStatus: DataLoadingStatus;
 
-    updateRecordFromText: (text: string, record: Record, allowNewRecord: boolean) => Record|null;
+    updateRecordFromText: (text: string, record: Record | null, allowNewRecord: boolean) => Record|null;
     getAttachmentDataURL: (attachmentDTO: EncryptedAttachmentDTO, type: URLType) => Promise<string>;
     downloadAttachment: (attachment: EncryptedAttachmentDTO, useCache: boolean) => void;
     convertAttachmentsToImages: (record: Record, statusUpdates: boolean) => Promise<DisplayableDataObject[]>;

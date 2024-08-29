@@ -198,6 +198,7 @@ export default function RecordItem({ record, displayAttachmentPreviews }: { reco
         <Button size="icon" variant="ghost" title="Add attachments">
           <PaperclipIcon className="w-4 h-4"  onClick={() => { if(record.parseInProgress) { toast.info('Please wait until record is successfully parsed') } else {   recordContext?.setCurrentRecord(record);  recordContext?.setRecordEditMode(true);}  }} />
         </Button>
+        {(record.attachments && record.attachments.length > 0) ? (
         <Button size="icon" variant="ghost" title="Convert to structural data">
           {(record.parseInProgress) ? (
             <div className="cursor-pointer" onClick={(e) => chatContext.setChatOpen(true) }><DataLoader /></div>
@@ -205,6 +206,7 @@ export default function RecordItem({ record, displayAttachmentPreviews }: { reco
             <RefreshCwIcon className="w-4 h-4"  onClick={async () => {  await recordContext?.sendRecordToChat(record, true); } /* TODO: add prompt UI for altering the prompt */ } />
           )}
         </Button>       
+        ) : '' }  
         {(record.json && !record.parseInProgress) ? (
         <Button size="icon" variant="ghost" title="Insert into AI Chat">
             <MessageCircleIcon className="w-4 h-4"  onClick={async () => {  recordContext?.sendRecordToChat(record, false);  }} />
