@@ -197,7 +197,7 @@ export const EncryptedAttachmentUploader = forwardRef<
           setActiveIndex(-1);
         }
       },
-      [value, activeIndex, removeFileFromSet, direction, dropzoneState.inputRef, orientation]
+      [value, activeIndex, removeFileFromSet, direction, orientation]
     );
     // TODO: move it to utils as it's pretty much reusable code
     const encryptFile = async (fileObject: File, masterKey?: string): Promise<File> => {

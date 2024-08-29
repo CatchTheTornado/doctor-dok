@@ -103,7 +103,7 @@ export default function RecordItem({ record, displayAttachmentPreviews }: { reco
     }
 
     recordContext?.processParseQueue();
-  }, [displayAttachmentPreviews, record, isVisible, config, loadAttachmentPreviews, recordContext]);
+  }, [displayAttachmentPreviews, record, isVisible]);
 
 
   return (
