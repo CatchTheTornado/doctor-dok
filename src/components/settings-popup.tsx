@@ -176,7 +176,7 @@ export function SettingsPopup() {
       setValue("piiGeneralData", piiGeneralData);
     }
     fetchDefaultConfig();
-  }, []);
+  }, [config, setValue]);
 
   async function onSubmit(formData) { // TODO: we probably need a method in the config-context to setup the config model - so all available server and local config variables  with default values
     config?.setServerConfig('chatGptApiKey', formData['chatGptApiKey']);

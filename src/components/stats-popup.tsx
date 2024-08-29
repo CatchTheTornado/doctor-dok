@@ -33,7 +33,7 @@ export default function FolderListPopup() {
       }
     }
     loadStats();
-  }, [chatContext.lastRequestStat]);
+  }, [chatContext.lastRequestStat, chatContext, dbContext?.authStatus]);
 
   return (
     <Credenza open={chatContext?.statsPopupOpen} onOpenChange={chatContext?.setStatsPopupOpen}>
@@ -42,7 +42,7 @@ export default function FolderListPopup() {
           <LineChartIcon className="w-6 h-6" />
         </Button>
       </CredenzaTrigger>
-      <CredenzaContent className="sm:max-w-[500px] bg-white dark:bg-zinc-950" side="top">
+      <CredenzaContent className="sm:max-w-[500px] bg-white dark:bg-zinc-950">
         <CredenzaHeader>
           <CredenzaTitle>View token usage
           </CredenzaTitle>

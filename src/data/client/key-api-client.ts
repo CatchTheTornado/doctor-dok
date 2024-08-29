@@ -1,6 +1,7 @@
 import { DatabaseContextType } from "@/contexts/db-context";
 import { ConfigDTO, ConfigDTOEncSettings, KeyDTO } from "../dto";
 import { ApiClient, ApiEncryptionConfig } from "./base-api-client";
+import { ZodIssue } from "zod";
 
 export type PutKeyRequest = KeyDTO;
 
@@ -13,7 +14,7 @@ export type PutKeyResponseSuccess = {
 export type PutKeyResponseError = {
   message: string;
   status: 400;
-  issues?: any[];
+  issues?: ZodIssue[];
 };
 
 export type PutKeyResponse = PutKeyResponseSuccess | PutKeyResponseError;

@@ -77,7 +77,6 @@ const ChatMessage: React.FC<ChatMessageProps> = ({ message, ref }) => {
                                   wrapLines={true}
                                   wrapLongLines={true}
                                   language={match[1]}
-                                  wrapLines={true}
                                   theme={shTheme}
                                 >{String(children).replace(/\n$/, '')}</SyntaxHighlighter>
                               ) : (
@@ -96,10 +95,10 @@ const ChatMessage: React.FC<ChatMessageProps> = ({ message, ref }) => {
                 {message.content}
               </Markdown>
             )))}
-            {message.role !== 'user'  && message.finished && !message.recordSaved ? (
+            {message.role !== 'user'  && message.finished && !message.recordSaved && message.recordRef ? (
               <div className="flex-wrap flex items-center justify-left">
-                <Button title="Save message as record" variant="ghost" size="icon" onClick={() => {
-                  recordContext?.updateRecordFromText(message.content, message.recordRef);
+                <Button title="Save message as new record" variant="ghost" size="icon" onClick={() => {
+                  recordContext?.updateRecordFromText(message.content, message.recordRef as Record, true);
                 }}><SaveIcon /></Button>
               </div>
               ): null }

@@ -7,6 +7,7 @@ import { KeyACLDTO, KeyDTO } from '@/data/dto';
 import { KeyApiClient, PutKeyResponse, PutKeyResponseError } from '@/data/client/key-api-client';
 import { ConfigContextType } from '@/contexts/config-context';
 import { getCurrentTS } from '@/lib/utils';
+import assert from 'assert';
 const argon2 = require("argon2-browser");
 
 interface KeyContextProps {
@@ -87,6 +88,7 @@ export const KeyContextProvider: React.FC<PropsWithChildren> = ({ children }) =>
 
         const encryptionUtils = new EncryptionUtils(sharedKey);
         const masterKey = await dbContext?.masterKey;
+        assert(masterKey, 'Master key is not set');
         const encryptedMasterKey = await encryptionUtils.encrypt(masterKey);
         
         const apiClient = await setupApiClient(null);
@@ -98,7 +100,7 @@ export const KeyContextProvider: React.FC<PropsWithChildren> = ({ children }) =>
             keyLocatorHash,
             displayName,
             acl: JSON.stringify(acl),
-            expiryDate: expDate,
+            expiryDate: expDate ? expDate.toISOString() : '',
             updatedAt: getCurrentTS()
         };
 

@@ -234,7 +234,7 @@ export function Chat() {
             {chatContext.chatTemplatePromptVisible ? (
               <div className="relative">
                 <div className="min-h-[48px] rounded-2xl resize-none p-4 border border-neutral-400 shadow-sm pr-16">
-                  <TemplateStringRenderer template={chatContext.promptTemplate} onChange={(v) => {
+                  <TemplateStringRenderer template={chatContext.promptTemplate} onChange={(v:string) => {
                     setCurrentMessage(v);
                   }} />
                 </div>

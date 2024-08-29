@@ -51,7 +51,7 @@ export function CreateDatabaseForm({
       localStorage.setItem("databaseId", data.databaseId);
       localStorage.setItem("key", data.key);
     }
-    setOperationResult(result);
+    setOperationResult(result ?? null);
     if(result?.success) {
       toast.success(result?.message);
     } else {
@@ -75,7 +75,7 @@ export function CreateDatabaseForm({
         <div className="flex gap-2 mt-5">
           <Button variant="outline" className="p-1 h-10 p-2" onClick={async (e) => {
             e.preventDefault();
-            const keyPrinterPdf = pdf(KeyPrint({ key: dbContext?.encryptionKey, databaseId: dbContext?.databaseId }));
+            const keyPrinterPdf = pdf(KeyPrint({ key: dbContext?.encryptionKey ?? '', databaseId: dbContext?.databaseId ?? '' }));
             window.open(URL.createObjectURL(await keyPrinterPdf.toBlob()));
           }}><PrinterIcon className="w-4 h-4" /> Print</Button>
           <Button variant="outline" className="p-1 h-10 p-2" onClick={async (e) => {
@@ -109,7 +109,7 @@ export function CreateDatabaseForm({
               <p className={operationResult.success ? "p-3 border-2 border-green-500 background-green-200 text-sm font-semibold text-green-500" : "background-red-200 p-3 border-red-500 border-2 text-sm font-semibold text-red-500"}>{operationResult.message}</p>
               <ul>
                 {operationResult.issues.map((issue, index) => (
-                  <li key={index}>{issue}</li>
+                  <li key={index}>{issue.message}</li>
                 ))}
               </ul>
             </div>
@@ -210,8 +210,8 @@ export function CreateDatabaseForm({
                   id="keepLoggedIn"
                   checked={keepLoggedIn}
                   onCheckedChange={(checked) => {
-                  setKeepLoggedIn(checked);
-                  localStorage.setItem("keepLoggedIn", checked.toString());
+                        setKeepLoggedIn(!!checked);
+                        localStorage.setItem("keepLoggedIn", checked.toString());
                       }}
               />
               <label htmlFor="keepLoggedIn" className="text-sm">Keep me logged in</label>

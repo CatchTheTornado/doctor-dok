@@ -79,7 +79,9 @@ export default class ServerStatRepository extends BaseRepository<StatDTO> {
             existingAggregate.completionTokens += newItem.completionTokens;
             existingAggregate.promptTokens += newItem.promptTokens;
           
-            db.update(stats).set(existingAggregate).where(eq(stats.id, newItem.id)).run();
+            if (newItem.id) {
+                db.update(stats).set(existingAggregate).where(eq(stats.id, newItem.id)).run();
+            } else throw new Error('No id in the item to update');
         }
         return Promise.resolve(existingAggregate as StatDTO)   
 

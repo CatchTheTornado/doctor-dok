@@ -2,7 +2,7 @@
 import { DataLoadingStatus, DisplayableDataObject, EncryptedAttachment, Folder, Record } from '@/data/client/models';
 import { findCodeBlocks } from "@/lib/utils";
 import { createWorker, OEM, PSM } from 'tesseract.js';
-import { ChatContextType, MessageType, MessageVisibility } from '@/contexts/chat-context';
+import { ChatContextType, MessageType, MessageVisibility, AIResultEventType } from '@/contexts/chat-context';
 import { toast } from 'sonner';
 import { ConfigContextType } from '@/contexts/config-context';
 import { prompts } from '@/data/ai/prompts';

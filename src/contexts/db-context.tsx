@@ -5,6 +5,7 @@ import { AuthorizeDbResponse, DbApiClient, RefreshDbResponse } from '@/data/clie
 import { ConfigContextType } from '@/contexts/config-context';
 import { EncryptionUtils, generateEncryptionKey, sha256 } from '@/lib/crypto';
 import { toast } from 'sonner';
+import { ZodIssue } from 'zod';
 const argon2 = require("argon2-browser");
 
 // the salts are static as they're used as record locators in the DB - once changed the whole DB needs to be re-hashed
@@ -16,20 +17,20 @@ export const keepLoggedInKeyEncryptionKey = process.env.NEXT_PUBLIC_KEEP_LOGGED_
 export type AuthorizeDatabaseResult = {
     success: boolean;
     message: string;
-    issues: string[];
+    issues: ZodIssue[];
 }
 
 export type RefreshDatabaseResult = {
     success: boolean;
     message: string;
-    issues: string[];
+    issues: ZodIssue[];
     accessToken?: string;
 }
 
 export type CreateDatabaseResult = {
     success: boolean;
     message: string;
-    issues: string[];
+    issues: ZodIssue[];
 }
 
 export type DatabaseContextType = {

@@ -63,7 +63,7 @@ export function FolderEditPopup() {
         setJsonData(folderContext?.currentFolder.json);
         setValue('name', folderContext?.currentFolder.name);
       }
-  }, [folderContext?.currentFolder, folderContext?.folderEditOpen]);
+  }, [folderContext?.currentFolder, folderContext?.folderEditOpen, folderContext?.addingNewFolder, setValue]);
 
   const onSubmit = (data) => {
     let pr: Folder;

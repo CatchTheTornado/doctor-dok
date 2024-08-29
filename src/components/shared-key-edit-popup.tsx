@@ -5,7 +5,7 @@ import { set, useForm } from "react-hook-form"
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from "zod"
 import { FolderContext } from "@/contexts/folder-context"
-import { useContext, useEffect, useState } from "react"
+import { useContext, useEffect, useRef, useState } from "react"
 import { Folder } from "@/data/client/models"
 import { Credenza, CredenzaClose, CredenzaContent, CredenzaDescription, CredenzaFooter, CredenzaHeader, CredenzaTitle, CredenzaTrigger } from "./credenza"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "./ui/card"
@@ -17,6 +17,7 @@ import { Textarea } from "./ui/textarea";
 import { CopyIcon, EyeIcon, EyeOffIcon, PrinterIcon, WandIcon } from "lucide-react";
 import { KeyPrint } from "./key-print";
 import { pdf, Document, Page } from '@react-pdf/renderer';
+import assert from "assert";
 
 function getRandomSixDigit() {
   return Math.floor(Math.random() * (999999 - 100000 + 1)) + 100000;
@@ -25,17 +26,10 @@ export function SharedKeyEditPopup() {
   const keysContext = useContext(KeyContext);
   const dbContext = useContext(DatabaseContext);
   const [open, setOpen] = useState(false)
-  let randomKey = getRandomSixDigit();
+  let randomKey = useRef<number>(getRandomSixDigit());
   const [apiResult, setApiResult] = useState<PutKeyResponse | null>(null);
-  const [sharedKey, setSharedKey] = useState(randomKey.toString());
+  const [sharedKey, setSharedKey] = useState(randomKey.current.toString());
   const [validFor, setValidFor] = useState("");
-
-
-  useEffect(() => {
-    randomKey = getRandomSixDigit();
-    setValue('sharedKey', randomKey);
-    setValue('displayName', randomKey.toString().slice(0,2) + '****');
-  }, [apiResult])
 
   const {
     register,
@@ -45,8 +39,8 @@ export function SharedKeyEditPopup() {
     formState: { errors },
   } = useForm({
     defaultValues: {
-      displayName: randomKey.toString().slice(0,2) + '****',
-      sharedKey: randomKey,
+      displayName: randomKey.current.toString().slice(0,2) + '****',
+      sharedKey: randomKey.current,
       validFor: 24 * 7
     },
     resolver: zodResolver(
@@ -56,10 +50,19 @@ export function SharedKeyEditPopup() {
       }),
     ),
   })
+
+  useEffect(() => {
+    randomKey.current = getRandomSixDigit();
+    setValue('sharedKey', randomKey.current);
+    setValue('displayName', randomKey.current.toString().slice(0,2) + '****');
+  }, [apiResult, randomKey, setValue])
+
+
   const onSubmit = async (data) => {
 
     setSharedKey(data.sharedKey);
     const expDate = (parseInt(validFor) === 0) ? null : new Date(Date.now() + parseInt(validFor) * 3600 * 1000);
+    assert(dbContext?.databaseId, "Database Id is required");
     setApiResult(await keysContext.addKey(dbContext?.databaseId, data.displayName, data.sharedKey.toString(), expDate, { role: 'guest', features: ['*'] }));
     keysContext.loadKeys();
 
@@ -100,7 +103,7 @@ export function SharedKeyEditPopup() {
                 <div className="flex gap-2 mt-5">
                   <Button variant="outline" className="p-1 h-10 p-2" onClick={async (e) => {
                     e.preventDefault();
-                    const keyPrinterPdf = pdf(KeyPrint({ key: sharedKey, databaseId: dbContext?.databaseId }));
+                    const keyPrinterPdf = pdf(KeyPrint({ key: sharedKey, databaseId: dbContext?.databaseId ?? '' }));
                     window.open(URL.createObjectURL(await keyPrinterPdf.toBlob()));
                   }}><PrinterIcon className="w-4 h-4" /> Print</Button>
                   <Button variant="outline" className="p-1 h-10 p-2" onClick={async (e) => {

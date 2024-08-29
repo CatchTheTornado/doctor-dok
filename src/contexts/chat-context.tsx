@@ -1,5 +1,5 @@
 import React, { createContext, PropsWithChildren, useContext, useState } from 'react';
-import { CreateMessage, Message, Attachment } from 'ai/react';
+import { CreateMessage, Message } from 'ai/react';
 import { nanoid } from 'nanoid';
 import { createOpenAI, openai } from '@ai-sdk/openai';
 import { ollama, createOllama } from 'ollama-ai-provider';
@@ -10,6 +10,7 @@ import { Record } from '@/data/client/models';
 import { StatDTO, AggregatedStatsDTO } from '@/data/dto';
 import { AggregatedStatsResponse, AggregateStatResponse, StatApiClient } from '@/data/client/stat-api-client';
 import { DatabaseContext } from './db-context';
+import { getErrorMessage } from '@/lib/utils';
 
 export enum MessageDisplayMode {
     Text = 'text',
@@ -32,18 +33,16 @@ export enum MessageType {
 export type MessageEx = Message & {
     prev_sent_attachments?: Attachment[];
     displayMode?: MessageDisplayMode
-    finished: boolean
+    finished?: boolean
 
-    type: MessageType,
+    type?: MessageType,
     visibility?: MessageVisibility
 
-    recordRef: Record
-    recordSaved: boolean
+    recordRef?: Record
+    recordSaved?: boolean
 }
 
-export type CreateMessageEx = MessageEx & {
-    id?: MessageEx['id'];
-}
+export type CreateMessageEx = Omit<MessageEx, "id">;
 
 export type AIResultEventType = {
     finishReason: FinishReason;
@@ -243,7 +242,7 @@ export const ChatContextProvider: React.FC<PropsWithChildren> = ({ children }) =
                             createdAt: new Date().toISOString(),
                         });
                     } catch (e) {
-                        toast.error(e);
+                        toast.error(getErrorMessage(e));
                     }
                     e.text.indexOf('```json') > -1 ? resultMessage.displayMode = MessageDisplayMode.InternalJSONResponse : resultMessage.displayMode = MessageDisplayMode.Text
                     resultMessage.finished = true;
@@ -268,7 +267,7 @@ export const ChatContextProvider: React.FC<PropsWithChildren> = ({ children }) =
         }
     }
 
-    const prepareMessage = (msg: MessageEx, setMessages: React.Dispatch<React.SetStateAction<MessageEx[]>>, messages: MessageEx[], setLastMessage: React.Dispatch<React.SetStateAction<MessageEx | null>>) => {
+    const prepareMessage = (msg: CreateMessageEx | MessageEx, setMessages: React.Dispatch<React.SetStateAction<MessageEx[]>>, messages: MessageEx[], setLastMessage: React.Dispatch<React.SetStateAction<MessageEx | null>>) => {
         const newlyCreatedOne = { ...msg, id: nanoid(), visibility: msg.visibility ? msg.visibility : MessageVisibility.Visible } as MessageEx;
         if (newlyCreatedOne.content.indexOf('json') > -1) {
             newlyCreatedOne.displayMode = MessageDisplayMode.InternalJSONRequest;

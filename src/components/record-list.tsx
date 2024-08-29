@@ -11,8 +11,9 @@ import { ConfigContext } from "@/contexts/config-context";
 import { PlusIcon, TagIcon } from "lucide-react";
 import { Button } from "./ui/button";
 import { record } from "zod";
+import { Folder } from "@/data/client/models";
 
-export default function RecordList({ folder }) {
+export default function RecordList({ folder }: {folder: Folder}) {
   const recordContext = useContext(RecordContext);
   const folderContext = useContext(FolderContext);
   const [sortBy, setSortBy] = useState([ { desc: a => a.createdAt } ]);
@@ -38,7 +39,7 @@ export default function RecordList({ folder }) {
           </div>
         ) : (null) }
         { (recordContext?.loaderStatus === "error") ? (
-          <Alert status="error">
+          <Alert>
             <AlertTitle>Error</AlertTitle>
             <AlertDescription>
               Error while loading folder records. Please try again later.

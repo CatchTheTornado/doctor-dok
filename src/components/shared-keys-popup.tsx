@@ -23,7 +23,7 @@ export default function SharedKeysPopup() {
 
   useEffect(() => {
     keysContext?.loadKeys();
-  }, []);
+  }, [keysContext]);
 
   return (
     <Credenza open={keysContext.sharedKeysDialogOpen} onOpenChange={keysContext.setSharedKeysDialogOpen}>

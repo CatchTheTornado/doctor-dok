@@ -129,9 +129,9 @@ export const EncryptedAttachmentUploader = forwardRef<
     const reSelectAll = maxFiles === 1 ? true : reSelect;
     const direction: DirectionOptions = dir === "rtl" ? "rtl" : "ltr";
 
-    const updateFile = (file: UploadedFile, allFiles: UploadedFile[]) => {
+    const updateFile = useCallback((file: UploadedFile, allFiles: UploadedFile[]) => {
       if(value) onValueChange(allFiles.map((f) => (f.index === file.index ? file : f)));
-    }
+    }, [value, onValueChange]);
 
     const removeFileFromSet = useCallback(
       async (i: number) => {
@@ -142,7 +142,7 @@ export const EncryptedAttachmentUploader = forwardRef<
         onValueChange(newFiles);
         if (onFileRemove && fileToRemove) onFileRemove(fileToRemove);          
       },
-      [value, onValueChange]
+      [value, onValueChange, onFileRemove]
     );
 
     const handleKeyDown = useCallback(
@@ -197,7 +197,7 @@ export const EncryptedAttachmentUploader = forwardRef<
           setActiveIndex(-1);
         }
       },
-      [value, activeIndex, removeFileFromSet, direction]
+      [value, activeIndex, removeFileFromSet, direction, dropzoneState.inputRef, orientation]
     );
     // TODO: move it to utils as it's pretty much reusable code
     const encryptFile = async (fileObject: File, masterKey?: string): Promise<File> => {
@@ -280,7 +280,7 @@ export const EncryptedAttachmentUploader = forwardRef<
             }
           }
         }
-    }, [value, uploadQueueSize]);
+    }, [value, uploadQueueSize, dbContext, onUploadError, onUploadSuccess, updateFile]);
 
 
 
@@ -338,7 +338,7 @@ export const EncryptedAttachmentUploader = forwardRef<
           }
         }
       },
-      [reSelectAll, value]
+      [reSelectAll, value, maxFiles, maxSize, onValueChange, onInternalUpload, uploadQueueSize]
     );
 
     useEffect(() => {

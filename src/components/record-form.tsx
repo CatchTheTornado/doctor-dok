@@ -104,7 +104,7 @@ export default function RecordForm({ folder }: { folder?: Folder }) {
       }) as UploadedFile[];
     }
     setFiles(existingFiles);    
-  }, [recordContext?.currentRecord]);
+  }, [recordContext?.currentRecord, setValue]);
   
   const onSubmit = async (data: any) => {
     // Handle form submission

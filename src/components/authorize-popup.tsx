@@ -21,7 +21,7 @@ export function AuthorizePopup({ autoLoginInProgress }: { autoLoginInProgress: b
      {!applicationLoaded || autoLoginInProgress ? (<div className="w-96 flex items-center justify-center flex-col"><div className="flex-row h-40 w-40"><img src="/img/doctor-dok-logo.svg" /></div><div><DataLoader /></div></div>):(
       <div>
         <div className="flex">
-          <img className="w-20" src={currentTheme === 'dark' ? `/img/doctor-dok-logo-white.svg` : `/img/doctor-dok-logo.svg`} />
+          <img alt="Application logo" className="w-20" src={currentTheme === 'dark' ? `/img/doctor-dok-logo-white.svg` : `/img/doctor-dok-logo.svg`} />
           <h1 className="text-5xl text-center p-8 pl-0">Doctor Dok</h1>
         </div>
         <Tabs defaultValue="authorize" className="w-96">

@@ -126,7 +126,7 @@ export function AuthorizeDatabaseForm({
                       id="keepLoggedIn"
                       checked={keepLoggedIn}
                       onCheckedChange={(checked) => {
-                      setKeepLoggedIn(checked);
+                      setKeepLoggedIn(!!checked);
                       localStorage.setItem("keepLoggedIn", checked.toString());
                     }}
                   />

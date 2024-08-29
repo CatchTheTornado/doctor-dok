@@ -20,7 +20,7 @@ export type FolderContextType = {
     folderListPopup: boolean;
     setFolderListPopup: (open: boolean) => void;
     updateFolder: (folder: Folder) => Promise<Folder>;
-    deleteFolder: (id: number) => Promise<boolean>;
+    deleteFolder: (record: Folder) => Promise<boolean>;
     listFolders: () => Promise<Folder[]>;
     setCurrentFolder: (folder: Folder | null) => void; // new method
     loaderStatus: DataLoadingStatus;
@@ -40,7 +40,7 @@ export const FolderContextProvider: React.FC<PropsWithChildren> = ({ children })
 
     useEffect(() => {
         listFolders();
-    }, []);
+    });
     const setupApiClient = async (config: ConfigContextType | null) => {
         const masterKey = dbContext?.masterKey
         const encryptionConfig: ApiEncryptionConfig = {

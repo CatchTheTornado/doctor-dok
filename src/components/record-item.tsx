@@ -7,7 +7,6 @@ import { RecordContext } from "@/contexts/record-context";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "./ui/alert-dialog";
 import { MessageCircleIcon } from '@/components/chat'
 import Markdown from "react-markdown";
-import { Attachment } from 'ai/react';
 import RecordItemJson from "./record-item-json";
 import { prompts } from "@/data/ai/prompts";
 import remarkGfm from 'remark-gfm'
@@ -104,7 +103,7 @@ export default function RecordItem({ record, displayAttachmentPreviews }: { reco
     }
 
     recordContext?.processParseQueue();
-  }, [displayAttachmentPreviews, record, isVisible]);
+  }, [displayAttachmentPreviews, record, isVisible, config, loadAttachmentPreviews, recordContext]);
 
 
   return (

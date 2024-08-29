@@ -45,5 +45,6 @@ async function handlePUTRequest(inputJson: any, request: NextRequest, response: 
 }
 
 export async function GET(request: NextRequest, response: NextResponse) {
+    const requestContext = await authorizeRequestContext(request, response);
     return Response.json(await genericGET<EncryptedAttachmentDTO>(request, new ServerEncryptedAttachmentRepository(requestContext.databaseIdHash)));
 }

@@ -1,4 +1,5 @@
-import React, { useEffect, useState } from 'react';
+import { on } from 'events';
+import React, { useCallback, useEffect, useState } from 'react';
 
 const TemplateStringRenderer = ({ template, onChange }) => {
   const parseTemplate = (template) => {
@@ -52,7 +53,7 @@ const TemplateStringRenderer = ({ template, onChange }) => {
     })
   );
 
-  const renderValues = (newValues: any[]) => {
+  const renderValues = useCallback((newValues: any[]) => {
     let combinedString = '';
     let segmentIndex = 0;
     segments.forEach((segment) => {
@@ -71,7 +72,7 @@ const TemplateStringRenderer = ({ template, onChange }) => {
     });
 
     return combinedString;
-  }
+  }, [segments]);
 
   const handleChange = (index, value) => {
     const newValues = [...values];
@@ -91,7 +92,7 @@ const TemplateStringRenderer = ({ template, onChange }) => {
       onChange(combinedString);
     }
 
-  }, []);
+  }, [onChange, renderValues, values]);
  
 
   return (
