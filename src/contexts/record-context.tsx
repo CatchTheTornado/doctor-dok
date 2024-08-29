@@ -9,7 +9,7 @@ import { toast } from 'sonner';
 import { sort } from 'fast-sort';
 import { EncryptedAttachmentApiClient } from '@/data/client/encrypted-attachment-api-client';
 import { DatabaseContext } from './db-context';
-import { ChatContext, CreateMessageEx, MessageVisibility } from './chat-context';
+import { ChatContext, CreateMessageEx, MessageType, MessageVisibility } from './chat-context';
 import { convertDataContentToBase64String } from "ai";
 import { convert } from '@/lib/pdf2js'
 import { pdfjs } from 'react-pdf'
@@ -370,6 +370,7 @@ export const RecordContextProvider: React.FC<PropsWithChildren> = ({ children })
               role: 'user',
               createdAt: new Date(),
               content: promptText,
+              type: MessageType.Parse // this will prevent from adding the whole context              
             },
             onResult: (resultMessage, result) => {    
               if (result.finishReason !== 'error') {
