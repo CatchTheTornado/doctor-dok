@@ -79,7 +79,7 @@ export function Chat() {
     loadConfig();
 
     messageTextArea.current?.focus();
-  }, [chatContext.messages, chatContext.lastMessage, chatContext.isStreaming, recordContext?.records]);
+  }, [chatContext.messages, chatContext.lastMessage, chatContext.isStreaming, recordContext?.records, config]);
   
 
   const handleSubmit = async () => {

@@ -199,8 +199,8 @@ export function CreateDatabaseForm({
               </div>
               {errors.key && <span className="text-red-500 text-sm">Key must be at least 8 characters length including digits, alpha, lower and upper letters.</span>}
               <p className="text-sm text-zinc-500 dark:text-zinc-400">
-              Please save or print this master key. <strong>It's like crypto wallet.</strong> After losing it your medical records <strong className="text-red-500">WILL BE LOST FOREVER</strong>.
-              We're using strong AES256 end-to-end encryption.
+              Please save or print this master key. <strong>It&apos;s like crypto wallet.</strong> After losing it your medical records <strong className="text-red-500">WILL BE LOST FOREVER</strong>.
+              We&apos;re using strong AES256 end-to-end encryption.
           </p>        
         </div>
         <div className="flex items-center justify-between gap-4 mt-4">

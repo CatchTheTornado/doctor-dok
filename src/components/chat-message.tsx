@@ -46,10 +46,9 @@ const ChatMessage: React.FC<ChatMessageProps> = ({ message, ref }) => {
                                   PreTag="div"
                                   wrapLines={true}
                                   wrapLongLines={true}
-                                  children={String(children).replace(/\n$/, '')}
                                   language={match[1]}
                                   theme={shTheme}
-                                />
+                                >{String(children).replace(/\n$/, '')}</SyntaxHighlighter>
                               ) : (
                                 <code {...rest} className={className}>
                                   {children}
@@ -77,11 +76,10 @@ const ChatMessage: React.FC<ChatMessageProps> = ({ message, ref }) => {
                                   PreTag="div"
                                   wrapLines={true}
                                   wrapLongLines={true}
-                                  children={String(children).replace(/\n$/, '')}
                                   language={match[1]}
                                   wrapLines={true}
                                   theme={shTheme}
-                                />
+                                >{String(children).replace(/\n$/, '')}</SyntaxHighlighter>
                               ) : (
                                 <code {...rest} className={className}>
                                   {children}
