@@ -22,7 +22,7 @@ export default function RecordsWrapper({}) {
     if(recordContext && folderContext && folderContext.currentFolder) {
       recordContext?.listRecords(folderContext?.currentFolder);
     };
-  }, [folderContext?.currentFolder, recordContext?.filterSelectedTags, folderContext, recordContext]);
+  }, [folderContext?.currentFolder, recordContext?.filterSelectedTags]);
     
   return (
     <div className="grid min-h-screen w-full bg-zinc-100 dark:bg-zinc-950">

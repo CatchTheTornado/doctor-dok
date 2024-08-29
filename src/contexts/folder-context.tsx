@@ -40,7 +40,7 @@ export const FolderContextProvider: React.FC<PropsWithChildren> = ({ children })
 
     useEffect(() => {
         listFolders();
-    });
+    },[]);
     const setupApiClient = async (config: ConfigContextType | null) => {
         const masterKey = dbContext?.masterKey
         const encryptionConfig: ApiEncryptionConfig = {
