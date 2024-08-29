@@ -61,6 +61,7 @@ export function Chat() {
     }
     async function loadConfig() {
       setDefaultChatProvider(await config?.getServerConfig('llmProviderChat') as string);
+      setLlmProvider(await config?.getServerConfig('llmProviderChat') as string);
       const configOllamaUrl = await config?.getServerConfig('ollamaUrl') as string
       setOllamaUrl(configOllamaUrl);
       setShowProviders(configOllamaUrl !== null && typeof configOllamaUrl === 'string' && configOllamaUrl.startsWith('http'));
@@ -274,7 +275,7 @@ export function Chat() {
                 <div className="xxs:invisible md:visible">
                   <Select id="llmProvider" value={llmProvider} onValueChange={setLlmProvider}>
                       <SelectTrigger className="w-[180px]">
-                        <SelectValue placeholder="Default: Chat GPT" />
+                        <SelectValue  placeholder="Default: Chat GPT" />
                       </SelectTrigger>
                       <SelectContent>
                         <SelectItem key="chatgpt" value="chatgpt">Cloud: Chat GPT</SelectItem>
