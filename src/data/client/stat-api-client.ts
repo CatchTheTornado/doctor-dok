@@ -1,5 +1,5 @@
 import { DatabaseContextType } from "@/contexts/db-context";
-import { StatDTO } from "../dto";
+import { StatDTO, AggregatedStatsDTO } from "../dto";
 import { ApiClient, ApiEncryptionConfig } from "./base-api-client";
 
 export type AggregateStatRequest = StatDTO;
@@ -16,15 +16,30 @@ export type AggregateStatResponseError = {
   issues?: any[];
 };
 
+
+export type AggregatedStatsResponseSuccess = {
+  message: string;
+  data: AggregatedStatsDTO;
+  status: 200;
+};
+
+export type AggregatedStatsResponseError = {
+  message: string;
+  status: 400;
+  issues?: any[];
+};
+
+
 export type AggregateStatResponse = AggregateStatResponseSuccess | AggregateStatResponseError;
+export type AggregatedStatsResponse = AggregatedStatsResponseSuccess | AggregatedStatsResponseError;
 
 export class StatApiClient extends ApiClient {
     constructor(baseUrl: string, dbContext?: DatabaseContextType | null, encryptionConfig?: ApiEncryptionConfig) {
       super(baseUrl, dbContext, encryptionConfig);
     }
   
-    async get(): Promise<StatDTO[]> {
-      return this.request<StatDTO[]>('/api/stats', 'GET', { ecnryptedFields: [] }) as Promise<StatDTO[]>;
+    async aggregated(): Promise<AggregatedStatsResponse> {
+      return this.request<AggregatedStatsResponse>('/api/stats/aggregated', 'GET', { ecnryptedFields: [] }) as Promise<AggregatedStatsResponse>;
     }
   
     async aggregate(newItem: StatDTO): Promise<AggregateStatResponse> {

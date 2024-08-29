@@ -157,3 +157,28 @@ export const statsSchema = z.object({
   counter: z.number().positive().int().optional()
 })
 export type StatDTO = z.infer<typeof statsSchema>;
+
+
+export type AggregatedStatsDTO = {
+  thisMonth: {
+    overallTokens: number;
+    promptTokens: number;
+    completionTokens: number;
+    overalUSD: number;
+    requests: number;
+  },
+  lastMonth: {
+    overallTokens: number;
+    promptTokens: number;
+    completionTokens: number;
+    overalUSD: number;
+    requests: number;
+  },  
+  today: {
+    overallTokens: number;
+    promptTokens: number;
+    completionTokens: number;
+    overalUSD: number;
+    requests: number;
+  },
+}

@@ -17,6 +17,7 @@ import { ConfigContext } from "@/contexts/config-context";
 import { ChatContext } from "@/contexts/chat-context";
 import { RecordContext } from "@/contexts/record-context";
 import { useEffectOnce } from "react-use";
+import StatsPopup from "./stats-popup";
 
 export default function TopHeader() {
     const folderContext = useContext(FolderContext);
@@ -46,6 +47,7 @@ export default function TopHeader() {
           {(folderContext?.currentFolder !== null) ? (
             <Chat />
           ) : ("")}     
+            <StatsPopup />
             {!dbContext?.acl || dbContext.acl.role === 'owner' ? (<SharedKeysPopup />) : null}
             {!dbContext?.acl || dbContext.acl.role === 'owner' ? (<SettingsPopup />) : null}
             {!dbContext?.acl || dbContext.acl.role === 'owner' ? (<ChangeKeyPopup />) : null}
@@ -72,6 +74,7 @@ export default function TopHeader() {
                   </CommandGroup>
               </CommandList>
             </CommandDialog>
+            
         </div>
       </div>
     );

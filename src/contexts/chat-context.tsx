@@ -7,8 +7,8 @@ import { CallWarning, convertToCoreMessages, FinishReason, streamText } from 'ai
 import { ConfigContext } from '@/contexts/config-context';
 import { toast } from 'sonner';
 import { Record } from '@/data/client/models';
-import { StatDTO } from '@/data/dto';
-import { AggregateStatResponse, StatApiClient } from '@/data/client/stat-api-client';
+import { StatDTO, AggregatedStatsDTO } from '@/data/dto';
+import { AggregatedStatsResponse, AggregateStatResponse, StatApiClient } from '@/data/client/stat-api-client';
 import { DatabaseContext } from './db-context';
 
 export enum MessageDisplayMode {
@@ -91,9 +91,13 @@ export type ChatContextType = {
     setTemplatePromptVisible: (value: boolean) => void;
     isStreaming: boolean;
     checkApiConfig: () => Promise<boolean>;
-    aggregateStats: (newItem: StatDTO) => Promise<StatDTO>;
     promptTemplate: string;
     setPromptTemplate: (value: string) => void;
+    statsPopupOpen: boolean;
+    setStatsPopupOpen: (open: boolean) => void;
+    aggregateStats: (newItem: StatDTO) => Promise<StatDTO>;
+    lastRequestStat: StatDTO|null;
+    aggregatedStats: () => Promise<AggregatedStatsDTO>;
 };
 
 // Create the chat context
@@ -110,13 +114,17 @@ export const ChatContext = createContext<ChatContextType>({
     setChatOpen: (value: boolean) => {},
     isStreaming: false,
     checkApiConfig: async () => { return false },
-    aggregateStats: async (newItem) => { return Promise.resolve(newItem); },
     chatCustomPromptVisible: false,
     setChatCustomPromptVisible: (value: boolean) => {},
     chatTemplatePromptVisible: false,
     setTemplatePromptVisible: (value: boolean) => {},
     promptTemplate: '',
-    setPromptTemplate: (value: string) => {}
+    setPromptTemplate: (value: string) => {},
+    statsPopupOpen: false,
+    setStatsPopupOpen: (open: boolean) => {},
+    aggregateStats: async (newItem) => { return Promise.resolve(newItem); },
+    lastRequestStat: null,
+    aggregatedStats: async () => { return Promise.resolve({} as AggregatedStatsDTO); }
 
 });
 
@@ -139,6 +147,8 @@ export const ChatContextProvider: React.FC<PropsWithChildren> = ({ children }) =
     const [chatCustomPromptVisible, setChatCustomPromptVisible] = useState(false);
     const [chatTemplatePromptVisible, setTemplatePromptVisible] = useState(false);
     const [promptTemplate, setPromptTemplate] = useState('');
+    const [statsPopupOpen, setStatsPopupOpen] = useState(false);
+    const [lastRequestStat, setLastRequestStat] = useState<StatDTO | null>(null);
 
 
     const dbContext = useContext(DatabaseContext);
@@ -295,11 +305,23 @@ export const ChatContextProvider: React.FC<PropsWithChildren> = ({ children }) =
         }), ...newMessages], envelope.onResult, envelope.providerName);        
     }
 
+    const aggregatedStats = async (): Promise<AggregatedStatsDTO> => {
+        const apiClient = new StatApiClient('', dbContext, { useEncryption: false });
+        const aggregatedStats = await apiClient.aggregated() as AggregatedStatsResponse;
+        if (aggregatedStats.status === 200) {
+            console.log('Stats this and last month: ', aggregatedStats);
+            return aggregatedStats.data;
+        } else {
+            throw new Error(aggregatedStats.message)
+        }
+    }
+
     const aggregateStats = async (newItem: StatDTO): Promise<StatDTO> => {
         const apiClient = new StatApiClient('', dbContext, { useEncryption: false });
         const aggregatedStats = await apiClient.aggregate(newItem) as AggregateStatResponse;
         if (aggregatedStats.status === 200) {
             console.log('Stats aggregated', aggregatedStats);
+            setLastRequestStat(aggregatedStats.data);
             return aggregatedStats.data;
         } else {
             throw new Error(aggregatedStats.message)
@@ -319,13 +341,17 @@ export const ChatContextProvider: React.FC<PropsWithChildren> = ({ children }) =
         areRecordsLoaded,
         setRecordsLoaded,
         checkApiConfig,
-        aggregateStats,
         chatCustomPromptVisible,
         setChatCustomPromptVisible,
         chatTemplatePromptVisible,
         setTemplatePromptVisible,
         promptTemplate,
-        setPromptTemplate
+        setPromptTemplate,
+        statsPopupOpen,
+        setStatsPopupOpen,
+        aggregateStats,
+        lastRequestStat,
+        aggregatedStats
     }
 
     return (
