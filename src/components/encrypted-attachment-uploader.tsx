@@ -82,7 +82,7 @@ type FileUploaderProps = {
   onUploadSuccess?: (value: UploadedFile | null, uploadStatus: UploadQueueStatus) => void;
   onUploadError?: (value: UploadedFile | null, uploadStatus: UploadQueueStatus) => void;
   onAllUploadsComplete?: (value: UploadedFile[] | null) => void;
-  onValueChange: (value: UploadedFile[] | null) => void;
+  onValueChange: (value: UploadedFile[]) => void;
   dropzoneOptions: DropzoneOptions;
   orientation?: "horizontal" | "vertical";
 };

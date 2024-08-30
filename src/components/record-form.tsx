@@ -63,7 +63,7 @@ export default function RecordForm({ folder }: { folder?: Folder }) {
   const configContext = useContext(ConfigContext);
   const dbContext = useContext(DatabaseContext);
   const recordContext = useContext(RecordContext);
-  const [files, setFiles] = useState<UploadedFile[] | null>(null);
+  const [files, setFiles] = useState<UploadedFile[]>([]);
   const [removeFiles, setRemoveFiles] = useState<UploadedFile[]>([]);
   const [dialogOpen, setDialogOpen] = useState(false);
   const [tags, setTags] = useState<Tag[]>([]);
