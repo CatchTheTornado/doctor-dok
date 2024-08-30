@@ -84,27 +84,29 @@ export default function RecordForm({ folder }: { folder?: Folder }) {
   });  
 
   useEffect(() => {
-    setTags(recordContext?.currentRecord?.tags?.map((tag) => {
-      return {text: tag, id: tag, label: tag, value: tag}
-    }) as Tag[]);
-    setValue("note", recordContext?.currentRecord?.description as string);
-    let existingFiles:UploadedFile[] = []
-    if (recordContext?.currentRecord) {
-      let idx = 0
-      existingFiles = recordContext?.currentRecord?.attachments.map((attachment) => {
-        idx ++;
-        return {
-          id: attachment.id, 
-          status: FileUploadStatus.SUCCESS,
-          uploaded: true,
-          index: idx,
-          file: new File([], attachment.displayName),
-          dto: attachment
-        }
-      }) as UploadedFile[];
+    if (recordContext?.currentRecord && recordContext?.recordEditMode) {
+      setTags(recordContext?.currentRecord?.tags?.map((tag) => {
+        return {text: tag, id: tag, label: tag, value: tag}
+      }) as Tag[]);
+      setValue("note", recordContext?.currentRecord?.description as string);
+      let existingFiles:UploadedFile[] = []
+      if (recordContext?.currentRecord) {
+        let idx = 0
+        existingFiles = recordContext?.currentRecord?.attachments.map((attachment) => {
+          idx ++;
+          return {
+            id: attachment.id, 
+            status: FileUploadStatus.SUCCESS,
+            uploaded: true,
+            index: idx,
+            file: new File([], attachment.displayName),
+            dto: attachment
+          }
+        }) as UploadedFile[];
+      }
+      setFiles(existingFiles);    
     }
-    setFiles(existingFiles);    
-  }, [recordContext?.currentRecord, setValue]);
+  }, [recordContext?.currentRecord, recordContext?.recordEditMode, setValue]);
   
   const onSubmit = async (data: any) => {
     // Handle form submission

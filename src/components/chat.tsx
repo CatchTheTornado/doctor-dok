@@ -232,7 +232,7 @@ export function Chat() {
             <ChatCommands open={chatCommandsOpen} setOpen={setChatCommandsOpen} />
 
             {chatContext.chatTemplatePromptVisible ? (
-              <div className="relative">
+              <div className="relative w-full">
                 <div className="min-h-[48px] rounded-2xl resize-none p-4 border border-neutral-400 shadow-sm pr-16">
                   <TemplateStringRenderer template={chatContext.promptTemplate} onChange={(v:string) => {
                     setCurrentMessage(v);
@@ -243,6 +243,8 @@ export function Chat() {
                   <div className="">              
                     <Button type="submit" size="icon" className="w-8 h-8" onClick={() => {
                       handleSubmit();
+                      chatContext.setTemplatePromptVisible(false);
+                      chatContext.setChatCustomPromptVisible(false);
                     }}>
                       <ArrowUpIcon className="w-4 h-4" />
                       <span className="sr-only">Send</span>

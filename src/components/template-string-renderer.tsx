@@ -105,6 +105,7 @@ const TemplateStringRenderer = ({ template, onChange }) => {
             <select
               key={index}
               value={values[index]}
+              className="max-w-[120px]"
               onChange={(e) => handleChange(index, e.target.value)}
               style={{ margin: '0 5px' }}
             >
@@ -121,6 +122,7 @@ const TemplateStringRenderer = ({ template, onChange }) => {
               key={index}
               type="text"
               value={values[index]}
+              className="max-w-[120px]"
               onChange={(e) => handleChange(index, e.target.value)}
               placeholder="Enter value"
               style={{ margin: '0 5px' }}
