@@ -152,6 +152,7 @@ export default function RecordForm({ folder }: { folder?: Folder }) {
         }); 
       }      
 
+      setDialogOpen(false);
 
       try {
         if (recordContext?.currentRecord && recordContext?.recordEditMode) { // edit mode
@@ -197,6 +198,7 @@ export default function RecordForm({ folder }: { folder?: Folder }) {
           }
         }
       } catch (err) {
+        setDialogOpen(true);
         toast.error('Error saving record ' + err);
         console.log(err);
         return;
@@ -220,7 +222,6 @@ export default function RecordForm({ folder }: { folder?: Folder }) {
         setTags([]); // clear form
         reset(); 
         toast.success("Record saved successfully");
-        setDialogOpen(false);
         recordContext?.setRecordEditMode(false);
       } else {
         toast.error('Error adding records. Please try again later');
