@@ -11,18 +11,22 @@ import { RecordContext } from "@/contexts/record-context";
 import { DatabaseContext } from "@/contexts/db-context";
 import { DatabaseAuthStatus } from "@/data/client/models";
 import { Button } from "./ui/button";
+import { useDocumentVisibility } from "@/hooks/use-document-visibility";
 
 export default function RecordsWrapper({}) {
   const folderContext = useContext(FolderContext);
   const configContext = useContext(ConfigContext);
   const dbContext = useContext(DatabaseContext)
   const recordContext = useContext(RecordContext);
+  const documentVisible = useDocumentVisibility();
 
   useEffect(() => {
     if(recordContext && folderContext && folderContext.currentFolder) {
-      recordContext?.listRecords(folderContext?.currentFolder);
+      if (documentVisible) {
+        recordContext?.listRecords(folderContext?.currentFolder);
+      }
     };
-  }, [folderContext?.currentFolder, recordContext?.filterSelectedTags]);
+  }, [folderContext?.currentFolder, recordContext?.filterSelectedTags, documentVisible]);
     
   return (
     <div className="grid min-h-screen w-full bg-zinc-100 dark:bg-zinc-950">
