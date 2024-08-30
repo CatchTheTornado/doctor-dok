@@ -22,11 +22,11 @@ export default function RecordsWrapper({}) {
 
   useEffect(() => {
     if(recordContext && folderContext && folderContext.currentFolder) {
-      if (documentVisible) {
+      //if (documentVisible) {
         recordContext?.listRecords(folderContext?.currentFolder);
-      }
+      //}
     };
-  }, [folderContext?.currentFolder, recordContext?.filterSelectedTags, documentVisible]);
+  }, [folderContext?.currentFolder, recordContext?.filterSelectedTags/*, documentVisible*/]);
     
   return (
     <div className="grid min-h-screen w-full bg-zinc-100 dark:bg-zinc-950">
