@@ -33,11 +33,6 @@ export default function RecordList({ folder }: {folder: Folder}) {
   return (
     <div className="bg-white dark:bg-zinc-900 md:p-6 rounded-lg shadow-sm">
       <div className="space-y-4">
-        { (recordContext?.loaderStatus === "loading") ? (
-          <div className="flex justify-center">
-            <DataLoader />
-          </div>
-        ) : (null) }
         { (recordContext?.loaderStatus === "error") ? (
           <Alert>
             <AlertTitle>Error</AlertTitle>
@@ -51,26 +46,37 @@ export default function RecordList({ folder }: {folder: Folder}) {
             No records found in the database. Please add a new folder using <strong>+</strong> icon above.
           </NoRecordsAlert>
         ) : (null) }
-        { (recordContext?.loaderStatus === "success" && recordContext?.records.length > 0) ? (
           <div className="space-y-4">
-            {recordContext?.filterAvailableTags && recordContext?.filterAvailableTags.length > 0 ? (
-              <div className="p-2 flex flex-wrap items-center gap-1 w-full ">
-              {recordContext.filterAvailableTags.sort((a,b) => b.freq - a.freq).slice(0, recordContext.filterAvailableTags.length > 10 ? 10 : recordContext.filterAvailableTags.length).map((tag, index) => (
-                <div key={index} className="text-sm inline-flex w-auto"><Button variant={recordContext.filterSelectedTags.includes(tag.tag) ? 'default' : 'secondary' } onClick={() => { 
-                  if (folderContext?.currentFolder) {
-                    recordContext?.filterToggleTag(tag.tag);
-                  }
-                }
-                }><TagIcon className="w-4 h-4 mr-2" /> {tag.tag +' (' + tag.freq + ')'}</Button></div>
-              ))}
-            </div>      
-            ) : ''}      
 
-            {sort(recordContext?.records).by(sortBy).map((record, index) => (
+            <div className="flex items-center justify-center">
+              {recordContext?.filterAvailableTags && recordContext?.filterAvailableTags.length > 0 ? (
+                <div className="p-2 flex flex-wrap items-center gap-1 w-full ">
+                {recordContext.filterAvailableTags.sort((a,b) => b.freq - a.freq).slice(0, recordContext.filterAvailableTags.length > 10 ? 10 : recordContext.filterAvailableTags.length).map((tag, index) => (
+                  <div key={index} className="text-sm inline-flex w-auto"><Button variant={recordContext.filterSelectedTags.includes(tag.tag) ? 'default' : 'secondary' } onClick={() => { 
+                    if (folderContext?.currentFolder) {
+                      recordContext?.filterToggleTag(tag.tag);
+                    }
+                  }
+                  }><TagIcon className="w-4 h-4 mr-2" /> {tag.tag +' (' + tag.freq + ')'}</Button></div>
+                ))}
+              </div>      
+              ) : ''}      
+
+              <div className="justify-center w-8 h-8 items-center m-5">
+              { (recordContext?.loaderStatus === "loading") ? (
+                <DataLoader />
+              ) : (null) }              
+              </div>
+
+            </div>
+
+
+
+            {sort(recordContext?.records ?? []).by(sortBy).map((record, index) => (
               <RecordItem key={index} record={record} displayAttachmentPreviews={displayAttachmentPreviews} />
             ))}
           </div>
-        ) : (null) }
+
       </div>
     </div>
   );
