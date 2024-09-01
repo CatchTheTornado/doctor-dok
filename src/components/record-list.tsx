@@ -46,7 +46,7 @@ export default function RecordList({ folder }: {folder: Folder}) {
   });
 
   return (
-    <div className="bg-white dark:bg-zinc-900 md:p-4 rounded-lg shadow-sm">
+    <div className="bg-white dark:bg-zinc-900 md:p-4 md:rounded-lg shadow-sm">
       <div>
         { (recordContext?.loaderStatus === "error") ? (
           <Alert>

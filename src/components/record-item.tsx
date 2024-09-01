@@ -107,7 +107,7 @@ export default function RecordItem({ record, displayAttachmentPreviews }: { reco
 
 
   return (
-    <div className="bg-zinc-100 dark:bg-zinc-800 md:p-4 xs:p-2 rounded-md mb-4 xs:mb-2">
+    <div className="bg-zinc-100 dark:bg-zinc-800 md:p-4 xs:p-2 md:rounded-md mb-4 xs:mb-2">
       <div className="flex items-center justify-between mb-4">
         {record.title ? (
           <div className="text-xs text-zinc-500 dark:text-zinc-400 font-medium">{record.title}</div>
