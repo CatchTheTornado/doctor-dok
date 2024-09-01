@@ -24,6 +24,7 @@ import { toast } from "sonner";
 import { DatabaseContext } from "@/contexts/db-context";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@radix-ui/react-tabs";
 import { DotsHorizontalIcon } from "@radix-ui/react-icons";
+import removeMd from 'remove-markdown';
 
 
 export default function RecordItem({ record, displayAttachmentPreviews }: { record: Record, displayAttachmentPreviews: boolean }) {
@@ -57,9 +58,9 @@ export default function RecordItem({ record, displayAttachmentPreviews }: { reco
     }    
   }
 
-  const shorten = (str: string) => {
+  const shorten = (str: string, len = 16) => {
     if(str) {
-      if(str.length > 16) return str.slice(0, 16 ) + '...'; else return str;
+      if(str.length > len) return str.slice(0, len ) + '...'; else return str;
     }
   return str;
   }
@@ -134,7 +135,7 @@ export default function RecordItem({ record, displayAttachmentPreviews }: { reco
             <div className="mt-2 flex flex-wrap items-center gap-2 w-100">
             {record.text ? (
               <div className="w-full cursor-pointer" onClick={(e) => setIsTextExpanded(!isTextExpanded)}>
-                  <Markdown className={styles.markdown} remarkPlugins={[remarkGfm]}>{isTextExpanded ? record.text : record.text?.slice(0, 256)}</Markdown>{!isTextExpanded ? (<DotsHorizontalIcon />):''}                          
+                  {isTextExpanded ? (<Markdown className={styles.markdown} remarkPlugins={[remarkGfm]}>{record.text}</Markdown>) : (shorten(removeMd(record.text), 256)) }{!isTextExpanded ? (<DotsHorizontalIcon />):''}                          
                 </div>        
               ): null }
               {record.tags && record.tags.length > 0 ? (

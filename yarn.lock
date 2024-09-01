@@ -7329,6 +7329,11 @@ remark-stringify@^11.0.0:
     mdast-util-to-markdown "^2.0.0"
     unified "^11.0.0"
 
+remove-markdown@^0.5.5:
+  version "0.5.5"
+  resolved "https://registry.yarnpkg.com/remove-markdown/-/remove-markdown-0.5.5.tgz#52913da6204391232cbce5a1bf2c26f990bdf8e0"
+  integrity sha512-lMR8tOtDqazFT6W2bZidoXwkptMdF3pCxpri0AEokHg0sZlC2GdoLqnoaxsEj1o7/BtXV1MKtT3YviA1t7rW7g==
+
 require-from-string@^2.0.2:
   version "2.0.2"
   resolved "https://registry.yarnpkg.com/require-from-string/-/require-from-string-2.0.2.tgz#89a7fdd938261267318eafe14f9c32e598c36909"
