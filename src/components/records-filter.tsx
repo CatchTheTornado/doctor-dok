@@ -30,7 +30,7 @@ export default function RecordsFilter({}) {
         <DrawerContent className="bg-white dark:bg-zinc-950">
           <div className="mx-auto w-full h-[500px]">
             <DrawerHeader>
-              <DrawerTitle>Filters
+              <DrawerTitle className="content-left text-left">Filters
               <Select onValueChange={(v) => {
                 if (folderContext?.currentFolder) {
                   recordContext?.setSortBy(v);

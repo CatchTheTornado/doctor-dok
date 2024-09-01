@@ -61,7 +61,7 @@ export default function RecordList({ folder }: {folder: Folder}) {
             No records found in the database. Please add a new folder using <strong>+</strong> icon above.
           </NoRecordsAlert>
         ) : (null) }
-            <div className="flex xs:p-2 xs:pl-0 xs:pt-0">
+            <div className="flex xs:p-2">
                <div className="flex flex-wrap items-center gap-1 w-full ">
                 <RecordsFilter />
                   {recordContext?.filterSelectedTags.map((tag, index) => (
