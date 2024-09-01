@@ -2,7 +2,7 @@ import { Button } from "@/components/ui/button";
 import { PaperclipIcon, Trash2Icon } from "./icons";
 import { DisplayableDataObject, Record } from "@/data/client/models";
 import { useContext, useEffect, useRef, useState } from "react";
-import { PencilIcon, TagIcon, Wand2Icon } from "lucide-react";
+import { PencilIcon, TagIcon, Wand2Icon, XCircleIcon } from "lucide-react";
 import { RecordContext } from "@/contexts/record-context";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "./ui/alert-dialog";
 import { MessageCircleIcon } from '@/components/chat'
@@ -107,7 +107,7 @@ export default function RecordItem({ record, displayAttachmentPreviews }: { reco
 
 
   return (
-    <div className="bg-zinc-100 dark:bg-zinc-800 md:p-4 xs:p-2 rounded-md">
+    <div className="bg-zinc-100 dark:bg-zinc-800 md:p-4 xs:p-2 rounded-md mb-4 xs:mb-2">
       <div className="flex items-center justify-between mb-4">
         {record.title ? (
           <div className="text-xs text-zinc-500 dark:text-zinc-400 font-medium">{record.title}</div>
@@ -145,7 +145,7 @@ export default function RecordItem({ record, displayAttachmentPreviews }: { reco
                       recordContext?.filterToggleTag(tag);
                     }      
                   }
-                 }><TagIcon className="w-4 h-4 mr-2" /> {shorten(tag)}</Button></div>
+                 }><TagIcon className="w-4 h-4 mr-2" /> {shorten(tag)}{recordContext?.filterSelectedTags.includes(tag)? (<XCircleIcon className="w-4 h-4 ml-2" />) : null }</Button></div>
                 ))}
               </div>
               ): '' }

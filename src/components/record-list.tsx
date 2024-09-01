@@ -8,17 +8,32 @@ import { Alert, AlertDescription, AlertTitle } from "./ui/alert";
 import { sort } from "fast-sort";
 import { useEffectOnce } from "react-use";
 import { ConfigContext } from "@/contexts/config-context";
-import { PlusIcon, TagIcon } from "lucide-react";
+import { PlusIcon, TagIcon, XCircleIcon } from "lucide-react";
 import { Button } from "./ui/button";
 import { record } from "zod";
 import { Folder } from "@/data/client/models";
+import RecordsFilter from "./records-filter";
 
 export default function RecordList({ folder }: {folder: Folder}) {
   const recordContext = useContext(RecordContext);
   const folderContext = useContext(FolderContext);
-  const [sortBy, setSortBy] = useState([ { desc: a => a.createdAt } ]);
   const [displayAttachmentPreviews, setDisplayAttachmentPreviews] = useState(false);
   const config = useContext(ConfigContext);
+
+  const getSortBy = (sortBy: string) => {
+    // Split the string into field and direction
+    const [field, direction] = sortBy.split(' ');
+
+    // Determine if it's ascending or descending
+    const isDesc = direction.toLowerCase() === 'desc';
+
+    // Return the corresponding object
+    if (isDesc) {
+        return [{ desc: a => a[field] }];
+    } else {
+        return [{ asc: a => a[field] }];
+    }
+  }
 
   useEffectOnce(() => {
     config?.getServerConfig('displayAttachmentPreviews').then((value) => {
@@ -31,8 +46,8 @@ export default function RecordList({ folder }: {folder: Folder}) {
   });
 
   return (
-    <div className="bg-white dark:bg-zinc-900 md:p-6 rounded-lg shadow-sm">
-      <div className="space-y-4">
+    <div className="bg-white dark:bg-zinc-900 md:p-4 rounded-lg shadow-sm">
+      <div>
         { (recordContext?.loaderStatus === "error") ? (
           <Alert>
             <AlertTitle>Error</AlertTitle>
@@ -46,38 +61,32 @@ export default function RecordList({ folder }: {folder: Folder}) {
             No records found in the database. Please add a new folder using <strong>+</strong> icon above.
           </NoRecordsAlert>
         ) : (null) }
-          <div className="space-y-4">
-
-            <div className="flex items-center justify-center">
-              {recordContext?.filterAvailableTags && recordContext?.filterAvailableTags.length > 0 ? (
-                <div className="p-2 flex flex-wrap items-center gap-1 w-full ">
-                {recordContext.filterAvailableTags.sort((a,b) => b.freq - a.freq).slice(0, recordContext.filterAvailableTags.length > 10 ? 10 : recordContext.filterAvailableTags.length).map((tag, index) => (
-                  <div key={index} className="text-sm inline-flex w-auto"><Button variant={recordContext.filterSelectedTags.includes(tag.tag) ? 'default' : 'secondary' } onClick={() => { 
-                    if (folderContext?.currentFolder) {
-                      recordContext?.filterToggleTag(tag.tag);
+            <div className="flex xs:p-2 xs:pl-0 xs:pt-0">
+               <div className="flex flex-wrap items-center gap-1 w-full ">
+                <RecordsFilter />
+                  {recordContext?.filterSelectedTags.map((tag, index) => (
+                    <div key={index} className="text-sm inline-flex w-auto"><Button className="h-10" variant={recordContext.filterSelectedTags.includes(tag) ? 'default' : 'secondary' } onClick={() => { 
+                      if (folderContext?.currentFolder) {
+                        recordContext?.filterToggleTag(tag);
+                      }
                     }
-                  }
-                  }><TagIcon className="w-4 h-4 mr-2" /> {tag.tag +' (' + tag.freq + ')'}</Button></div>
-                ))}
-              </div>      
-              ) : ''}      
+                    }><TagIcon className="w-4 h-4 mr-2" /> {tag} <XCircleIcon className="w-4 h-4 ml-2" /></Button></div>
+                  ))}
+                </div>      
 
-              <div className="justify-center w-8 h-8 items-center m-5">
-              { (recordContext?.loaderStatus === "loading") ? (
-                <DataLoader />
-              ) : (null) }              
-              </div>
+                <div className="justify-center w-8 h-8 items-center ml-5">
+                { (recordContext?.loaderStatus === "loading") ? (
+                  <DataLoader />
+                ) : (null) }              
+                </div>
 
             </div>
 
-
-
-            {sort(recordContext?.records ?? []).by(sortBy).map((record, index) => (
+            {sort(recordContext?.records ?? []).by(getSortBy(recordContext?.sortBy ?? 'createdAt desc')).map((record, index) => (
               <RecordItem key={index} record={record} displayAttachmentPreviews={displayAttachmentPreviews} />
             ))}
           </div>
 
-      </div>
     </div>
   );
 }

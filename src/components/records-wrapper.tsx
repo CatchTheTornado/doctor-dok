@@ -30,11 +30,11 @@ export default function RecordsWrapper({}) {
     
   return (
     <div className="grid min-h-screen w-full bg-zinc-100 dark:bg-zinc-950">
-      <div className="md:p-6 xs:p-2">
+      <div className="md:p-4 xs:p-0">
         { (folderContext?.currentFolder !== null) ? (
           <div>
             <div className="flex-1 overflow-auto">
-              <div className="grid gap-6">
+              <div className="grid gap-4">
                 { (dbContext?.authStatus === DatabaseAuthStatus.Authorized && folderContext?.currentFolder) ? (
                   <RecordList key={0} folder={folderContext?.currentFolder} />
                 ) : (

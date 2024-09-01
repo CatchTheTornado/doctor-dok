@@ -66,6 +66,12 @@ export type RecordContextType = {
     filterSelectedTags: string[];
     setFilterSelectedTags: (selectedTags: string[]) => void;
     filterToggleTag: (tag: string) => void;
+
+    filtersOpen: boolean;
+    setFiltersOpen: (open: boolean) => void;
+
+    sortBy: string;
+    setSortBy: (sortBy: string) => void;
 }
 
 export const RecordContext = createContext<RecordContextType | null>(null);
@@ -78,7 +84,8 @@ export const RecordContextProvider: React.FC<PropsWithChildren> = ({ children })
     const [currentRecord, setCurrentRecord] = useState<Record | null>(null); // new state
     const [filterAvailableTags, setFilterAvailableTags] = useState<FilterTag[]>([]);
     const [filterSelectedTags, setFilterSelectedTags] = useState<string[]>([]);
-
+    const [filtersOpen, setFiltersOpen] = useState<boolean>(false);
+    const [sortBy, setSortBy] = useState<string>('createdAt desc');
     useEffect(() => {
     }, []);
 
@@ -536,7 +543,11 @@ export const RecordContextProvider: React.FC<PropsWithChildren> = ({ children })
                  filterAvailableTags,
                  filterSelectedTags,
                  setFilterSelectedTags,
-                 filterToggleTag
+                 filterToggleTag,
+                 filtersOpen,
+                 setFiltersOpen,
+                sortBy,
+                setSortBy
                 }}
         >
             {children}
