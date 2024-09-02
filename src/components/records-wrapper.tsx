@@ -26,7 +26,7 @@ export default function RecordsWrapper({}) {
         recordContext?.listRecords(folderContext?.currentFolder);
       //}
     };
-  }, [folderContext?.currentFolder, folderContext/*, documentVisible*/]);
+  }, [folderContext?.currentFolder, recordContext, folderContext/*, documentVisible*/]);
     
   return (
     <div className="grid min-h-screen w-full bg-zinc-100 dark:bg-zinc-950">
