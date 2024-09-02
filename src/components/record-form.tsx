@@ -206,6 +206,7 @@ export default function RecordForm({ folder, mode }: { folder?: Folder, mode?: R
                 type: 'note',
                 tags: tags ? tags.map((tag) => tag.text) : [],
                 description: data.note,
+                transcription: transcription,
                 updatedAt: getCurrentTS(),
                 createdAt: getCurrentTS(),
                 attachments: [uploadedAttachment]
