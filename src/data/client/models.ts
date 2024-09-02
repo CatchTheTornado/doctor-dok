@@ -162,6 +162,7 @@ export class Record {
     json?: RecordItem[] | null;
     text?: string;
     extra?: RecordExtra[] | null;
+    transcription?: string;
     createdAt: string;
     updatedAt: string;
     attachments: EncryptedAttachment[] = [];
@@ -178,6 +179,7 @@ export class Record {
       this.title = recordSource.title ? recordSource.title : '';
       this.description = recordSource.description ? recordSource.description : '';
       this.type = recordSource.type;
+      this.transcription = recordSource.transcription ? recordSource.transcription : '';
       this.text = recordSource.text ? recordSource.text : '';
       this.checksum = recordSource.checksum ? recordSource.checksum : '';
       this.checksumLastParsed = recordSource.checksumLastParsed ? recordSource.checksumLastParsed : '';
@@ -245,6 +247,7 @@ export class Record {
         json: JSON.stringify(this.json),
         text: this.text ? this.text : '',
         extra: JSON.stringify(this.extra),
+        transcription: this.transcription ? this.transcription : '',
         createdAt: this.createdAt,
         updatedAt: this.updatedAt,
         checksum: this.checksum,

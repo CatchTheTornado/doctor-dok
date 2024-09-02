@@ -21,13 +21,11 @@ import { FolderContext } from "@/contexts/folder-context";
 import { RecordContext } from "@/contexts/record-context";
 import { getCurrentTS } from "@/lib/utils";
 import { toast } from "sonner";
-import { EncryptedAttachmentDTO } from "@/data/dto";
 import { EncryptedAttachmentApiClient } from "@/data/client/encrypted-attachment-api-client";
 import { ConfigContext } from "@/contexts/config-context";
-import { set } from "zod";
-import DataLoader from "./data-loader";
 import { DatabaseContext } from "@/contexts/db-context";
-
+import { MicIcon } from "lucide-react"; // Add this import statement
+import dynamic from "next/dynamic";
 
 const FileSvgDraw = () => {
   return (
@@ -58,15 +56,27 @@ const FileSvgDraw = () => {
   );
 };
 
-export default function RecordForm({ folder }: { folder?: Folder }) {
+export enum RecordEditMode {
+  Classic = 'classic',
+  VoiceRecorder = 'voiceRecorder'
+}
+
+const VoiceRecorder = dynamic(() =>
+  import('@/components/voice-recorder').then((mod) => mod.default)
+)
+
+export default function RecordForm({ folder, mode }: { folder?: Folder, mode?: RecordEditMode }) {
   const folderContext = useContext(FolderContext);
   const configContext = useContext(ConfigContext);
   const dbContext = useContext(DatabaseContext);
   const recordContext = useContext(RecordContext);
   const [files, setFiles] = useState<UploadedFile[]>([]);
+  const [transcription, setTranscription] = useState<string>("");
   const [removeFiles, setRemoveFiles] = useState<UploadedFile[]>([]);
   const [dialogOpen, setDialogOpen] = useState(false);
   const [tags, setTags] = useState<Tag[]>([]);
+  const [chatGptApiKey, setChatGptApiKey] = useState<string>('');
+
 
   const dropZoneConfig = {
     maxFiles: 10,
@@ -84,6 +94,14 @@ export default function RecordForm({ folder }: { folder?: Folder }) {
   });  
 
   useEffect(() => {
+    if (mode === RecordEditMode.VoiceRecorder) {
+      const setupRecorder = async () => {
+        const chatGptKey = await configContext?.getServerConfig('chatGptApiKey');
+        setChatGptApiKey(chatGptKey as string);
+      }
+      setupRecorder();
+    }
+    
     if (recordContext?.currentRecord && recordContext?.recordEditMode) {
       setTags(recordContext?.currentRecord?.tags?.map((tag) => {
         return {text: tag, id: tag, label: tag, value: tag}
@@ -111,7 +129,7 @@ export default function RecordForm({ folder }: { folder?: Folder }) {
   const onSubmit = async (data: any) => {
     // Handle form submission
 
-    if (!data.note && files?.length == 0)
+    if (!data.note && !transcription && files?.length == 0)
     {
       toast.error('Please upload at least one file or enter note text description');
       return;
@@ -158,6 +176,7 @@ export default function RecordForm({ folder }: { folder?: Folder }) {
         if (recordContext?.currentRecord && recordContext?.recordEditMode) { // edit mode
           pr = new Record(recordContext?.currentRecord);
           pr.description = data.note;
+          pr.transcription = transcription;
           pr.attachments = uploadedAttachments;
           pr.updatedAt = getCurrentTS();
           pr.tags = tags ? tags.map((tag) => tag.text) : [];
@@ -167,12 +186,13 @@ export default function RecordForm({ folder }: { folder?: Folder }) {
           await assignAttachments(savedRecord);
         } else {  // add mode
 
-          if (uploadedAttachments.length == 0 && data.note !== "") {
+          if (uploadedAttachments.length == 0 && (data.note !== "" || transcription !== "")) {
             pr = new Record({ // only note no attachments
               folderId: folderContext?.currentFolder?.id as number,
               type: 'note',
               tags: tags ? tags.map((tag) => tag.text) : [],
               description: data.note,
+              transcription: transcription,
               updatedAt: getCurrentTS(),
               createdAt: getCurrentTS()
             } as Record)
@@ -242,7 +262,7 @@ export default function RecordForm({ folder }: { folder?: Folder }) {
     } }}>
       <CredenzaTrigger asChild>
         <Button variant="outline" size="icon">
-          <PlusIcon className="w-6 h-6" />
+          {mode === RecordEditMode.VoiceRecorder ? (<MicIcon className="w-6 h-6" />) : (<PlusIcon className="w-6 h-6" />)}
         </Button>
       </CredenzaTrigger>
       <CredenzaContent className="sm:max-w-[600px] bg-white dark:bg-zinc-950">
@@ -251,6 +271,9 @@ export default function RecordForm({ folder }: { folder?: Folder }) {
         </CredenzaHeader>
         <div className="mb-6 bg-white dark:bg-zinc-900 p-4 rounded-lg shadow-sm">
           <form onSubmit={handleSubmit(onSubmit)}>
+            { mode === RecordEditMode.VoiceRecorder ? (<VoiceRecorder chatGptKey={chatGptApiKey} onTranscriptionChange={(trs) => {
+              setTranscription(trs);
+            }} />) : null }
             {recordContext?.currentRecord ? (
               <div>
                 <div className="flex items-center gap-4 resize-x">

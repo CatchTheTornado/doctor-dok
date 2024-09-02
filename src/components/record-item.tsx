@@ -135,7 +135,7 @@ export default function RecordItem({ record, displayAttachmentPreviews }: { reco
         <div className="text-xs text-zinc-500 dark:text-zinc-400">{record.createdAt}</div>
       </div>
       <Tabs defaultValue="text" className="w-full text-sm">
-        {(record.json || record.extra) ? (
+        {(record.json || record.extra || record.transcription) ? (
           <TabsList className="grid grid-cols-2 gap-2">
             <TabsTrigger value="text" className="dark:data-[state=active]:bg-zinc-900 data-[state=active]:bg-zinc-100 rounded-md p-2">Basic view</TabsTrigger>
             <TabsTrigger value="json" className="dark:data-[state=active]:bg-zinc-900 data-[state=active]:bg-zinc-100 rounded-md p-2">Detailed view</TabsTrigger>
@@ -199,6 +199,16 @@ export default function RecordItem({ record, displayAttachmentPreviews }: { reco
             <div className="mt-2 flex flex-wrap items-center gap-2 w-100">
               <RecordItemJson record={record} />
               <RecordItemExtra record={record} />
+              {record.transcription ? (
+                <Accordion type="single" collapsible className="w-full">
+                  <AccordionItem value="item-1">
+                    <AccordionTrigger>Transcription</AccordionTrigger>
+                    <AccordionContent>
+                      {record.transcription}
+                    </AccordionContent>
+                  </AccordionItem>
+                </Accordion>
+              ) : null}
             </div>
           </TabsContent>
 
@@ -212,7 +222,7 @@ export default function RecordItem({ record, displayAttachmentPreviews }: { reco
         <Button size="icon" variant="ghost" title="Add attachments">
           <PaperclipIcon className="w-4 h-4"  onClick={() => { if(record.parseInProgress) { toast.info('Please wait until record is successfully parsed') } else {   recordContext?.setCurrentRecord(record);  recordContext?.setRecordEditMode(true);}  }} />
         </Button>
-        {(record.attachments && record.attachments.length > 0) ? (
+        {(record.attachments && record.attachments.length > 0 || record.transcription) ? (
         <Button size="icon" variant="ghost" title="Convert to structural data">
           {(record.parseInProgress) ? (
             <div className="cursor-pointer" onClick={(e) => chatContext.setChatOpen(true) }><DataLoader /></div>

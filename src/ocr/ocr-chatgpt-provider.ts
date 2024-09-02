@@ -18,7 +18,7 @@ export async function parse(record: Record, chatContext: ChatContextType, config
                 // visibility: MessageVisibility.ProgressWhileStreaming,
                 createdAt: new Date(),
                 type: MessageType.Parse,
-                content: prompts.recordParseMultimodal({ record, config: configContext }),
+                content: record.transcription ? prompts.recordParseMultimodalTranscription({ record, config: configContext }) :  prompts.recordParseMultimodal({ record, config: configContext }),
                 experimental_attachments: sourceImages
             },
             onResult: async (resultMessage, result) => {

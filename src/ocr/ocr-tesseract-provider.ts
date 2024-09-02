@@ -59,7 +59,7 @@ export async function parse(record: Record, chatContext: ChatContextType, config
                     createdAt: new Date(),
                     type: MessageType.Parse,
                     // visibility: MessageVisibility.ProgressWhileStreaming,
-                    content: prompts.recordParseOCR({ record, config: configContext }, text)
+                    content: record.transcription ? prompts.recordParseOCRTranscription({ record, config: configContext }, text) : prompts.recordParseOCR({ record, config: configContext }, text)
                 },
                 onResult: async (resultMessage, result) => {
                     if (result.finishReason !== 'error') {

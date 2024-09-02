@@ -17,7 +17,8 @@ import { ConfigContext } from "@/contexts/config-context";
 import { ChatContext } from "@/contexts/chat-context";
 import { RecordContext } from "@/contexts/record-context";
 import { useEffectOnce } from "react-use";
-import StatsPopup from "./stats-popup";
+import StatsPopup from "@/components/stats-popup";
+import { RecordEditMode } from "@/components/record-form";
 
 export default function TopHeader() {
     const folderContext = useContext(FolderContext);
@@ -42,7 +43,10 @@ export default function TopHeader() {
         <div className="flex items-center gap-2">
           <FolderListPopup />
           {(folderContext?.currentFolder !== null) ? (
-            <RecordForm folder={folderContext?.currentFolder} />
+            <RecordForm mode={RecordEditMode.Classic} folder={folderContext?.currentFolder} />
+          ) : ("")}
+          {(folderContext?.currentFolder !== null) ? (
+            <RecordForm mode={RecordEditMode.VoiceRecorder} folder={folderContext?.currentFolder} />
           ) : ("")}
           {(folderContext?.currentFolder !== null) ? (
             <Chat />

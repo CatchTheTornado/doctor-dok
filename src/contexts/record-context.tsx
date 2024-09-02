@@ -450,7 +450,7 @@ export const RecordContextProvider: React.FC<PropsWithChildren> = ({ children })
       }      
     
       const parseRecord = async (newRecord: Record)=> {
-        if (!parseQueue.find(pr => pr.id === newRecord.id) && newRecord.attachments.length > 0) {
+        if (!parseQueue.find(pr => pr.id === newRecord.id) && (newRecord.attachments.length > 0 || newRecord.transcription)) {
           parseQueue.push(newRecord)
           parseQueueLength = parseQueue.length
           console.log('Added to parse queue: ', parseQueue.length);

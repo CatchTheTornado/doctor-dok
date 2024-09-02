@@ -40,6 +40,8 @@ export const records = sqliteTable('records', {
     json: text('json', { mode: 'json' }),
     text: text('text'),
 
+    transcription: text('transcription'),
+
     checksum: text('checksum'),
     checksumLastParsed: text('checksumLastParsed'),
 

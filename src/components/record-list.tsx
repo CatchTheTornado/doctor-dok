@@ -65,7 +65,7 @@ export default function RecordList({ folder }: {folder: Folder}) {
                <div className="flex flex-wrap items-center gap-1 w-full ">
                 { recordContext?.filterAvailableTags && recordContext?.filterAvailableTags.length > 0 ? (
                   <RecordsFilter />
-                ) : (<div className="text-xs">Loading records...</div>) }
+                ) : (recordContext?.loaderStatus!=='error' ? (<div className="text-sm">Loading records...</div>) : null) }
 
                   {recordContext?.filterSelectedTags.map((tag, index) => (
                     <div key={index} className="text-sm inline-flex w-auto"><Button className="h-10" variant={recordContext.filterSelectedTags.includes(tag) ? 'default' : 'secondary' } onClick={() => { 
