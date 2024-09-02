@@ -7,14 +7,11 @@ import { RecordContext } from "@/contexts/record-context";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "./ui/alert-dialog";
 import { MessageCircleIcon } from '@/components/chat'
 import Markdown from "react-markdown";
-import RecordItemJson from "./record-item-json";
 import { prompts } from "@/data/ai/prompts";
 import remarkGfm from 'remark-gfm'
 import { Accordion, AccordionTrigger, AccordionContent, AccordionItem } from "./ui/accordion";
 import styles from './record-item.module.css'
-import ZoomableImage from './zoomable-image';
 import { labels } from '@/data/ai/labels';
-import RecordItemExtra from './record-item-extra';
 import DataLoader from './data-loader';
 import RecordItemCommands from "@/components/record-item-commands";
 import { FolderContext } from "@/contexts/folder-context";
@@ -24,7 +21,23 @@ import { toast } from "sonner";
 import { DatabaseContext } from "@/contexts/db-context";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@radix-ui/react-tabs";
 import { DotsHorizontalIcon } from "@radix-ui/react-icons";
+import ZoomableImage from './zoomable-image';
+
+//import RecordItemJson from "@/components/record-item-json";
+//import RecordItemExtra from '@/components/record-item-extra';
+
+
 import removeMd from 'remove-markdown';
+import dynamic from 'next/dynamic'
+const RecordItemJson = dynamic(() =>
+  import('@/components/record-item-json').then((mod) => mod.default),
+  {
+    loading: () => <div className="text-xs">Loading...</div>,
+  }
+)
+const RecordItemExtra = dynamic(() =>
+  import('@/components/record-item-extra').then((mod) => mod.default)
+)
 
 
 export default function RecordItem({ record, displayAttachmentPreviews }: { record: Record, displayAttachmentPreviews: boolean }) {
