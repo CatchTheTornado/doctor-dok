@@ -45,7 +45,7 @@ export function AuthorizePopup({ autoLoginInProgress }: { autoLoginInProgress: b
             <Card>
               <CardHeader>
                 <CardDescription>
-                   Create New Encrypted Database. <strong>Please store your key</strong> in a safe place as it <strong>will not be recoverable</strong>.
+                   Create New Encrypted Database. <strong>Please store your Database Id and Key</strong> in a safe place as it <strong>will not be recoverable</strong>.
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-2">

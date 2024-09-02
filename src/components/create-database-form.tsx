@@ -16,6 +16,9 @@ import { KeyPrint } from "./key-print";
 import { pdf, Document, Page } from '@react-pdf/renderer';
 import { toast } from "sonner";
 import { Textarea } from "./ui/textarea";
+import Link from 'next/link';
+
+const termsUrl = process.env.NEXT_PUBLIC_TERMS_URL ?? '/content/terms';
 
 
 interface CreateDatabaseFormProps {
@@ -26,7 +29,8 @@ export function CreateDatabaseForm({
   const { register, setValue, getValues, handleSubmit, formState: { errors } } = useForm({
     defaultValues: {
       databaseId: '',
-      key: generateEncryptionKey()
+      key: generateEncryptionKey(),
+      acceptTerms: false
     }
   });
 
@@ -126,7 +130,7 @@ export function CreateDatabaseForm({
           />
           {errors.databaseId && <span className="text-red-500 text-sm">Database Id must be at least 6 letters and/or digits and unique</span>}
           <p className="text-sm text-zinc-500 dark:text-zinc-400">
-              Please pick a unique database id. We do not store this name. It could be your Personal ID if you like or any other unique name, at least 6 letters or digits.
+              Please pick a unique Database Id (eg. You Personal ID). We do not store this name. At least 6 letters or digits.
           </p>        
 
         </div>
@@ -202,6 +206,23 @@ export function CreateDatabaseForm({
               Please save or print this master key. <strong>It&apos;s like crypto wallet.</strong> After losing it your medical records <strong className="text-red-500">WILL BE LOST FOREVER</strong>.
               We&apos;re using strong AES256 end-to-end encryption.
           </p>        
+        </div>
+        <div className="text-sm justify-between gap-4 mt-4">
+          <Checkbox
+            className="mr-2"
+            id="acceptTerms"
+            value="true"
+            onCheckedChange={ (e) => setValue("acceptTerms", !!e)}
+            {...register("acceptTerms", { 
+              validate: {
+                acceptTerms: (value) => value === true
+              }
+            })}             
+             />
+          <Label htmlFor="acceptTerms">
+            I hereby accept Doctor Dok <Link className="underline hover:text-blue-500" href={termsUrl}>Terms of Service and Privacy Policy</Link>.
+          </Label>
+          {errors.acceptTerms && <p className="text-red-500 text-sm">Please read and accept terms of service and privacy policy.</p>}
         </div>
         <div className="flex items-center justify-between gap-4 mt-4">
           <NoSSR>

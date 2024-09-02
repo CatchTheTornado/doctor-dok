@@ -15,6 +15,9 @@ import { toast } from "sonner";
 import { redirect, RedirectType } from "next/navigation";
 import { useRouter } from "next/navigation";
 import { useEffectOnce } from "react-use";
+import Link from "next/link";
+
+const termsUrl = process.env.NEXT_PUBLIC_TERMS_URL ?? '/content/terms';
 
 interface AuthorizeDatabaseFormProps {
 }
@@ -119,6 +122,11 @@ export function AuthorizeDatabaseForm({
                 </div>
         {errors.key && <span className="text-red-500 text-sm">Key must be at least 8 characters length including digits, alpha, lower and upper letters.</span>}
         </div>
+        {termsUrl ? (
+          <div className="items-center justify-between gap-4 mt-4 text-sm">
+            By opening the database You accept Doctor Dok <Link className="underline hover:text-blue-500" href={termsUrl}>Terms of Service and Privacy Policy</Link>.
+          </div>
+        ) : null}
         <div className="flex items-center justify-between gap-4 mt-4">
             <NoSSR>
               <div className="flex items-center gap-2">

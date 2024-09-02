@@ -12,6 +12,8 @@ import { DatabaseContext } from "@/contexts/db-context";
 import { DatabaseAuthStatus } from "@/data/client/models";
 import { Button } from "./ui/button";
 import { useDocumentVisibility } from "@/hooks/use-document-visibility";
+import Link from 'next/link'; // Add this import
+const termsUrl = process.env.NEXT_PUBLIC_TERMS_URL ?? '/content/terms';
 
 export default function RecordsWrapper({}) {
   const folderContext = useContext(FolderContext);
@@ -48,6 +50,9 @@ export default function RecordsWrapper({}) {
           <div className="flex items-center">Please do select current folder using the <FoldersIcon className="flex ml-4 mr-4" /> icon above.</div>
         </NoRecordsAlert>          
         ) }
+      </div>
+      <div className="items-center justify-between gap-4 mt-4 text-sm text-center p-6">
+        By using the application You accept Doctor Dok <Link className="underline hover:text-blue-500" href={termsUrl}>Terms of Service and Privacy Policy</Link>.
       </div>
     </div>
   )
