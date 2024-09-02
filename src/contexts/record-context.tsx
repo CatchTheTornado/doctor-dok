@@ -19,6 +19,7 @@ import { parse as tesseractParseRecord } from '@/ocr/ocr-tesseract-provider';
 import { FolderContext } from './folder-context';
 import { findCodeBlocks, getCurrentTS } from '@/lib/utils';
 import { parse } from 'path';
+import { CreateMessage, Message } from 'ai/react';
 import { sha256 } from '@/lib/crypto';
 import { jsonrepair } from 'jsonrepair'
 import { GPTTokens } from 'gpt-tokens'
@@ -41,6 +42,7 @@ export enum URLType {
 
 export type RecordContextType = {
     records: Record[];
+    filteredRecords: Record[];
     recordEditMode: boolean;
     parseQueueLength: number;
     setRecordEditMode: (editMode: boolean) => void;
@@ -79,6 +81,7 @@ export const RecordContext = createContext<RecordContextType | null>(null);
 export const RecordContextProvider: React.FC<PropsWithChildren> = ({ children }) => {
     const [recordEditMode, setRecordEditMode] = useState<boolean>(false);
     const [records, setRecords] = useState<Record[]>([]);
+    const [filteredRecords, setFilteredRecords] = useState<Record[]>([]);
     const [loaderStatus, setLoaderStatus] = useState<DataLoadingStatus>(DataLoadingStatus.Loading);
     const [operationStatus, setOperationStatus] = useState<DataLoadingStatus>(DataLoadingStatus.Loading);
     const [currentRecord, setCurrentRecord] = useState<Record | null>(null); // new state
@@ -86,9 +89,17 @@ export const RecordContextProvider: React.FC<PropsWithChildren> = ({ children })
     const [filterSelectedTags, setFilterSelectedTags] = useState<string[]>([]);
     const [filtersOpen, setFiltersOpen] = useState<boolean>(false);
     const [sortBy, setSortBy] = useState<string>('createdAt desc');
-    useEffect(() => {
-    }, []);
+    
+    
+    useEffect(() => { // filter records when tags change
+      console.log('Selected tags', filterSelectedTags);
 
+      setFilteredRecords(records.filter(record => { // using AND operand (every), if we want to have OR then we should do (some)
+        return record.tags ? filterSelectedTags.every(tag => record.tags && record.tags.includes(tag)) : false;
+      }));
+    }, [filterSelectedTags, records]);
+
+    
     const config = useContext(ConfigContext);
     const dbContext = useContext(DatabaseContext)
     const chatContext = useContext(ChatContext);
@@ -226,29 +237,21 @@ export const RecordContextProvider: React.FC<PropsWithChildren> = ({ children })
             const response = await client.get(forFolder.toDTO());
             const fetchedRecords = response.map((recordDTO: RecordDTO) => Record.fromDTO(recordDTO));
 
-            if (filterSelectedTags.length === 0) { // only when full list
-              const fetchedTags = fetchedRecords.reduce((tags: FilterTag[], record: Record) => {
-                const uniqueTags = record.tags && record.tags.length > 0 ? record.tags : []; //.filter(tag => !tags.some(t => t.tag === tag)) : [];
-                uniqueTags.forEach(tag => {
-                const existingTag = tags.find(t => t.tag === tag);
-                if (existingTag) {
-                  existingTag.freq++;
-                } else {
-                  tags.push({ tag, freq: 1 });
-                }
-                });
-                return tags;
-              }, []);
-
-              setFilterAvailableTags(fetchedTags);
-              setRecords(fetchedRecords);
-            } else {
-              console.log('Selected tags', filterSelectedTags);
-              const filteredRecords = fetchedRecords.filter(record => { // filtering
-                return record.tags ? record.tags.some(tag => filterSelectedTags.includes(tag)) : false;
+            const fetchedTags = fetchedRecords.reduce((tags: FilterTag[], record: Record) => {
+              const uniqueTags = record.tags && record.tags.length > 0 ? record.tags : []; //.filter(tag => !tags.some(t => t.tag === tag)) : [];
+              uniqueTags.forEach(tag => {
+              const existingTag = tags.find(t => t.tag === tag);
+              if (existingTag) {
+                existingTag.freq++;
+              } else {
+                tags.push({ tag, freq: 1 });
+              }
               });
-              setRecords(filteredRecords);
-            }
+              return tags;
+            }, []);
+
+            setFilterAvailableTags(fetchedTags);
+            setRecords(fetchedRecords);
             setLoaderStatus(DataLoadingStatus.Success);
             return fetchedRecords;
         } catch (error) {
@@ -460,13 +463,13 @@ export const RecordContextProvider: React.FC<PropsWithChildren> = ({ children })
           // chatContext.setChatOpen(true);
           if (records.length > 0) {
             const msgs:CreateMessageEx[] = [{
-              role: 'user',
+              role: 'user' as Message['role'],
               //createdAt: new Date(),
               visibility: MessageVisibility.Hidden, // we don't show folder records context
               content: prompts.recordsToChat({ records, config }),
             }, ...records.map((record) => {
               return {
-                role: 'user',
+                role: 'user' as Message['role'],
                 visibility: MessageVisibility.Hidden, // we don't show folder records context
                 //createdAt: new Date(),
                 content: prompts.recordIntoChatSimplified({ record })
@@ -482,7 +485,7 @@ export const RecordContextProvider: React.FC<PropsWithChildren> = ({ children })
 
             const preUsage = new GPTTokens({
               model   : 'gpt-4o',
-              messages: msgs
+              messages: msgs as GPTTokens["messages"]
             });
 
             console.log('Context msg tokens', preUsage.usedTokens, preUsage.usedUSD);
@@ -521,6 +524,7 @@ export const RecordContextProvider: React.FC<PropsWithChildren> = ({ children })
         <RecordContext.Provider
             value={{
                  records, 
+                 filteredRecords,
                  parseQueueLength,
                  updateRecordFromText,
                  updateRecord, 

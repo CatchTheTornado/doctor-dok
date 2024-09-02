@@ -85,7 +85,7 @@ export default function RecordList({ folder }: {folder: Folder}) {
 
             </div>
 
-            {sort(recordContext?.records ?? []).by(getSortBy(recordContext?.sortBy ?? 'createdAt desc')).map((record, index) => (
+            {sort(recordContext?.filteredRecords ?? []).by(getSortBy(recordContext?.sortBy ?? 'createdAt desc')).map((record, index) => (
               <RecordItem key={index} record={record} displayAttachmentPreviews={displayAttachmentPreviews} />
             ))}
           </div>
