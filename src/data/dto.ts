@@ -90,7 +90,7 @@ export const recordDTOSchema = z.object({
   attachments: z.string().optional().nullable()
 });
 
-export const RecordDTOEncSettings = { ecnryptedFields: ['description', 'type', 'json', 'extra', 'text', 'attachments'] }
+export const RecordDTOEncSettings = { ecnryptedFields: ['description', 'type', 'json', 'extra', 'text', 'attachments', 'title', 'tags'] }
 export type RecordDTO = z.infer<typeof recordDTOSchema>;
 
 
