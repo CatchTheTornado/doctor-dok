@@ -25,7 +25,7 @@ export default function RecordsWrapper({}) {
       //if (documentVisible) {
         recordContext?.listRecords(folderContext?.currentFolder);
       //}
-    };
+    }; // eslint-disable-next-line    
   }, [folderContext?.currentFolder, folderContext/*, documentVisible*/]);
     
   return (
