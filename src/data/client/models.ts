@@ -227,12 +227,12 @@ export class Record {
     }
 
     async updateChecksum(): Promise<void> {
-        this.checksum = await this.attachmentsKey();
+        this.checksum = await this.attachmentsKey() + await sha256(this.transcription ? this.transcription : '', 'transcription');
         console.log('Checksum updated ', this.id, this.checksum);
     }
     async updateChecksumLastParsed(): Promise<void> {
-        this.checksum = await this.attachmentsKey();
-        this.checksumLastParsed = await this.attachmentsKey();
+        this.checksum = await this.attachmentsKey()  + await sha256(this.transcription ? this.transcription : '', 'transcription');
+        this.checksumLastParsed = await this.attachmentsKey() + await sha256(this.transcription ? this.transcription : '', 'transcription');
         console.log('Checksum last parsed updated ', this.id, this.checksumLastParsed);
     }
   

@@ -107,6 +107,7 @@ export default function RecordForm({ folder, mode }: { folder?: Folder, mode?: R
       setTags(recordContext?.currentRecord?.tags?.map((tag) => {
         return {text: tag, id: tag, label: tag, value: tag}
       }) as Tag[]);
+      setTranscription(recordContext?.currentRecord?.transcription as string);
       setValue("note", recordContext?.currentRecord?.description as string);
       let existingFiles:UploadedFile[] = []
       if (recordContext?.currentRecord) {
@@ -273,7 +274,7 @@ export default function RecordForm({ folder, mode }: { folder?: Folder, mode?: R
         </CredenzaHeader>
         <div className="mb-6 bg-white dark:bg-zinc-900 p-4 rounded-lg shadow-sm">
           <form onSubmit={handleSubmit(onSubmit)}>
-            { mode === RecordEditMode.VoiceRecorder && ((recordContext?.recordEditMode && recordContext?.currentRecord?.transcription || !recordContext?.recordEditMode)) ? (<VoiceRecorder chatGptKey={chatGptApiKey} onTranscriptionChange={(trs) => {
+            { mode === RecordEditMode.VoiceRecorder && ((recordContext?.recordEditMode && recordContext?.currentRecord?.transcription || !recordContext?.recordEditMode)) ? (<VoiceRecorder prevTranscription={transcription} chatGptKey={chatGptApiKey} onTranscriptionChange={(trs) => {
               setTranscription(trs);
             }} />) : null }
             {recordContext?.currentRecord ? (

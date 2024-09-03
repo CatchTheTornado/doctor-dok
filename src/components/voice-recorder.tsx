@@ -9,9 +9,11 @@ import { StopIcon } from '@radix-ui/react-icons'
 
 const VoiceRecorder: React.FC<PropsWithChildren<{
     chatGptKey: string,
+    prevTranscription: string,
     onTranscriptionChange: (transcription: string) => void
-}>> = ({ children, chatGptKey, onTranscriptionChange }) => {
-    const [transcription, setTranscription] = useState('Click "Start Recording" to begin transcription ...');
+}>> = ({ children, chatGptKey, onTranscriptionChange, prevTranscription }) => {
+    const [previousTranscription, setPrevTranscription] = useState(prevTranscription);
+    const [transcription, setTranscription] = useState(prevTranscription ? prevTranscription : 'Click "Start Recording" to begin transcription ...');
     const [language, setLanguage] = useState('en');
     const {
         recording,
@@ -29,17 +31,16 @@ const VoiceRecorder: React.FC<PropsWithChildren<{
         streaming: true,       
         whisperConfig: {
             language,
-            prompt: 'conversation about health, medical topics - maybe between doctor and patient',
+            prompt: prevTranscription ? prevTranscription : 'conversation about health, medical topics - maybe between doctor and patient',
             temperature: 0.8
         },
         mode: 'transcriptions'
     });
 
     useEffect(() => {
-        if (transcript.text) {
-            onTranscriptionChange(transcript.text);
-        }
-        setTranscription(transcript.text as string);
+        const newTranscription = previousTranscription + ' ' + (transcript && transcript.text ? transcript.text as string : '');
+        setTranscription(newTranscription);
+        onTranscriptionChange(newTranscription);
     }, [transcript.text]);
 
     const languageNames = {
@@ -90,8 +91,7 @@ const VoiceRecorder: React.FC<PropsWithChildren<{
                 <Button disabled={!recording} onClick={(e) => { e.preventDefault(); stopRecording(); }}><StopIcon className="w-6 h-6"/> Stop</Button>
             </div>
             <div className="pt-4 pb-4">
-                <p>Transcription:</p>
-                <textarea onChange={(e) => { e.target.scrollTop = e.target.scrollHeight }} className="w-full rounded-md h-32 border-dashed border-2 border-gray-500" value={transcription} readOnly></textarea>
+                <textarea onChange={(e) => { setTranscription(e.target.value); onTranscriptionChange(e.target.value); e.target.scrollTop = e.target.scrollHeight }} className="w-full rounded-md h-32 border-dashed border-2 border-gray-500" value={transcription}></textarea>
             </div>
         </div>
     );
