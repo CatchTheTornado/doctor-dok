@@ -79,7 +79,7 @@ export default function RecordList({ folder }: {folder: Folder}) {
                           recordContext?.filterToggleTag(tag.year);
                         }
                       }
-                      }><CalendarIcon className="w-4 h-4 mr-2" /> {tag.year} {recordContext.filterSelectedTags.includes(tag.year) ? (<XCircleIcon className="w-4 h-4 ml-2" />) : null }</Button></div>
+                      }><CalendarIcon className="w-4 h-4 mr-2" /> {tag.year} ({tag.freq}) {recordContext.filterSelectedTags.includes(tag.year) ? (<XCircleIcon className="w-4 h-4 ml-2" />) : null }</Button></div>
                     ))
                   ) : ''}
 

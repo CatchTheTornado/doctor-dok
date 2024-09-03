@@ -90,7 +90,7 @@ export const RecordContextProvider: React.FC<PropsWithChildren> = ({ children })
     const [filterAvailableTags, setFilterAvailableTags] = useState<FilterTag[]>([]);
     const [filterSelectedTags, setFilterSelectedTags] = useState<string[]>([]);
     const [filtersOpen, setFiltersOpen] = useState<boolean>(false);
-    const [sortBy, setSortBy] = useState<string>('createdAt desc');
+    const [sortBy, setSortBy] = useState<string>('eventDate desc');
     
     
     useEffect(() => { // filter records when tags change
@@ -214,7 +214,7 @@ export const RecordContextProvider: React.FC<PropsWithChildren> = ({ children })
                       recordMarkdown += block.code;
                   }
               }
-              const discoveredEventDate = getTS(recordJSON.length > 0 ? recordJSON.find(item => item.test_date)?.test_date || recordJSON.find(item => item.admission_date)?.admission_date : record?.createdAt);
+              const discoveredEventDate = getTS(new Date(recordJSON.length > 0 ? recordJSON.find(item => item.test_date)?.test_date || recordJSON.find(item => item.admission_date)?.admission_date : record?.createdAt));
               const discoveredType = recordJSON.length > 0 ? recordJSON.map(item => item.subtype ? item.subtype : item.type).join(", ") : 'note';
               if (record) {
                   record = new Record({ ...record, json: recordJSON, text: recordMarkdown, type: discoveredType, eventDate: discoveredEventDate } as Record);
