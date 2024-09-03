@@ -17,7 +17,7 @@ import { prompts } from "@/data/ai/prompts";
 import { parse as chatgptParseRecord } from '@/ocr/ocr-chatgpt-provider';
 import { parse as tesseractParseRecord } from '@/ocr/ocr-tesseract-provider';
 import { FolderContext } from './folder-context';
-import { findCodeBlocks, getCurrentTS } from '@/lib/utils';
+import { findCodeBlocks, getCurrentTS, getTS } from '@/lib/utils';
 import { parse } from 'path';
 import { CreateMessage, Message } from 'ai/react';
 import { sha256 } from '@/lib/crypto';
@@ -74,6 +74,8 @@ export type RecordContextType = {
 
     sortBy: string;
     setSortBy: (sortBy: string) => void;
+
+    getTagsTimeline: () => { year: string, freq: number }[];
 }
 
 export const RecordContext = createContext<RecordContextType | null>(null);
@@ -117,6 +119,32 @@ export const RecordContextProvider: React.FC<PropsWithChildren> = ({ children })
       }
     }
 
+    const getTagsTimeline = (): { year: string, freq: number }[] => {
+        const uniqueYears: { [year: string]: number } = {};
+
+        records.forEach(record => {
+          if (record.tags) {
+            record.tags.forEach(tag => {
+              const year = parseInt(tag);
+              if (!isNaN(year) && year >= 1900) {
+                if (uniqueYears[tag]) {
+                  uniqueYears[tag]++;
+                } else {
+                  uniqueYears[tag] = 1;
+                }
+              }
+            });
+          }
+        });
+
+        const timeline = Object.entries(uniqueYears).map(([year, freq]) => ({
+          year,
+          freq
+        }));
+
+        return timeline;
+    }
+
     const updateRecord = async (record: Record): Promise<Record> => {
         try {
             const client = await setupApiClient(config);
@@ -139,7 +167,7 @@ export const RecordContextProvider: React.FC<PropsWithChildren> = ({ children })
                 record.tags = uniqueTags;
               }
             }
-
+            if (!record.eventDate) record.eventDate = record.createdAt; // backward compatibility
 
             const recordDTO = record.toDTO(); // DTOs are common ground between client and server
             const response = await client.put(recordDTO);
@@ -186,13 +214,14 @@ export const RecordContextProvider: React.FC<PropsWithChildren> = ({ children })
                       recordMarkdown += block.code;
                   }
               }
+              const discoveredEventDate = getTS(recordJSON.length > 0 ? recordJSON.find(item => item.test_date)?.test_date || recordJSON.find(item => item.admission_date)?.admission_date : record?.createdAt);
               const discoveredType = recordJSON.length > 0 ? recordJSON.map(item => item.subtype ? item.subtype : item.type).join(", ") : 'note';
               if (record) {
-                  record = new Record({ ...record, json: recordJSON, text: recordMarkdown, type: discoveredType } as Record);
+                  record = new Record({ ...record, json: recordJSON, text: recordMarkdown, type: discoveredType, eventDate: discoveredEventDate } as Record);
                   updateRecord(record);
               } else {
                   if (allowNewRecord && folderContext?.currentFolder?.id) { // create new folder Record
-                    record = new Record({ folderId: folderContext?.currentFolder?.id, type: discoveredType, createdAt: getCurrentTS(), updatedAt: getCurrentTS(), json: recordJSON, text: recordMarkdown } as Record);
+                    record = new Record({ folderId: folderContext?.currentFolder?.id, type: discoveredType, createdAt: getCurrentTS(), updatedAt: getCurrentTS(), json: recordJSON, text: recordMarkdown, eventDate: discoveredEventDate } as Record);
                     updateRecord(record);
                   }
               }
@@ -550,8 +579,9 @@ export const RecordContextProvider: React.FC<PropsWithChildren> = ({ children })
                  filterToggleTag,
                  filtersOpen,
                  setFiltersOpen,
-                sortBy,
-                setSortBy
+                 sortBy,
+                 setSortBy,
+                 getTagsTimeline
                 }}
         >
             {children}

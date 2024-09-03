@@ -2,7 +2,7 @@ import { Button } from "@/components/ui/button";
 import { PaperclipIcon, Trash2Icon } from "./icons";
 import { DisplayableDataObject, Record } from "@/data/client/models";
 import { useContext, useEffect, useRef, useState } from "react";
-import { PencilIcon, TagIcon, Wand2Icon, XCircleIcon } from "lucide-react";
+import { CalendarIcon, PencilIcon, TagIcon, Wand2Icon, XCircleIcon } from "lucide-react";
 import { RecordContext } from "@/contexts/record-context";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "./ui/alert-dialog";
 import { MessageCircleIcon } from '@/components/chat'
@@ -132,7 +132,7 @@ export default function RecordItem({ record, displayAttachmentPreviews }: { reco
             <div className="text-xs text-zinc-500 dark:text-zinc-400 font-medium">{record.parseInProgress ? 'Parsing record in progres...' : 'Record uploaded, no additional data.' }</div>
           ) 
         )}
-        <div className="text-xs text-zinc-500 dark:text-zinc-400">{record.createdAt}</div>
+        <div className="text-xs text-zinc-500 dark:text-zinc-400 flex"><CalendarIcon className="w-4 h-4" /> {record.eventDate ? record.eventDate : record.createdAt}</div>
       </div>
       <Tabs defaultValue="text" className="w-full text-sm">
         {(record.json || record.extra || record.transcription) ? (

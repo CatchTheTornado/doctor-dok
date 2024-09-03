@@ -163,6 +163,7 @@ export class Record {
     text?: string;
     extra?: RecordExtra[] | null;
     transcription?: string;
+    eventDate: string;
     createdAt: string;
     updatedAt: string;
     attachments: EncryptedAttachment[] = [];
@@ -201,6 +202,7 @@ export class Record {
      } else {
         this.extra = recordSource.extra ? (typeof recordSource.extra === 'string' ? JSON.parse(recordSource.extra) : recordSource.extra) : null;
      }
+      this.eventDate = recordSource.eventDate;
       this.createdAt = recordSource.createdAt;
       this.updatedAt = recordSource.updatedAt;
       if(recordSource instanceof Record) {
@@ -250,6 +252,7 @@ export class Record {
         transcription: this.transcription ? this.transcription : '',
         createdAt: this.createdAt,
         updatedAt: this.updatedAt,
+        eventDate: this.eventDate,
         checksum: this.checksum,
         checksumLastParsed: this.checksumLastParsed,
         attachments: JSON.stringify(this.attachments.map(attachment => attachment.toDTO()))

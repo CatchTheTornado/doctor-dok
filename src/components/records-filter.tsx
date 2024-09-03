@@ -41,8 +41,10 @@ export default function RecordsFilter({}) {
                 </SelectTrigger>
                     <SelectContent>
                         <SelectGroup>
-                            <SelectItem value="createdAt desc">Created desc</SelectItem>
-                            <SelectItem value="createdAt asc">Created asc</SelectItem>
+                          <SelectItem value="eventDate desc">Event date desc</SelectItem>
+                            <SelectItem value="eventDate asc">Event date asc</SelectItem>
+                            <SelectItem value="createdAt desc">Record created desc</SelectItem>
+                            <SelectItem value="createdAt asc">Record created asc</SelectItem>
                             <SelectItem value="updatedAt desc">Updated desc</SelectItem>
                             <SelectItem value="updatedAt asc">Updated asc</SelectItem>
                         </SelectGroup>

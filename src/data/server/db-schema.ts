@@ -48,6 +48,7 @@ export const records = sqliteTable('records', {
     extra: text('extra', { mode: 'json' }),
     attachments: text('attachments', { mode: 'json' }),
     
+    eventDate: text('eventDate').notNull().default(''),
     createdAt: text('updatedAt').notNull().default(sql`CURRENT_TIMESTAMP`),
     updatedAt: text('updatedAt').notNull().default(sql`CURRENT_TIMESTAMP`)
 });

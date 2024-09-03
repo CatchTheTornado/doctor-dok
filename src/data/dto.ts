@@ -84,6 +84,7 @@ export const recordDTOSchema = z.object({
   checksum: z.string().optional().nullable(),
   checksumLastParsed: z.string().optional().nullable(),
 
+  eventDate: z.string().default(() => getCurrentTS()),
   createdAt: z.string().default(() => getCurrentTS()),
   updatedAt: z.string().default(() => getCurrentTS()),
 

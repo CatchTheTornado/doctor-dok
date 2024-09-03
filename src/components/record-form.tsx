@@ -196,7 +196,8 @@ export default function RecordForm({ folder, mode }: { folder?: Folder, mode?: R
               description: data.note,
               transcription: transcription,
               updatedAt: getCurrentTS(),
-              createdAt: getCurrentTS()
+              createdAt: getCurrentTS(),
+              eventDate: getCurrentTS()
             } as Record)
             pr.updateChecksum();
             const savedRecord = await recordContext?.updateRecord(pr) as Record;
@@ -211,6 +212,7 @@ export default function RecordForm({ folder, mode }: { folder?: Folder, mode?: R
                 transcription: transcription,
                 updatedAt: getCurrentTS(),
                 createdAt: getCurrentTS(),
+                eventDate: getCurrentTS(),
                 attachments: [uploadedAttachment]
               } as Record)
               pr.updateChecksum();

@@ -8,7 +8,7 @@ import { Alert, AlertDescription, AlertTitle } from "./ui/alert";
 import { sort } from "fast-sort";
 import { useEffectOnce } from "react-use";
 import { ConfigContext } from "@/contexts/config-context";
-import { PlusIcon, TagIcon, XCircleIcon } from "lucide-react";
+import { CalendarIcon, PlusIcon, TagIcon, XCircleIcon } from "lucide-react";
 import { Button } from "./ui/button";
 import { record } from "zod";
 import { Folder } from "@/data/client/models";
@@ -17,6 +17,7 @@ import RecordsFilter from "./records-filter";
 export default function RecordList({ folder }: {folder: Folder}) {
   const recordContext = useContext(RecordContext);
   const folderContext = useContext(FolderContext);
+  const [tagsTimeline, setTagsTimeline] = useState<{year: string, freq: number }[]>([]);
   const [displayAttachmentPreviews, setDisplayAttachmentPreviews] = useState(false);
   const config = useContext(ConfigContext);
 
@@ -34,6 +35,10 @@ export default function RecordList({ folder }: {folder: Folder}) {
         return [{ asc: a => a[field] }];
     }
   }
+
+  useEffect(() => {
+    if (recordContext) setTagsTimeline(recordContext?.getTagsTimeline());
+  }, [recordContext?.records]);
 
   useEffectOnce(() => {
     config?.getServerConfig('displayAttachmentPreviews').then((value) => {
@@ -67,7 +72,18 @@ export default function RecordList({ folder }: {folder: Folder}) {
                   <RecordsFilter />
                 ) : (recordContext?.loaderStatus!=='error' ? (<div className="text-sm">Loading records...</div>) : null) }
 
-                  {recordContext?.filterSelectedTags.map((tag, index) => (
+                  {recordContext?.filterAvailableTags && recordContext?.filterAvailableTags.length > 0 ? (
+                    tagsTimeline.map((tag, index) => (
+                      <div key={index} className="text-sm inline-flex w-auto"><Button className="h-10" variant={recordContext.filterSelectedTags.includes(tag.year) ? 'default' : 'secondary' } onClick={() => { 
+                        if (folderContext?.currentFolder) {
+                          recordContext?.filterToggleTag(tag.year);
+                        }
+                      }
+                      }><CalendarIcon className="w-4 h-4 mr-2" /> {tag.year} {recordContext.filterSelectedTags.includes(tag.year) ? (<XCircleIcon className="w-4 h-4 ml-2" />) : null }</Button></div>
+                    ))
+                  ) : ''}
+
+                  {recordContext?.filterSelectedTags.filter(tg => !tagsTimeline.find(t => parseInt(t.year) === parseInt(tg))).map((tag, index) => (
                     <div key={index} className="text-sm inline-flex w-auto"><Button className="h-10" variant={recordContext.filterSelectedTags.includes(tag) ? 'default' : 'secondary' } onClick={() => { 
                       if (folderContext?.currentFolder) {
                         recordContext?.filterToggleTag(tag);
@@ -85,7 +101,7 @@ export default function RecordList({ folder }: {folder: Folder}) {
 
             </div>
 
-            {sort(recordContext?.filteredRecords ?? []).by(getSortBy(recordContext?.sortBy ?? 'createdAt desc')).map((record, index) => (
+            {sort(recordContext?.filteredRecords ?? []).by(getSortBy(recordContext?.sortBy ?? 'eventDate desc')).map((record, index) => (
               <RecordItem key={index} record={record} displayAttachmentPreviews={displayAttachmentPreviews} />
             ))}
           </div>
