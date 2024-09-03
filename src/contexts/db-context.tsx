@@ -72,6 +72,10 @@ export type DatabaseContextType = {
     keepLoggedIn: (kliReqest: DatabaseKeepLoggedInRequest) => Promise<AuthorizeDatabaseResult>;
 
     logout: () => void;
+
+    featureFlags: {
+        [key: string]: boolean
+    }
 }
 
 export const DatabaseContext = createContext<DatabaseContextType | null>(null);
@@ -81,6 +85,10 @@ export const DatabaseContextProvider: React.FC<PropsWithChildren> = ({ children 
     const [databaseId, setDatabaseId] = useState<string>('');
     const [masterKey, setMasterKey] = useState<string>('');
     const [encryptionKey, setEncryptionKey] = useState<string>('');
+
+    const [featureFlags, setFeatureFlags] = useState<{[key: string]: boolean}>({
+        voiceRecorder: !!process.env.NEXT_PUBLIC_FEATURE_VOICE_RECORDER
+    });
 
     const [acl, setACL] = useState<KeyACL|null>(null);
     const [databaseHashId, setDatabaseHashId] = useState<string>('');
@@ -336,7 +344,8 @@ export const DatabaseContextProvider: React.FC<PropsWithChildren> = ({ children 
         refresh,
         keepLoggedIn,
         acl,
-        setACL
+        setACL,
+        featureFlags
     };
 
     return (

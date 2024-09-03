@@ -2,9 +2,10 @@
 import { useWhisper } from '@chengsokdara/use-whisper'
 import { Button } from '@/components/ui/button'
 import { useState, useEffect, PropsWithChildren } from 'react'
-import { LoaderPinwheel } from 'lucide-react'
+import { LoaderPinwheel, Mic2Icon } from 'lucide-react'
 import { Select, SelectItem, SelectTrigger, SelectValue } from './ui/select'
 import { SelectContent, SelectGroup } from '@radix-ui/react-select'
+import { StopIcon } from '@radix-ui/react-icons'
 
 const VoiceRecorder: React.FC<PropsWithChildren<{
     chatGptKey: string,
@@ -85,8 +86,8 @@ const VoiceRecorder: React.FC<PropsWithChildren<{
                         <option key={code} value={code}>{name}</option>
                     ))}
                 </select>      
-                <Button disabled={recording} onClick={(e) => { e.preventDefault(); startRecording(); }}>Start Recording</Button>
-                <Button disabled={!recording} onClick={(e) => { e.preventDefault(); stopRecording(); }}>Stop Recording</Button>
+                <Button disabled={recording} onClick={(e) => { e.preventDefault(); startRecording(); }}><Mic2Icon className="w-6 h-6"/> Start</Button>
+                <Button disabled={!recording} onClick={(e) => { e.preventDefault(); stopRecording(); }}><StopIcon className="w-6 h-6"/> Stop</Button>
             </div>
             <div className="pt-4 pb-4">
                 <p>Transcription:</p>

@@ -26,6 +26,7 @@ import { ConfigContext } from "@/contexts/config-context";
 import { DatabaseContext } from "@/contexts/db-context";
 import { MicIcon } from "lucide-react"; // Add this import statement
 import dynamic from "next/dynamic";
+import { record } from "zod";
 
 const FileSvgDraw = () => {
   return (
@@ -272,7 +273,7 @@ export default function RecordForm({ folder, mode }: { folder?: Folder, mode?: R
         </CredenzaHeader>
         <div className="mb-6 bg-white dark:bg-zinc-900 p-4 rounded-lg shadow-sm">
           <form onSubmit={handleSubmit(onSubmit)}>
-            { mode === RecordEditMode.VoiceRecorder ? (<VoiceRecorder chatGptKey={chatGptApiKey} onTranscriptionChange={(trs) => {
+            { mode === RecordEditMode.VoiceRecorder && ((recordContext?.recordEditMode && recordContext?.currentRecord?.transcription || !recordContext?.recordEditMode)) ? (<VoiceRecorder chatGptKey={chatGptApiKey} onTranscriptionChange={(trs) => {
               setTranscription(trs);
             }} />) : null }
             {recordContext?.currentRecord ? (

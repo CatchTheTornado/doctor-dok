@@ -45,7 +45,7 @@ export default function TopHeader() {
           {(folderContext?.currentFolder !== null) ? (
             <RecordForm mode={RecordEditMode.Classic} folder={folderContext?.currentFolder} />
           ) : ("")}
-          {(folderContext?.currentFolder !== null) ? (
+          {(folderContext?.currentFolder !== null && (dbContext?.featureFlags.voiceRecorder)) ? (
             <RecordForm mode={RecordEditMode.VoiceRecorder} folder={folderContext?.currentFolder} />
           ) : ("")}
           {(folderContext?.currentFolder !== null) ? (
