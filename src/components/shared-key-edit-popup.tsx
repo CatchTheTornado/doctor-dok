@@ -29,7 +29,7 @@ export function SharedKeyEditPopup() {
   let randomKey = useRef<number>(getRandomSixDigit());
   const [apiResult, setApiResult] = useState<PutKeyResponse | null>(null);
   const [sharedKey, setSharedKey] = useState(randomKey.current.toString());
-  const [validFor, setValidFor] = useState("");
+  const [validFor, setValidFor] = useState("0");
 
   const {
     register,

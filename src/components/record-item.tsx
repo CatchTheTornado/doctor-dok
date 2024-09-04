@@ -264,6 +264,14 @@ export default function RecordItem({ record, displayAttachmentPreviews }: { reco
                     </AccordionItem>
                   </Accordion>
                 ) : null}
+                <div className="grid grid-cols-2 text-xs text-zinc-500">
+                  <div className="text-xs text-muted-foreground">Record ID</div>
+                  <div className="text-xs">{record.id}</div>
+                  <div className="text-xs text-muted-foreground">Created at:</div>
+                  <div className="text-xs">{record.createdAt}</div>
+                  <div className="text-xs text-muted-foreground">Updated at:</div>
+                  <div className="text-xs">{record.updatedAt}</div>
+                </div>
               </div>
             </TabsContent>
         </Tabs>

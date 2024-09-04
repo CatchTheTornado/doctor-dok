@@ -35,6 +35,7 @@ const ChatCommands: React.FC<Props> = ({ open, setOpen }) => {
                     chatContext.setTemplatePromptVisible(false);
                     chatContext.setChatCustomPromptVisible(true);
                     setOpen(false);
+                    chatContext.setChatOpen(true);
                   }}><TerminalIcon /> Enter your own question</CommandItem>
                 {Object.entries(promptTemplates).map(promptTpl => (
                     <CommandItem key={promptTpl[0]} className="text-xs" onSelect={(v) => {
@@ -42,6 +43,7 @@ const ChatCommands: React.FC<Props> = ({ open, setOpen }) => {
                         chatContext.setChatCustomPromptVisible(false);
                         chatContext.setTemplatePromptVisible(true);
                         setOpen(false);
+                        chatContext.setChatOpen(true);
                     }}><QuestionMarkIcon /> {promptTpl[1].label}</CommandItem>        
                  ))       
                 }

@@ -5,7 +5,7 @@ import RecordForm from "./record-form";
 import { FolderContext } from "@/contexts/folder-context";
 import { useContext, useEffect, useState } from "react";
 import { Chat } from "./chat";
-import { Edit3Icon, FolderIcon, FolderOpen, FoldersIcon, KeyIcon, LogOutIcon, MenuIcon, MenuSquareIcon, MessageCircleIcon, PlusIcon, SaveAllIcon, Settings2Icon, SettingsIcon, Share2Icon, UsersIcon } from "lucide-react";
+import { Edit3Icon, FolderIcon, FolderOpen, FoldersIcon, KeyIcon, LogOutIcon, MenuIcon, MenuSquareIcon, MessageCircleIcon, PlusIcon, SaveAllIcon, Settings2Icon, SettingsIcon, Share2Icon, UsersIcon, Wand2 } from "lucide-react";
 import { DatabaseContext } from "@/contexts/db-context";
 import { toast } from "sonner";
 import { useTheme } from 'next-themes';
@@ -19,6 +19,7 @@ import { RecordContext } from "@/contexts/record-context";
 import { useEffectOnce } from "react-use";
 import StatsPopup from "@/components/stats-popup";
 import { RecordEditMode } from "@/components/record-form";
+import ChatCommands from "@/components/chat-commands";
 
 export default function TopHeader() {
     const folderContext = useContext(FolderContext);
@@ -30,6 +31,7 @@ export default function TopHeader() {
     const { theme, systemTheme } = useTheme();
     const currentTheme = (theme === 'system' ? systemTheme : theme)
     const [commandDialogOpen, setCommandDialogOpen] = useState(false);
+    const [chatCommandsOpen, setChatCommandsOpen] = useState(false);
 
     useEffectOnce(() => {
       chatContext.checkApiConfig();
@@ -50,7 +52,15 @@ export default function TopHeader() {
           ) : ("")}
           {(folderContext?.currentFolder !== null) ? (
             <Chat />
-          ) : ("")}     
+          ) : ("")} 
+            {(folderContext?.currentFolder !== null) ? (
+            <Button variant="outline" size="icon" onClick={(e) => {
+              setChatCommandsOpen(true);
+            }}><Wand2 className="cursor-pointer w-6 h-6"/></Button>
+          ) : ("")}
+            <ChatCommands open={chatCommandsOpen} setOpen={setChatCommandsOpen} />
+
+
             <StatsPopup />
             {!dbContext?.acl || dbContext.acl.role === 'owner' ? (<SharedKeysPopup />) : null}
             {!dbContext?.acl || dbContext.acl.role === 'owner' ? (<SettingsPopup />) : null}
