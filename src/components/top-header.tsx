@@ -5,7 +5,7 @@ import RecordForm from "./record-form";
 import { FolderContext } from "@/contexts/folder-context";
 import { useContext, useEffect, useState } from "react";
 import { Chat } from "./chat";
-import { Edit3Icon, FoldersIcon, KeyIcon, LogOutIcon, MenuIcon, MenuSquareIcon, MessageCircleIcon, PlusIcon, Settings2Icon, SettingsIcon, Share2Icon, UsersIcon } from "lucide-react";
+import { Edit3Icon, FoldersIcon, KeyIcon, LogOutIcon, MenuIcon, MenuSquareIcon, MessageCircleIcon, PlusIcon, SaveAllIcon, Settings2Icon, SettingsIcon, Share2Icon, UsersIcon } from "lucide-react";
 import { DatabaseContext } from "@/contexts/db-context";
 import { toast } from "sonner";
 import { useTheme } from 'next-themes';
@@ -72,6 +72,10 @@ export default function TopHeader() {
 
                     {!dbContext?.acl || dbContext.acl.role === 'owner' ? (<CommandItem key="cmd-share" className="cursor-pointer text-xs" onSelect={(v) => { keyContext.setSharedKeysDialogOpen(true);  }}><Share2Icon className="w-6 h-6" />  Shared Keys</CommandItem>) : null}
                   </CommandGroup>
+                  <CommandGroup heading="Export & import">
+                    <CommandItem key="cmd-export" className="cursor-pointer text-xs" onSelect={(v) => { recordContext?.exportRecords(); }}><SaveAllIcon className="w-6 h-6" /> Export filtered records</CommandItem>
+                    {/* <CommandItem key="cmd-import" className="cursor-pointer text-xs" onSelect={(v) => { recordContext?.importRecords(); }}><UsersIcon className="w-6 h-6" /> Import records</CommandItem> */}
+                  </CommandGroup>                  
                   <CommandGroup heading="Security">
                     <CommandItem key="cmd-change-key" className="cursor-pointer text-xs" onSelect={(v) => { keyContext.setChangeEncryptionKeyDialogOpen(true);  }}><KeyIcon className="w-6 h-6" /> Change encryption key</CommandItem>
                     <CommandItem key="cmd-logout" className="cursor-pointer text-xs" onSelect={(v) => { dbContext?.logout(); }}><LogOutIcon className="w-6 h-6" /> Logout</CommandItem>

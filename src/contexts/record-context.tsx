@@ -17,12 +17,15 @@ import { prompts } from "@/data/ai/prompts";
 import { parse as chatgptParseRecord } from '@/ocr/ocr-chatgpt-provider';
 import { parse as tesseractParseRecord } from '@/ocr/ocr-tesseract-provider';
 import { FolderContext } from './folder-context';
-import { findCodeBlocks, getCurrentTS, getTS } from '@/lib/utils';
+import { findCodeBlocks, getCurrentTS, getErrorMessage, getTS } from '@/lib/utils';
 import { parse } from 'path';
 import { CreateMessage, Message } from 'ai/react';
 import { sha256 } from '@/lib/crypto';
 import { jsonrepair } from 'jsonrepair'
 import { GPTTokens } from 'gpt-tokens'
+import JSZip, { file } from 'jszip'
+import { saveAs } from 'file-saver';
+import filenamify from 'filenamify/browser';
 
 
 let parseQueueInProgress = false;
@@ -35,8 +38,9 @@ export type FilterTag = {
   freq: number; 
 }
 
-export enum URLType {
-    data = 'data',
+export enum AttachmentFormat {
+    dataUrl = 'dataUrl',
+    blobUrl = 'blobUrl',
     blob = 'blob'
   }
 
@@ -55,7 +59,7 @@ export type RecordContextType = {
     operationStatus: DataLoadingStatus;
 
     updateRecordFromText: (text: string, record: Record | null, allowNewRecord: boolean) => Record|null;
-    getAttachmentDataURL: (attachmentDTO: EncryptedAttachmentDTO, type: URLType) => Promise<string>;
+    getAttachmentData: (attachmentDTO: EncryptedAttachmentDTO, type: AttachmentFormat) => Promise<string|Blob>;
     downloadAttachment: (attachment: EncryptedAttachmentDTO, useCache: boolean) => void;
     convertAttachmentsToImages: (record: Record, statusUpdates: boolean) => Promise<DisplayableDataObject[]>;
     extraToRecord: (type: string, promptText: string, record: Record) => void;
@@ -76,6 +80,8 @@ export type RecordContextType = {
     setSortBy: (sortBy: string) => void;
 
     getTagsTimeline: () => { year: string, freq: number }[];
+
+    exportRecords: () => void;
 }
 
 export const RecordContext = createContext<RecordContextType | null>(null);
@@ -318,7 +324,7 @@ export const RecordContextProvider: React.FC<PropsWithChildren> = ({ children })
         return client;
     }
 
-      const getAttachmentDataURL = async(attachmentDTO: EncryptedAttachmentDTO, type: URLType, useCache = true): Promise<string> => {
+      const getAttachmentData = async(attachmentDTO: EncryptedAttachmentDTO, type: AttachmentFormat, useCache = true): Promise<string|Blob> => {
         const cacheStorage = await cache();
         const cacheKey = `${attachmentDTO.storageKey}-${attachmentDTO.id}-${type}`;
         const attachmentDataUrl = await cacheStorage.match(cacheKey);
@@ -333,11 +339,15 @@ export const RecordContextProvider: React.FC<PropsWithChildren> = ({ children })
         const client = await setupAttachmentsApiClient(config);
         const arrayBufferData = await client.get(attachmentDTO);    
     
-        if (type === URLType.blob) {
+        if (type === AttachmentFormat.blobUrl) {
           const blob = new Blob([arrayBufferData], { type: attachmentDTO.mimeType + ";charset=utf-8" });
           const url = URL.createObjectURL(blob);
           if(useCache) cacheStorage.put(cacheKey, new Response(url))
           return url;
+        } else if (type === AttachmentFormat.blob) {
+          const blob = new Blob([arrayBufferData]);
+//          if(useCache) cacheStorage.put(cacheKey, new Response(blob, { headers: { 'Content-Type': attachmentDTO.mimeType as string } })) we're skipping cache for BLOBs as there was some issue with encoding for that case
+          return blob;
         } else {
           const url = 'data:' + attachmentDTO.mimeType +';base64,' + convertDataContentToBase64String(arrayBufferData);
           if(useCache) cacheStorage.put(cacheKey, new Response(url))
@@ -347,7 +357,7 @@ export const RecordContextProvider: React.FC<PropsWithChildren> = ({ children })
     
       const downloadAttachment = async (attachment: EncryptedAttachmentDTO, useCache = true) => {
         try {
-          const url = await getAttachmentDataURL(attachment, URLType.blob, useCache);
+          const url = await getAttachmentData(attachment, AttachmentFormat.blobUrl, useCache) as string;
           window.open(url);    
         } catch (error) {
           toast.error('Error downloading attachment ' + error);
@@ -381,7 +391,7 @@ export const RecordContextProvider: React.FC<PropsWithChildren> = ({ children })
           try {
             if (ea.mimeType === 'application/pdf') {
               if (statusUpdates) toast.info('Downloading file ' + ea.displayName);
-              const pdfBase64Content = await getAttachmentDataURL(ea.toDTO(), URLType.data); // convert to images otherwise it's not supported by vercel ai sdk
+              const pdfBase64Content = await getAttachmentData(ea.toDTO(), AttachmentFormat.dataUrl) as string; // convert to images otherwise it's not supported by vercel ai sdk
               if (statusUpdates) toast.info('Converting file  ' + ea.displayName + ' to images ...');
               const imagesArray = await convert(pdfBase64Content, { base64: true }, pdfjs)
               if (statusUpdates) toast.info('File converted to ' + imagesArray.length + ' images');  
@@ -397,7 +407,7 @@ export const RecordContextProvider: React.FC<PropsWithChildren> = ({ children })
               attachments.push({
                 name: ea.displayName,
                 contentType: ea.mimeType,
-                url: await getAttachmentDataURL(ea.toDTO(), URLType.data) // TODO: convert PDF attachments to images here
+                url: await getAttachmentData(ea.toDTO(), AttachmentFormat.dataUrl) as string // TODO: convert PDF attachments to images here
               })
             }
           } catch (error) {
@@ -540,6 +550,54 @@ export const RecordContextProvider: React.FC<PropsWithChildren> = ({ children })
           }
         });
       }
+
+      const exportRecords = async () => {
+        // todo: download attachments
+
+        const prepExportData = filteredRecords.map(record => record);
+        toast.info('Exporting ' + prepExportData.length + ' records');
+
+        const zip = new JSZip();
+
+        toast.info('Downloading attachments ...');
+        for(const record of prepExportData) {
+          if (record.attachments) {
+            const recordNiceName = filenamify(record.eventDate ? (record.eventDate + ' - ' + record.title) : record.createdAt, {replacement: '-'});
+            const folder = zip.folder(recordNiceName)
+            if (record.text) folder?.file(filenamify(recordNiceName) + '.md', record.text);
+
+            for(const attachment of record.attachments) {
+              try {
+                const attFileName = filenamify(attachment.displayName.replace('.','-' + attachment.id + '.'), {replacement: '-'});
+                toast.info('Downloading attachment: ' + attachment.displayName);
+                const attBlob = await getAttachmentData(attachment.toDTO(), AttachmentFormat.blob, true);
+                if (folder) folder.file(attFileName, attBlob as Blob);
+
+                attachment.filePath = recordNiceName + '/' + attFileName // modify for the export
+
+              } catch (e) {
+                console.error(e);
+                toast.error(getErrorMessage(e));
+              }
+            }
+          }
+        }
+        try {
+          const exportData = filteredRecords.map(record => record.toDTO());
+          const exportBlob = new Blob([JSON.stringify(exportData)], { type: 'application/json' });
+          zip.file('records.json', exportBlob);
+
+          toast.info('Creating ZIP archive ...');
+          const exportFileName = 'DoctorDok-export' + filenamify(filterSelectedTags && filterSelectedTags.length ? '-' + filterSelectedTags.join('-') : '') + '.zip';
+          const zipFileContent = await zip.generateAsync({type:"blob"});
+
+          toast.info('All records exported!')
+          saveAs(zipFileContent, exportFileName);
+        } catch (e) {
+          console.error(e);
+          toast.error(getErrorMessage(e));
+        }
+      }
     
       const sendRecordToChat = async (record: Record, forceRefresh: boolean = false) => {
         if (!record.json || forceRefresh) {  // first: parse the record
@@ -573,7 +631,7 @@ export const RecordContextProvider: React.FC<PropsWithChildren> = ({ children })
                  deleteRecord, 
                  recordEditMode, 
                  setRecordEditMode,
-                 getAttachmentDataURL,
+                 getAttachmentData,
                  downloadAttachment,
                  convertAttachmentsToImages,
                  extraToRecord,
@@ -589,7 +647,8 @@ export const RecordContextProvider: React.FC<PropsWithChildren> = ({ children })
                  setFiltersOpen,
                  sortBy,
                  setSortBy,
-                 getTagsTimeline
+                 getTagsTimeline,
+                 exportRecords
                 }}
         >
             {children}

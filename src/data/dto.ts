@@ -58,6 +58,7 @@ export const EncryptedAttachmentDTOSchema = z.object({
 
   size: z.number().positive().int(),
   storageKey: z.string().min(1),
+  filePath: z.string().optional(),
 
   createdAt: z.string().default(() => getCurrentTS()),
   updatedAt: z.string().default(() => getCurrentTS()),

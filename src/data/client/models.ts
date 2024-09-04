@@ -81,6 +81,7 @@ export class EncryptedAttachment {
     extra?: string;
     size: number;
     storageKey: string;
+    filePath?: string;
     createdAt: string;
     updatedAt: string;
 
@@ -95,6 +96,7 @@ export class EncryptedAttachment {
         this.extra = attachmentDTO.extra ? attachmentDTO.extra : '';
         this.size = attachmentDTO.size;
         this.storageKey = attachmentDTO.storageKey;
+        this.filePath = attachmentDTO.filePath ? attachmentDTO.filePath : '';
         this.createdAt = attachmentDTO.createdAt;
         this.updatedAt = attachmentDTO.updatedAt;
     }
@@ -115,6 +117,7 @@ export class EncryptedAttachment {
             extra: this.extra,
             size: this.size,
             storageKey: this.storageKey,
+            filePath: this.filePath,
             createdAt: this.createdAt,
             updatedAt: this.updatedAt,
         };
