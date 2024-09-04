@@ -43,5 +43,11 @@ export const promptTemplates = {
             return "How can I improve my latest test results in the area of {select:" + promptOptions.join('|') + "}?"
         },
     },    
+    bextNextStep: {
+        label: "What should be my best next diagnostic step?",
+        template: (context: PromptTemplateContext) => {
+            return "What should be my best next diagnostic step for {select:regarding my overal results|" + promptOptions.join('|') + "}?"
+        },
+    },    
 
 }
