@@ -5,7 +5,7 @@ import { DatabaseAuthStatus, DataLoadingStatus } from "@/data/client/models";
 import DataLoader from "./data-loader";
 import { ConfigContext } from "@/contexts/config-context";
 import { Alert, AlertDescription, AlertTitle } from "./ui/alert";
-import { FoldersIcon, LineChartIcon, ListIcon, PlusIcon, Terminal, User2Icon, Users, UserX2Icon } from "lucide-react";
+import { CurrencyIcon, DollarSignIcon, FoldersIcon, LineChartIcon, ListIcon, PlusIcon, Terminal, User2Icon, Users, UserX2Icon } from "lucide-react";
 import { Credenza, CredenzaContent, CredenzaDescription, CredenzaHeader, CredenzaTitle, CredenzaTrigger } from "./credenza";
 import { Button } from "./ui/button";
 import DatabaseLinkAlert from "./shared/database-link-alert";
@@ -39,7 +39,7 @@ export default function FolderListPopup() {
     <Credenza open={chatContext?.statsPopupOpen} onOpenChange={chatContext?.setStatsPopupOpen}>
       <CredenzaTrigger asChild>
         <Button variant="outline" size="icon">
-          <LineChartIcon className="w-6 h-6" />
+          <DollarSignIcon className="w-6 h-6" />
         </Button>
       </CredenzaTrigger>
       <CredenzaContent className="sm:max-w-[500px] bg-white dark:bg-zinc-950">

@@ -10,7 +10,7 @@ import remarkGfm from 'remark-gfm'
 import { Command, CommandDialog, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList, CommandSeparator } from '../../src/components/ui/command';
 import { RecordContext } from '@/contexts/record-context';
 import { prompts } from '@/data/ai/prompts';
-import { ClipboardPasteIcon, LanguagesIcon, MoveRight, TextQuoteIcon, Wand2Icon } from 'lucide-react';
+import { ClipboardPasteIcon, CogIcon, LanguagesIcon, MoveRight, TextQuoteIcon, Wand2Icon } from 'lucide-react';
 import { ChatContext } from '@/contexts/chat-context';
 import { promptTemplates } from '@/data/ai/prompt-templates';
 import { QuestionMarkIcon } from '@radix-ui/react-icons';
@@ -143,6 +143,12 @@ const RecordItemCommands: React.FC<Props> = ({ record, folder, open, setOpen }) 
                         });                    
                  }}><MoveRight /> What are best next steps?</CommandItem> */}
             </CommandGroup>
+            <CommandSeparator />
+            {((record.attachments && record.attachments.length > 0 || record.transcription) && !record.parseInProgress) ? (
+                <CommandGroup heading="Technical">
+                    <CommandItem key="cmd-parse" className="text-xs" onSelect={(v) => { recordContext?.parseRecord(record); }}><CogIcon /> Parse record again</CommandItem>
+                </CommandGroup>
+            ) : (null)}
             <CommandSeparator />
             <CommandGroup heading="Translations">
                 {supportedLanguages.map((item) => (

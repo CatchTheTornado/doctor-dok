@@ -232,7 +232,7 @@ export const ChatContextProvider: React.FC<PropsWithChildren> = ({ children }) =
             const result = await streamText({
                 model: await aiProvider(providerName),
                 messages: convertToCoreMessages(messages),
-                //maxTokens: 4096,
+                maxTokens: process.env.NEXT_PUBLIC_MAX_OUTPUT_TOKENS ? parseInt(process.env.NEXT_PUBLIC_MAX_OUTPUT_TOKENS) : 4096 * 2,
                 onFinish: async (e) =>  {
                     try {
                         await aggregateStats({

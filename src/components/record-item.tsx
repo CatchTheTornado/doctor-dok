@@ -15,7 +15,7 @@ import { labels } from '@/data/ai/labels';
 import DataLoader from './data-loader';
 import RecordItemCommands from "@/components/record-item-commands";
 import { FolderContext } from "@/contexts/folder-context";
-import { ChatContext } from "@/contexts/chat-context";
+import { ChatContext, MessageVisibility } from "@/contexts/chat-context";
 import { ConfigContext } from "@/contexts/config-context";
 import { toast } from "sonner";
 import { DatabaseContext } from "@/contexts/db-context";
@@ -111,9 +111,7 @@ export default function RecordItem({ record, displayAttachmentPreviews }: { reco
 
     if (config?.getServerConfig('autoParseRecord') && (record.checksum !== record.checksumLastParsed) && !record.parseInProgress && !record.parseError && (new Date().getTime() - new Date(record.updatedAt).getTime()) < 1000 * 60 * 60 /* parse only records changed up to 1 h */) { // TODO: maybe we need to add "parsedDate" or kind of checksum (better!) to make sure the record is parseed only when something changed
       console.log('Adding to parse queue due to checksum mismatch ', record.id, record.checksum, record.checksumLastParsed);
-      setTimeout(() => {
-        recordContext?.parseRecord(record);
-      }, 1000);
+      recordContext?.parseRecord(record);
     }
 
     recordContext?.processParseQueue();
@@ -121,157 +119,191 @@ export default function RecordItem({ record, displayAttachmentPreviews }: { reco
 
 
   return (
-    <div className="bg-zinc-100 dark:bg-zinc-800 md:p-4 xs:p-2 md:rounded-md mb-4 xs:mb-2">
-      <div className="flex items-center justify-between mb-4">
-        {record.title ? (
-          <div className="text-xs text-zinc-500 dark:text-zinc-400 font-medium">{record.title}</div>
-        ) : (
-          (record.json) ? (
-            <div className="text-xs text-zinc-500 dark:text-zinc-400 font-medium">{record.id}: {labels.recordItemLabel(record.type, { record })}</div>
-          ) : (
-            <div className="text-xs text-zinc-500 dark:text-zinc-400 font-medium">{record.parseInProgress ? 'Parsing record in progres...' : 'Record uploaded, no additional data.' }</div>
-          ) 
-        )}
-        <div className="text-xs text-zinc-500 dark:text-zinc-400 flex"><CalendarIcon className="w-4 h-4" /> {record.eventDate ? record.eventDate : record.createdAt}</div>
-      </div>
-      <Tabs defaultValue="text" className="w-full text-sm">
-        {(record.json || record.extra || record.transcription) ? (
-          <TabsList className="grid grid-cols-2 gap-2">
-            <TabsTrigger value="text" className="dark:data-[state=active]:bg-zinc-900 data-[state=active]:bg-zinc-100 rounded-md p-2">Basic view</TabsTrigger>
-            <TabsTrigger value="json" className="dark:data-[state=active]:bg-zinc-900 data-[state=active]:bg-zinc-100 rounded-md p-2">Detailed view</TabsTrigger>
-          </TabsList>
-        ): ''}
-          <TabsContent value="text" className="max-w-600">
-            {record.description ? (
-              <div className="mt-5 rose text-sm text-muted-foreground"><Markdown className={styles.markdown} remarkPlugins={[remarkGfm]}>{record.description}</Markdown></div>
-            ): '' }
-            <div className="mt-2 flex flex-wrap items-center gap-2 w-100">
-              {record.tags && record.tags.length > 0 ? (
-              <div className="mt-2 flex flex-wrap items-center gap-2 w-full">
-                {record.tags.sort((a, b) => a.localeCompare(b)).map((tag, index) => (
-                  <div key={index} className="text-sm inline-flex w-auto"><Button variant={recordContext?.filterSelectedTags.includes(tag) ? 'default' : 'outline' }  onClick={() => {
-                    if (folderContext?.currentFolder) {
-                      recordContext?.filterToggleTag(tag);
-                    }      
-                  }
-                 }><TagIcon className="w-4 h-4 mr-2" /> {shorten(tag)}{recordContext?.filterSelectedTags.includes(tag)? (<XCircleIcon className="w-4 h-4 ml-2" />) : null }</Button></div>
-                ))}
-              </div>
-              ): '' }
+      record.parseInProgress ? (
+        <div className="bg-zinc-100 dark:bg-zinc-800 md:p-4 xs:p-2 md:rounded-md mb-4 xs:mb-2">
+          <div className="text-sm text-zinc-500 dark:text-zinc-400 flex font-bold mb-4">
+            Record saved succesfully, processing in progress...
+          </div>
 
-              <div className="mt-2 flex flex-wrap items-center gap-2 w-full">
-                {record.attachments.map((attachment, index) => (
-                  <div key={index} className="text-sm inline-flex w-auto"><Button variant="outline" onClick={() => recordContext?.downloadAttachment(attachment.toDTO(), false)}><PaperclipIcon className="w-4 h-4 mr-2" /> {shorten(attachment.displayName)}</Button></div>
+          <div className="mt-2 flex flex-wrap items-center gap-2 w-full">
+            {record.attachments.map((attachment, index) => (
+              <div key={index} className="text-sm inline-flex w-auto"><Button variant="outline" onClick={() => recordContext?.downloadAttachment(attachment.toDTO(), false)}><PaperclipIcon className="w-4 h-4 mr-2" /> {shorten(attachment.displayName)}</Button></div>
+            ))}
+          </div>
+          {displayAttachmentPreviews && record.attachments.length > 0 ? (
+            displayableAttachments.length > 0 ? (
+              <div className="mt-2 flex-wrap flex items-center justify-left min-h-100 w-full">
+                {displayableAttachments.map((attachment, index) => (
+                  <ZoomableImage
+                    className='w-100 pr-2 pb-2'
+                    width={100}
+                    height={100}
+                    key={`attachment-prv-${index}`}
+                    src={attachment.url}
+                    alt={attachment.name}
+                  />
                 ))}
               </div>
-              {displayAttachmentPreviews && record.attachments.length > 0 ? (
-                displayableAttachments.length > 0 ? (
-                  <div className="mt-2 flex-wrap flex items-center justify-left min-h-100 w-full">
-                    {displayableAttachments.map((attachment, index) => (
-                      <ZoomableImage
-                        className='w-100 pr-2 pb-2'
-                        width={100}
-                        height={100}
-                        key={`attachment-prv-${index}`}
-                        src={attachment.url}
-                        alt={attachment.name}
-                      />
-                    ))}
-                  </div>
-                ): (displayableAttachmentsInProgress ? (<div className="mt-2 text-sm text-muted-foreground flex h-4 content-center gap-2">
-                    <div role="status" className="w-4">
-                        <svg aria-hidden="true" className="w-4 h-4 text-gray-200 animate-spin dark:text-gray-600 fill-blue-600" viewBox="0 0 100 101" fill="none" xmlns="http://www.w3.org/2000/svg">
-                            <path d="M100 50.5908C100 78.2051 77.6142 100.591 50 100.591C22.3858 100.591 0 78.2051 0 50.5908C0 22.9766 22.3858 0.59082 50 0.59082C77.6142 0.59082 100 22.9766 100 50.5908ZM9.08144 50.5908C9.08144 73.1895 27.4013 91.5094 50 91.5094C72.5987 91.5094 90.9186 73.1895 90.9186 50.5908C90.9186 27.9921 72.5987 9.67226 50 9.67226C27.4013 9.67226 9.08144 27.9921 9.08144 50.5908Z" fill="currentColor"/>
-                            <path d="M93.9676 39.0409C96.393 38.4038 97.8624 35.9116 97.0079 33.5539C95.2932 28.8227 92.871 24.3692 89.8167 20.348C85.8452 15.1192 80.8826 10.7238 75.2124 7.41289C69.5422 4.10194 63.2754 1.94025 56.7698 1.05124C51.7666 0.367541 46.6976 0.446843 41.7345 1.27873C39.2613 1.69328 37.813 4.19778 38.4501 6.62326C39.0873 9.04874 41.5694 10.4717 44.0505 10.1071C47.8511 9.54855 51.7191 9.52689 55.5402 10.0491C60.8642 10.7766 65.9928 12.5457 70.6331 15.2552C75.2735 17.9648 79.3347 21.5619 82.5849 25.841C84.9175 28.9121 86.7997 32.2913 88.1811 35.8758C89.083 38.2158 91.5421 39.6781 93.9676 39.0409Z" fill="currentFill"/>
-                        </svg>
-                    </div>          
-                    Loading previews ...
-                  </div>): null)
-              ) : null}              
-              </div>
-          </TabsContent>
-          <TabsContent value="json" className="max-w-600">
-            <div className="mt-2 flex flex-wrap items-center gap-2 w-100">
-            {record.text ? (
-                <Accordion type="single" collapsible className="w-full">
-                <AccordionItem value="item-1">
-                  <AccordionTrigger>Full text extracted from files</AccordionTrigger>
-                  <AccordionContent>
-                    <Markdown className={styles.markdown} remarkPlugins={[remarkGfm]}>
-                      {record.text}
-                    </Markdown>
-                  </AccordionContent>
-                </AccordionItem>
-              </Accordion>
-              ): null }
-              <RecordItemJson record={record} />
-              <RecordItemExtra record={record} />
-              {record.transcription ? (
-                <Accordion type="single" collapsible className="w-full">
+            ): (displayableAttachmentsInProgress ? (<div className="mt-2 text-sm text-muted-foreground flex h-4 content-center gap-2">
+                <div role="status" className="w-4">
+                    <svg aria-hidden="true" className="w-4 h-4 text-gray-200 animate-spin dark:text-gray-600 fill-blue-600" viewBox="0 0 100 101" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M100 50.5908C100 78.2051 77.6142 100.591 50 100.591C22.3858 100.591 0 78.2051 0 50.5908C0 22.9766 22.3858 0.59082 50 0.59082C77.6142 0.59082 100 22.9766 100 50.5908ZM9.08144 50.5908C9.08144 73.1895 27.4013 91.5094 50 91.5094C72.5987 91.5094 90.9186 73.1895 90.9186 50.5908C90.9186 27.9921 72.5987 9.67226 50 9.67226C27.4013 9.67226 9.08144 27.9921 9.08144 50.5908Z" fill="currentColor"/>
+                        <path d="M93.9676 39.0409C96.393 38.4038 97.8624 35.9116 97.0079 33.5539C95.2932 28.8227 92.871 24.3692 89.8167 20.348C85.8452 15.1192 80.8826 10.7238 75.2124 7.41289C69.5422 4.10194 63.2754 1.94025 56.7698 1.05124C51.7666 0.367541 46.6976 0.446843 41.7345 1.27873C39.2613 1.69328 37.813 4.19778 38.4501 6.62326C39.0873 9.04874 41.5694 10.4717 44.0505 10.1071C47.8511 9.54855 51.7191 9.52689 55.5402 10.0491C60.8642 10.7766 65.9928 12.5457 70.6331 15.2552C75.2735 17.9648 79.3347 21.5619 82.5849 25.841C84.9175 28.9121 86.7997 32.2913 88.1811 35.8758C89.083 38.2158 91.5421 39.6781 93.9676 39.0409Z" fill="currentFill"/>
+                    </svg>
+                </div>          
+                Loading previews ...
+              </div>): null)
+          ) : null}              
+
+          <div className="text-sm text-zinc-500 dark:text-zinc-400 text-left font-medium flex justify-center mt-2 pr-3">
+            For all cool AI features, we need to OCR and parse record data first. Records in queue: {recordContext?.parseQueueLength}. Do not close the browser window. Parsing record in progress... <DataLoader />
+            <Button className="ml-2" onClick={
+              () => {
+                chatContext?.setChatOpen(true);
+                if (chatContext && chatContext.lastMessage !== null) {
+                  chatContext.lastMessage.visibility = MessageVisibility.Visible;
+                }
+              }
+            }>Check progress...</Button>
+          </div>
+
+        </div>
+      ) : (
+      <div className="bg-zinc-100 dark:bg-zinc-800 md:p-4 xs:p-2 md:rounded-md mb-4 xs:mb-2">
+        <div className="flex items-center justify-between mb-4">
+          {record.title ? (
+            <div className="text-xs text-zinc-500 dark:text-zinc-400 font-medium">{record.title}</div>
+          ) : (
+            (record.json) ? (
+              <div className="text-xs text-zinc-500 dark:text-zinc-400 font-medium">{record.id}: {labels.recordItemLabel(record.type, { record })}</div>
+            ) : (
+              <div className="text-xs text-zinc-500 dark:text-zinc-400 font-medium">{record.parseInProgress ? 'Parsing record in progres...' : 'Record uploaded, no additional data. Maybe try uploading again?' }</div>
+            ) 
+          )}
+          <div className="text-xs text-zinc-500 dark:text-zinc-400 flex"><CalendarIcon className="w-4 h-4" /> {record.eventDate ? record.eventDate : record.createdAt}</div>
+        </div>
+        <Tabs defaultValue="text" className="w-full text-sm">
+          {(record.json || record.extra || record.transcription) ? (
+            <TabsList className="grid grid-cols-2 gap-2">
+              <TabsTrigger value="text" className="dark:data-[state=active]:bg-zinc-900 data-[state=active]:bg-zinc-100 rounded-md p-2">Basic view</TabsTrigger>
+              <TabsTrigger value="json" className="dark:data-[state=active]:bg-zinc-900 data-[state=active]:bg-zinc-100 rounded-md p-2">Detailed view</TabsTrigger>
+            </TabsList>
+          ): ''}
+            <TabsContent value="text" className="max-w-600">
+              {record.description ? (
+                <div className="mt-5 rose text-sm text-muted-foreground"><Markdown className={styles.markdown} remarkPlugins={[remarkGfm]}>{record.description}</Markdown></div>
+              ): '' }
+              <div className="mt-2 flex flex-wrap items-center gap-2 w-100">
+                {record.tags && record.tags.length > 0 ? (
+                <div className="mt-2 flex flex-wrap items-center gap-2 w-full">
+                  {record.tags.sort((a, b) => a.localeCompare(b)).map((tag, index) => (
+                    <div key={index} className="text-sm inline-flex w-auto"><Button variant={recordContext?.filterSelectedTags.includes(tag) ? 'default' : 'outline' }  onClick={() => {
+                      if (folderContext?.currentFolder) {
+                        recordContext?.filterToggleTag(tag);
+                      }      
+                    }
+                  }><TagIcon className="w-4 h-4 mr-2" /> {shorten(tag)}{recordContext?.filterSelectedTags.includes(tag)? (<XCircleIcon className="w-4 h-4 ml-2" />) : null }</Button></div>
+                  ))}
+                </div>
+                ): '' }
+
+                <div className="mt-2 flex flex-wrap items-center gap-2 w-full">
+                  {record.attachments.map((attachment, index) => (
+                    <div key={index} className="text-sm inline-flex w-auto"><Button variant="outline" onClick={() => recordContext?.downloadAttachment(attachment.toDTO(), false)}><PaperclipIcon className="w-4 h-4 mr-2" /> {shorten(attachment.displayName)}</Button></div>
+                  ))}
+                </div>
+                {displayAttachmentPreviews && record.attachments.length > 0 ? (
+                  displayableAttachments.length > 0 ? (
+                    <div className="mt-2 flex-wrap flex items-center justify-left min-h-100 w-full">
+                      {displayableAttachments.map((attachment, index) => (
+                        <ZoomableImage
+                          className='w-100 pr-2 pb-2'
+                          width={100}
+                          height={100}
+                          key={`attachment-prv-${index}`}
+                          src={attachment.url}
+                          alt={attachment.name}
+                        />
+                      ))}
+                    </div>
+                  ): (displayableAttachmentsInProgress ? (<div className="mt-2 text-sm text-muted-foreground flex h-4 content-center gap-2 mb-4">
+                      <div role="status" className="w-4">
+                          <svg aria-hidden="true" className="w-4 h-4 text-gray-200 animate-spin dark:text-gray-600 fill-blue-600" viewBox="0 0 100 101" fill="none" xmlns="http://www.w3.org/2000/svg">
+                              <path d="M100 50.5908C100 78.2051 77.6142 100.591 50 100.591C22.3858 100.591 0 78.2051 0 50.5908C0 22.9766 22.3858 0.59082 50 0.59082C77.6142 0.59082 100 22.9766 100 50.5908ZM9.08144 50.5908C9.08144 73.1895 27.4013 91.5094 50 91.5094C72.5987 91.5094 90.9186 73.1895 90.9186 50.5908C90.9186 27.9921 72.5987 9.67226 50 9.67226C27.4013 9.67226 9.08144 27.9921 9.08144 50.5908Z" fill="currentColor"/>
+                              <path d="M93.9676 39.0409C96.393 38.4038 97.8624 35.9116 97.0079 33.5539C95.2932 28.8227 92.871 24.3692 89.8167 20.348C85.8452 15.1192 80.8826 10.7238 75.2124 7.41289C69.5422 4.10194 63.2754 1.94025 56.7698 1.05124C51.7666 0.367541 46.6976 0.446843 41.7345 1.27873C39.2613 1.69328 37.813 4.19778 38.4501 6.62326C39.0873 9.04874 41.5694 10.4717 44.0505 10.1071C47.8511 9.54855 51.7191 9.52689 55.5402 10.0491C60.8642 10.7766 65.9928 12.5457 70.6331 15.2552C75.2735 17.9648 79.3347 21.5619 82.5849 25.841C84.9175 28.9121 86.7997 32.2913 88.1811 35.8758C89.083 38.2158 91.5421 39.6781 93.9676 39.0409Z" fill="currentFill"/>
+                          </svg>
+                      </div>          
+                      Loading previews ...
+                    </div>): null)
+                ) : null}              
+                </div>
+            </TabsContent>
+            <TabsContent value="json" className="max-w-600">
+              <div className="mt-2 flex flex-wrap items-center gap-2 w-100">
+              {record.text ? (
+                  <Accordion type="single" collapsible className="w-full">
                   <AccordionItem value="item-1">
-                    <AccordionTrigger>Transcription</AccordionTrigger>
+                    <AccordionTrigger>Full text extracted from files</AccordionTrigger>
                     <AccordionContent>
-                      {record.transcription}
+                      <Markdown className={styles.markdown} remarkPlugins={[remarkGfm]}>
+                        {record.text}
+                      </Markdown>
                     </AccordionContent>
                   </AccordionItem>
                 </Accordion>
-              ) : null}
-            </div>
-          </TabsContent>
-
-      </Tabs>
-
-
-      <div ref={thisElementRef} className="mt-2 flex items-center gap-2">
-        <Button size="icon" variant="ghost" title="Edit record">
-          <PencilIcon className="w-4 h-4" onClick={() => { if(record.parseInProgress) { toast.info('Please wait until record is successfully parsed') } else {  recordContext?.setCurrentRecord(record);  recordContext?.setRecordEditMode(true); } }} />
-        </Button>        
-        <Button size="icon" variant="ghost" title="Add attachments">
-          <PaperclipIcon className="w-4 h-4"  onClick={() => { if(record.parseInProgress) { toast.info('Please wait until record is successfully parsed') } else {   recordContext?.setCurrentRecord(record);  recordContext?.setRecordEditMode(true);}  }} />
-        </Button>
-        {(record.attachments && record.attachments.length > 0 || record.transcription) ? (
-        <Button size="icon" variant="ghost" title="Convert to structural data">
-          {(record.parseInProgress) ? (
-            <div className="cursor-pointer" onClick={(e) => chatContext.setChatOpen(true) }><DataLoader /></div>
-          ) : (
-            <RefreshCwIcon className="w-4 h-4"  onClick={async () => {  await recordContext?.sendRecordToChat(record, true); } /* TODO: add prompt UI for altering the prompt */ } />
-          )}
-        </Button>       
-        ) : '' }  
-        {(record.json && !record.parseInProgress) ? (
-        <Button size="icon" variant="ghost" title="Insert into AI Chat">
-            <MessageCircleIcon className="w-4 h-4"  onClick={async () => {  recordContext?.sendRecordToChat(record, false);  }} />
-        </Button>        
-        ) : (          
-          null
-        )}
-        {(record.json) ? (
-          <Button size="icon" variant="ghost" title="AI features">
-            <Wand2Icon className="w-4 h-4"  onClick={() => { setCommandsOpen(true) }} />
-              <RecordItemCommands record={record} folder={folderContext?.currentFolder} open={commandsOpen} setOpen={setCommandsOpen} />
-          </Button>                
-        ): (null) }
-        <AlertDialog>
-          <AlertDialogTrigger>
-            <Button size="icon" variant="ghost" title="Delete record">
-              <Trash2Icon className="w-4 h-4"/>
-            </Button>            
-          </AlertDialogTrigger>
-          <AlertDialogContent className="bg-white dark:bg-zinc-950">
-            <AlertDialogHeader>
-              <AlertDialogTitle>Are you sure</AlertDialogTitle>
-              <AlertDialogDescription>
-                This action cannot be undone. This will permanently delete your data record
-              </AlertDialogDescription>
-            </AlertDialogHeader>
-            <AlertDialogFooter>
-              <AlertDialogCancel>No</AlertDialogCancel>
-              <AlertDialogAction onClick={(e) => recordContext?.deleteRecord(record)}>YES</AlertDialogAction>
-            </AlertDialogFooter>
-          </AlertDialogContent>
-        </AlertDialog>               
+                ): null }
+                <RecordItemJson record={record} />
+                <RecordItemExtra record={record} />
+                {record.transcription ? (
+                  <Accordion type="single" collapsible className="w-full">
+                    <AccordionItem value="item-1">
+                      <AccordionTrigger>Transcription</AccordionTrigger>
+                      <AccordionContent>
+                        {record.transcription}
+                      </AccordionContent>
+                    </AccordionItem>
+                  </Accordion>
+                ) : null}
+              </div>
+            </TabsContent>
+        </Tabs>
+        <div ref={thisElementRef} className="mt-2 flex items-center gap-2">
+          <Button size="icon" variant="ghost" title="Edit record">
+            <PencilIcon className="w-4 h-4" onClick={() => { if(record.parseInProgress) { toast.info('Please wait until record is successfully parsed') } else {  recordContext?.setCurrentRecord(record);  recordContext?.setRecordEditMode(true); } }} />
+          </Button>        
+          <Button size="icon" variant="ghost" title="Add attachments">
+            <PaperclipIcon className="w-4 h-4"  onClick={() => { if(record.parseInProgress) { toast.info('Please wait until record is successfully parsed') } else {   recordContext?.setCurrentRecord(record);  recordContext?.setRecordEditMode(true);}  }} />
+          </Button>
+          <AlertDialog>
+            <AlertDialogTrigger>
+              <Button size="icon" variant="ghost" title="Delete record">
+                <Trash2Icon className="w-4 h-4"/>
+              </Button>            
+            </AlertDialogTrigger>
+            <AlertDialogContent className="bg-white dark:bg-zinc-950">
+              <AlertDialogHeader>
+                <AlertDialogTitle>Are you sure</AlertDialogTitle>
+                <AlertDialogDescription>
+                  This action cannot be undone. This will permanently delete your data record
+                </AlertDialogDescription>
+              </AlertDialogHeader>
+              <AlertDialogFooter>
+                <AlertDialogCancel>No</AlertDialogCancel>
+                <AlertDialogAction onClick={(e) => recordContext?.deleteRecord(record)}>YES</AlertDialogAction>
+              </AlertDialogFooter>
+            </AlertDialogContent>
+          </AlertDialog>         
+          {(record.json) ? (
+            <Button className="h-6 text-xs" variant="ghost" title="AI features">
+              Ready for AI: <Wand2Icon className="ml-3 w-4 h-4"  onClick={() => { setCommandsOpen(true) }} />
+                <RecordItemCommands record={record} folder={folderContext?.currentFolder} open={commandsOpen} setOpen={setCommandsOpen} />
+            </Button>                
+          ): ((record.attachments && record.attachments.length || record.transcription) ? (<Button className="h-6 text-xs" variant="ghost" title="Parse again">
+            Try parse again: <RefreshCwIcon className="ml-3 w-4 h-4" onClick={() => { recordContext?.parseRecord(record); }}/>
+            </Button>) : null) }      
+        </div>
       </div>
-    </div>
+    )
   );
 }
 

@@ -275,6 +275,7 @@ export default function RecordForm({ folder, mode }: { folder?: Folder, mode?: R
           <CredenzaTitle>{folder?.displayName()}</CredenzaTitle>
         </CredenzaHeader>
         <div className="mb-6 bg-white dark:bg-zinc-900 p-4 rounded-lg shadow-sm">
+          <div className="text-sm p-5">Upload files (PDF, JPG, PNG) with your health data - eg. blood results, MRI ...</div>
           <form onSubmit={handleSubmit(onSubmit)}>
             { mode === RecordEditMode.VoiceRecorder && ((recordContext?.recordEditMode && recordContext?.currentRecord?.transcription || !recordContext?.recordEditMode)) ? (<VoiceRecorder prevTranscription={transcription} chatGptKey={chatGptApiKey} onTranscriptionChange={(trs) => {
               setTranscription(trs);
