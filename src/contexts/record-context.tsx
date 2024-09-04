@@ -167,7 +167,15 @@ export const RecordContextProvider: React.FC<PropsWithChildren> = ({ children })
                 record.tags = uniqueTags;
               }
             }
-            if (!record.eventDate) record.eventDate = record.createdAt; // backward compatibility
+            if (!record.eventDate) {
+              record.eventDate = record.createdAt; // backward compatibility for #150
+
+              if (record.json) {
+                const discoveredEventDate = getTS(new Date((record.json.length > 0 ? record.json.find(item => item.test_date)?.test_date || record.json.find(item => item.admission_date)?.admission_date : record?.createdAt) || record.createdAt));
+                record.eventDate = discoveredEventDate;
+              }
+
+            }
 
             const recordDTO = record.toDTO(); // DTOs are common ground between client and server
             const response = await client.put(recordDTO);
