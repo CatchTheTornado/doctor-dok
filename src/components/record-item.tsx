@@ -146,11 +146,6 @@ export default function RecordItem({ record, displayAttachmentPreviews }: { reco
               <div className="mt-5 rose text-sm text-muted-foreground"><Markdown className={styles.markdown} remarkPlugins={[remarkGfm]}>{record.description}</Markdown></div>
             ): '' }
             <div className="mt-2 flex flex-wrap items-center gap-2 w-100">
-            {record.text ? (
-              <div className="w-full cursor-pointer" onClick={(e) => setIsTextExpanded(!isTextExpanded)}>
-                  {isTextExpanded ? (<Markdown className={styles.markdown} remarkPlugins={[remarkGfm]}>{record.text}</Markdown>) : (shorten(removeMd(record.text), 256)) }{!isTextExpanded ? (<DotsHorizontalIcon />):''}                          
-                </div>        
-              ): null }
               {record.tags && record.tags.length > 0 ? (
               <div className="mt-2 flex flex-wrap items-center gap-2 w-full">
                 {record.tags.sort((a, b) => a.localeCompare(b)).map((tag, index) => (
@@ -197,6 +192,18 @@ export default function RecordItem({ record, displayAttachmentPreviews }: { reco
           </TabsContent>
           <TabsContent value="json" className="max-w-600">
             <div className="mt-2 flex flex-wrap items-center gap-2 w-100">
+            {record.text ? (
+                <Accordion type="single" collapsible className="w-full">
+                <AccordionItem value="item-1">
+                  <AccordionTrigger>Full text extracted from files</AccordionTrigger>
+                  <AccordionContent>
+                    <Markdown className={styles.markdown} remarkPlugins={[remarkGfm]}>
+                      {record.text}
+                    </Markdown>
+                  </AccordionContent>
+                </AccordionItem>
+              </Accordion>
+              ): null }
               <RecordItemJson record={record} />
               <RecordItemExtra record={record} />
               {record.transcription ? (

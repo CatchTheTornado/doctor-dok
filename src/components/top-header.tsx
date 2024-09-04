@@ -5,7 +5,7 @@ import RecordForm from "./record-form";
 import { FolderContext } from "@/contexts/folder-context";
 import { useContext, useEffect, useState } from "react";
 import { Chat } from "./chat";
-import { Edit3Icon, FoldersIcon, KeyIcon, LogOutIcon, MenuIcon, MenuSquareIcon, MessageCircleIcon, PlusIcon, SaveAllIcon, Settings2Icon, SettingsIcon, Share2Icon, UsersIcon } from "lucide-react";
+import { Edit3Icon, FolderIcon, FolderOpen, FoldersIcon, KeyIcon, LogOutIcon, MenuIcon, MenuSquareIcon, MessageCircleIcon, PlusIcon, SaveAllIcon, Settings2Icon, SettingsIcon, Share2Icon, UsersIcon } from "lucide-react";
 import { DatabaseContext } from "@/contexts/db-context";
 import { toast } from "sonner";
 import { useTheme } from 'next-themes';
@@ -38,10 +38,10 @@ export default function TopHeader() {
       <div className="sticky top-0 z-1000 flex items-center justify-between border-b border-zinc-200 dark:border-zinc-800 p-4 bg-zinc-200 dark:bg-zinc-800 h-12">
         <div className="font-medium flex justify-center items-center">
           <div><img className="h-14 w-14" src={currentTheme === 'dark' ? `/img/doctor-dok-logo-white.svg` : `/img/doctor-dok-logo.svg`} /></div>
-          <div className="xs:invisible xxs:invisible sm:visible">{folderContext?.currentFolder ? ('Doctor Dok for ' + folderContext.currentFolder.displayName()) : 'Doctor Dok'} {folderContext?.currentFolder ? <Button className="ml-3" variant="outline" onClick={(e) => { folderContext?.setFolderListPopup(true); folderContext?.setFolderEditOpen(true); }}>Edit folder</Button> : null}</div>
+          <div className="xs:invisible xxs:invisible sm:visible justify-center items-center sm:flex">Doctor Dok {folderContext?.currentFolder ? (<FolderOpen className="w-6 h-6 ml-2 mr-2"/>) : ''} {folderContext?.currentFolder?.displayName()} {folderContext?.currentFolder ? <Button className="ml-3" variant="outline" onClick={(e) => { folderContext?.setFolderListPopup(true); folderContext?.setFolderEditOpen(true); }}>Edit folder</Button> : null } </div>
         </div>
         <div className="flex items-center gap-2">
-          <FolderListPopup />
+        <FolderListPopup />
           {(folderContext?.currentFolder !== null) ? (
             <RecordForm mode={RecordEditMode.Classic} folder={folderContext?.currentFolder} />
           ) : ("")}
