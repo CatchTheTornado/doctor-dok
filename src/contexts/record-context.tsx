@@ -562,7 +562,7 @@ export const RecordContextProvider: React.FC<PropsWithChildren> = ({ children })
         toast.info('Downloading attachments ...');
         for(const record of prepExportData) {
           if (record.attachments) {
-            const recordNiceName = filenamify(record.eventDate ? (record.eventDate + ' - ' + record.title) : ((record.title??'') + '-' + record.createdAt), {replacement: '-'});
+            const recordNiceName = filenamify(record.eventDate ? (record.eventDate + ' - ' + record.title) : (record.createdAt + (record.title ? '-' + record.title : '')), {replacement: '-'});
             const folder = zip.folder(recordNiceName)
             if (record.text) folder?.file(filenamify(recordNiceName) + '.md', record.text);
 
