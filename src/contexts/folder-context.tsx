@@ -1,4 +1,4 @@
-import React, { createContext, useState, useEffect, useContext, PropsWithChildren } from 'react';
+import React, { createContext, useState, useEffect, useContext, PropsWithChildren, use } from 'react';
 import { FolderDTO } from '@/data/dto';
 import { FolderApiClient } from '@/data/client/folder-api-client';
 import { ApiEncryptionConfig } from '@/data/client/base-api-client';
@@ -41,6 +41,13 @@ export const FolderContextProvider: React.FC<PropsWithChildren> = ({ children })
     useEffect(() => {
         listFolders();
     },[]);
+
+    useEffect(() => {
+        if (typeof localStorage !== 'undefined' && currentFolder) {
+            localStorage.setItem('currentFolderId', currentFolder?.id?.toString() || '');
+        }
+    }, [currentFolder]);
+
     const setupApiClient = async (config: ConfigContextType | null) => {
         const masterKey = dbContext?.masterKey
         const encryptionConfig: ApiEncryptionConfig = {
@@ -99,7 +106,16 @@ export const FolderContextProvider: React.FC<PropsWithChildren> = ({ children })
             const fetchedFolders = apiResponse.map((folderDTO: FolderDTO) => Folder.fromDTO(folderDTO));
             setFolders(fetchedFolders);
             setLoaderStatus(DataLoadingStatus.Success);
-            setCurrentFolder(fetchedFolders.length > 0 ? fetchedFolders[0] : null)
+            let defaultFolder:Folder|null = fetchedFolders.length > 0 ? fetchedFolders[0] : null;
+            if (!currentFolder) {
+                if (typeof localStorage !== 'undefined') {
+                    const folderId = localStorage.getItem('currentFolderId');
+                    if (folderId) {
+                        defaultFolder = fetchedFolders.find((f) => f.id === parseInt(folderId)) || null;
+                    }
+                }
+            }  
+            setCurrentFolder(defaultFolder) // we should store the current folder id and set to the current one
             return fetchedFolders;
         } catch(error) {
             setLoaderStatus(DataLoadingStatus.Error);

@@ -11,7 +11,7 @@ import { ConfigContext } from "@/contexts/config-context";
 import { CalendarIcon, PlusIcon, TagIcon, XCircleIcon } from "lucide-react";
 import { Button } from "./ui/button";
 import { record } from "zod";
-import { Folder } from "@/data/client/models";
+import { DataLoadingStatus, Folder } from "@/data/client/models";
 import RecordsFilter from "./records-filter";
 
 export default function RecordList({ folder }: {folder: Folder}) {
@@ -66,11 +66,11 @@ export default function RecordList({ folder }: {folder: Folder}) {
             No records found in the database. Please add a new folder using <strong>+</strong> icon above.
           </NoRecordsAlert>
         ) : (null) }
-            <div className="flex xs:p-2 md:pl-0">
+            <div className={(recordContext?.records && recordContext?.records.length > 0 && (recordContext.filterAvailableTags && recordContext.filterAvailableTags.length > 0)) || recordContext?.loaderStatus === DataLoadingStatus.Loading ? `flex xs:p-2 md:pl-0` : `hidden` }>
                <div className="flex flex-wrap items-center gap-1 w-full ">
                 { recordContext?.filterAvailableTags && recordContext?.filterAvailableTags.length > 0 ? (
                   <RecordsFilter />
-                ) : (recordContext?.loaderStatus!=='error' ? (<div className="text-sm">Loading records...</div>) : null) }
+                ) : (recordContext?.loaderStatus === DataLoadingStatus.Loading ? (<div className="text-sm">Loading records...</div>) : null) }
 
                   {recordContext?.filterAvailableTags && recordContext?.filterAvailableTags.length > 0 ? (
                     tagsTimeline.map((tag, index) => (

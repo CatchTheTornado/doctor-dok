@@ -28,7 +28,7 @@ export default function RecordsWrapper({}) {
         recordContext?.listRecords(folderContext?.currentFolder);
       //}
     }; // eslint-disable-next-line    
-  }, [folderContext?.currentFolder, folderContext/*, documentVisible*/]);
+  }, [folderContext?.currentFolder/*, documentVisible*/]);
     
   return (
     <div className="grid min-h-screen w-full bg-zinc-100 dark:bg-zinc-950">
@@ -46,7 +46,7 @@ export default function RecordsWrapper({}) {
             </div>
           </div>
         ) : (
-        <NoRecordsAlert title="No folders found">
+        <NoRecordsAlert title="No folder selected">
           <div className="flex items-center">Please do select current folder using the <FoldersIcon className="flex ml-4 mr-4" /> icon above.</div>
         </NoRecordsAlert>          
         ) }
