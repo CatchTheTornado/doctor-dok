@@ -34,7 +34,7 @@ export const promptTemplates = {
     checkTrends: {
         label: "Check my test results for trends",
         template: (context: PromptTemplateContext) => {
-            return "Check my latest test results for {select:" + promptOptions.join('|') + "} and show the trends from previous ones"
+        return "Check my latest test results for {select:" + promptOptions.join('|') + "} and show the trends from previous ones"
         },
     },    
     howCanIImprove: {
