@@ -27,6 +27,8 @@ import JSZip, { file } from 'jszip'
 import { saveAs } from 'file-saver';
 import filenamify from 'filenamify/browser';
 import showdown from 'showdown'
+import { auditLog } from '@/lib/audit';
+import { diff, addedDiff, deletedDiff, updatedDiff, detailedDiff } from 'deep-object-diff';
 
 
 let parseQueueInProgress = false;
@@ -195,10 +197,14 @@ export const RecordContextProvider: React.FC<PropsWithChildren> = ({ children })
                 return record;
             } else {
               const updatedRecord = new Record({ ...record, id: response.data.id } as Record);
+              const prevRecord = records.find(r => r.id === record.id);
               setRecords(prevRecords => 
                     newRecord ? [...prevRecords, updatedRecord] :
                     prevRecords.map(pr => pr.id === updatedRecord.id ?  updatedRecord : pr)
                 )
+
+                if (dbContext) auditLog({ eventName: 'updateRecord', encryptedDiff: prevRecord ? JSON.stringify(detailedDiff(prevRecord, updatedRecord)) : '',  recordLocator: JSON.stringify([{ recordIds: [record.id]}])}, dbContext);
+
                 //chatContext.setRecordsLoaded(false); // reload context next time - TODO we can reload it but we need time framed throthling #97
                 return updatedRecord;
             }
@@ -269,6 +275,8 @@ export const RecordContextProvider: React.FC<PropsWithChildren> = ({ children })
         } else {
             toast.success('Folder record removed successfully!')
             setRecords(prvRecords => prvRecords.filter((pr) => pr.id !== record.id));    
+            if (dbContext) auditLog({ eventName: 'deleteRecord',  recordLocator: JSON.stringify([{ recordIds: [record.id]}])}, dbContext);
+
             //chatContext.setRecordsLoaded(false); // reload context next time        
             return Promise.resolve(true);
         }
@@ -297,6 +305,7 @@ export const RecordContextProvider: React.FC<PropsWithChildren> = ({ children })
             setFilterAvailableTags(fetchedTags);
             setRecords(fetchedRecords);
             setLoaderStatus(DataLoadingStatus.Success);
+            if (dbContext) auditLog({ eventName: 'listRecords', recordLocator: JSON.stringify([{folderId: forFolder.id, recordIds: [fetchedRecords.map(r=>r.id)]}])}, dbContext);
             return fetchedRecords;
         } catch (error) {
             setLoaderStatus(DataLoadingStatus.Error);

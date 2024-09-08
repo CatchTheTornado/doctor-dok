@@ -8,7 +8,8 @@
     "start": "next start",
     "lint": "next lint",
     "generate": "drizzle-kit generate",
-    "generate-stats": "drizzle-kit generate --config drizzle.stats.config.ts"
+    "generate-stats": "drizzle-kit generate --config drizzle.stats.config.ts",
+    "generate-audit": "drizzle-kit generate --config drizzle.audit.config.ts"
   },
   "dependencies": {
     "@ai-sdk/openai": "^0.0.36",
@@ -43,6 +44,7 @@
     "cmdk": "1.0.0",
     "crypto-js": "^4.2.0",
     "date-fns": "^3.6.0",
+    "deep-object-diff": "^1.1.9",
     "drizzle-kit": "^0.22.7",
     "drizzle-orm": "^0.31.2",
     "emblor": "^1.4.6",

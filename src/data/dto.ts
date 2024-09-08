@@ -161,6 +161,19 @@ export const statsSchema = z.object({
 })
 export type StatDTO = z.infer<typeof statsSchema>;
 
+export const auditDTOSchema = z.object({
+  id: z.number().positive().int().optional(),
+  ip: z.string().optional(),
+  ua: z.string().optional(),
+  keyLocatorHash: z.string().optional(),
+  databaseIdHash: z.string().optional(),
+  recordLocator: z.string().optional(),
+  encryptedDiff: z.string().optional(),
+  eventName: z.string().optional(),
+  createdAt: z.string().default(() => getCurrentTS()).optional(),
+});
+export type AuditDTO = z.infer<typeof auditDTOSchema>;
+
 
 export type AggregatedStatsDTO = {
   thisMonth: {
