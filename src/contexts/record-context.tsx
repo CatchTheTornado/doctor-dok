@@ -26,6 +26,7 @@ import { GPTTokens } from 'gpt-tokens'
 import JSZip, { file } from 'jszip'
 import { saveAs } from 'file-saver';
 import filenamify from 'filenamify/browser';
+import showdown from 'showdown'
 
 
 let parseQueueInProgress = false;
@@ -558,13 +559,21 @@ export const RecordContextProvider: React.FC<PropsWithChildren> = ({ children })
         toast.info('Exporting ' + prepExportData.length + ' records');
 
         const zip = new JSZip();
+        const converter = new showdown.Converter({ tables: true, completeHTMLDocument: true, openLinksInNewWindow: true });
+        converter.setFlavor('github');
+
+        let indexMd = '# DoctorDok Export\n\n';
 
         toast.info('Downloading attachments ...');
         for(const record of prepExportData) {
           if (record.attachments) {
             const recordNiceName = filenamify(record.eventDate ? (record.eventDate + ' - ' + record.title) : (record.createdAt + (record.title ? ' - ' + record.title : '')), {replacement: '-'});
             const folder = zip.folder(recordNiceName)
-            if (record.text) folder?.file(filenamify(recordNiceName) + '.md', record.text);
+            if (record.text) {
+              folder?.file(filenamify(recordNiceName) + '.md', record.text);
+              folder?.file(filenamify(recordNiceName) + '.html', converter.makeHtml(record.text));
+              indexMd += `- <a href="${recordNiceName}/${filenamify(recordNiceName)}.md">${record.eventDate ? record.eventDate : record.createdAt} - ${record.title}</a>\n\n`;
+            }
 
             for(const attachment of record.attachments) {
               try {
@@ -574,6 +583,7 @@ export const RecordContextProvider: React.FC<PropsWithChildren> = ({ children })
                 if (folder) folder.file(attFileName, attBlob as Blob);
 
                 attachment.filePath = recordNiceName + '/' + attFileName // modify for the export
+                indexMd += ` - <a href="${recordNiceName}/${attFileName}">${attFileName}</a>\n\n`;
 
               } catch (e) {
                 console.error(e);
@@ -586,6 +596,8 @@ export const RecordContextProvider: React.FC<PropsWithChildren> = ({ children })
           const exportData = filteredRecords.map(record => record.toDTO());
           const exportBlob = new Blob([JSON.stringify(exportData)], { type: 'application/json' });
           zip.file('records.json', exportBlob);
+          zip.file('index.md', indexMd);
+          zip.file('index.html', converter.makeHtml(indexMd.replaceAll('.md', '.html')));
 
           toast.info('Creating ZIP archive ...');
           const exportFileName = 'DoctorDok-export' + filenamify(filterSelectedTags && filterSelectedTags.length ? '-' + filterSelectedTags.join('-') : '') + '.zip';
