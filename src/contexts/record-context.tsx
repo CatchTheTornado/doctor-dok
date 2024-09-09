@@ -582,49 +582,54 @@ export const RecordContextProvider: React.FC<PropsWithChildren> = ({ children })
 
           let idx = 1;
           for(const record of records) {
-            delete record.id; // new id is required
-            toast.info('Importing record (' + idx + ' of ' + records.length + '): ' + record.title);
-            record.folderId = folderContext?.currentFolder?.id ?? 1;
-            const uploadedAttachments:EncryptedAttachmentDTO[] = [];
+            try {
+              delete record.id; // new id is required
+              toast.info('Importing record (' + idx + ' of ' + records.length + '): ' + record.title);
+              record.folderId = folderContext?.currentFolder?.id ?? 1;
+              const uploadedAttachments:EncryptedAttachmentDTO[] = [];
 
-            if (record.attachments) {
-                for(const attachment of record.attachments) {
-                  if(attachment.filePath) {
-                    const attachmentContent = await zipFile.file(attachment.filePath)?.async('arraybuffer');
-                    if (attachmentContent) {
-                      const encryptedBuffer = await encUtils?.encryptArrayBuffer(attachmentContent as ArrayBuffer) as ArrayBuffer;
-                      const encryptedFile = new File([encryptedBuffer], attachment.displayName, { type: attachment.mimeType });
-                      const formData = new FormData();
-                      formData.append("file", encryptedFile); // TODO: encrypt file here
-      
-                    let attachmentDTO: EncryptedAttachmentDTO = attachment.toDTO();
-                    delete attachmentDTO.id;
-                    delete attachmentDTO.filePath;
-                  
-                    attachmentDTO = encFilter ? await encFilter.encrypt(attachmentDTO, EncryptedAttachmentDTOEncSettings) as EncryptedAttachmentDTO : attachmentDTO;
-                    formData.append("attachmentDTO", JSON.stringify(attachmentDTO));
-                    try {
-                      const apiClient = new EncryptedAttachmentApiClient('', dbContext, {
-                        useEncryption: false  // for FormData we're encrypting records by ourselves - above
-                      })
-                      toast.info('Uploading attachment: ' + attachment.displayName);
-                      const result = await apiClient.put(formData);
-                      if (result.status === 200) {
-                        const decryptedAttachmentDTO: EncryptedAttachmentDTO = (encFilter ? await encFilter.decrypt(result.data, EncryptedAttachmentDTOEncSettings) : result.data) as EncryptedAttachmentDTO;
-                        console.log('Attachment saved', decryptedAttachmentDTO);
-                        uploadedAttachments.push(decryptedAttachmentDTO);
-                      }
-                    } catch (error) {
-                      console.error(error);
-                      toast.error('Error saving attachment: ' + error);
-                    } 
+              if (record.attachments) {
+                  for(const attachment of record.attachments) {
+                    if(attachment.filePath) {
+                      const attachmentContent = await zipFile.file(attachment.filePath)?.async('arraybuffer');
+                      if (attachmentContent) {
+                        const encryptedBuffer = await encUtils?.encryptArrayBuffer(attachmentContent as ArrayBuffer) as ArrayBuffer;
+                        const encryptedFile = new File([encryptedBuffer], attachment.displayName, { type: attachment.mimeType });
+                        const formData = new FormData();
+                        formData.append("file", encryptedFile); // TODO: encrypt file here
+        
+                      let attachmentDTO: EncryptedAttachmentDTO = attachment.toDTO();
+                      delete attachmentDTO.id;
+                      delete attachmentDTO.filePath;
+                    
+                      attachmentDTO = encFilter ? await encFilter.encrypt(attachmentDTO, EncryptedAttachmentDTOEncSettings) as EncryptedAttachmentDTO : attachmentDTO;
+                      formData.append("attachmentDTO", JSON.stringify(attachmentDTO));
+                      try {
+                        const apiClient = new EncryptedAttachmentApiClient('', dbContext, {
+                          useEncryption: false  // for FormData we're encrypting records by ourselves - above
+                        })
+                        toast.info('Uploading attachment: ' + attachment.displayName);
+                        const result = await apiClient.put(formData);
+                        if (result.status === 200) {
+                          const decryptedAttachmentDTO: EncryptedAttachmentDTO = (encFilter ? await encFilter.decrypt(result.data, EncryptedAttachmentDTOEncSettings) : result.data) as EncryptedAttachmentDTO;
+                          console.log('Attachment saved', decryptedAttachmentDTO);
+                          uploadedAttachments.push(decryptedAttachmentDTO);
+                        }
+                      } catch (error) {
+                        console.error(error);
+                        toast.error('Error saving attachment: ' + error);
+                      } 
+                    }
                   }
                 }
               }
+              record.attachments = uploadedAttachments.map(ea => new EncryptedAttachment(ea));
+              console.log('Importing record: ', record);
+              const updatedRecord = await updateRecord(record);
+            } catch (error) {
+              console.error(error);
+              toast.error('Error importing record: ' + error);
             }
-            record.attachments = uploadedAttachments.map(ea => new EncryptedAttachment(ea));
-            console.log('Importing record: ', record);
-            const updatedRecord = await updateRecord(record);
             idx++;
           }
           toast.success('Records imported successfully!');
