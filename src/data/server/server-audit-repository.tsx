@@ -19,4 +19,9 @@ export default class ServerAuditRepository extends BaseRepository<AuditDTO> {
         return Promise.resolve(newLog as AuditDTO)   
     }
 
+    async findAll(query: IQuery): Promise<AuditDTO[]> {
+        const db = (await this.db());
+        return db.select().from(audit).offset(query.offset).limit(query.limit).all() as AuditDTO[]
+    }
+
 }

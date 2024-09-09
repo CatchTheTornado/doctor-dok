@@ -27,13 +27,15 @@ export interface IWrite<T> {
 export abstract class BaseRepository<T> implements IWrite<T>, IRead<T> {
     databaseId: string;
     databaseSchema: string;
-    constructor(databaseId: string, databaseSchema: string = '') {
-        this.databaseId = databaseId;
+    databasePartition: string;
+    constructor(databaseId: string, databaseSchema: string = '', databasePartition: string ='') {
+        this.databaseId = databaseId
         this.databaseSchema = databaseSchema;
+        this.databasePartition = databasePartition;
     }
 
     async db(): Promise<BetterSQLite3Database<Record<string, never>>> {
-        return (await pool)(this.databaseId, this.databaseSchema, false);
+        return (await pool)(this.databaseId, this.databaseSchema, this.databasePartition, false);
     }
 
     async create(item: T): Promise<T> {

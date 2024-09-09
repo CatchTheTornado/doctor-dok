@@ -83,9 +83,18 @@ export async function genericPUT<T extends { [key:string]: any }>(inputObject: a
     }
 }
 
-export async function genericGET<T extends { [key:string]: any }>(request: NextRequest, repo: BaseRepository<T>) {
+export async function genericGET<T extends { [key:string]: any }>(request: NextRequest, repo: BaseRepository<T>, defaultLimit: number = -1, defaultOffset: number  = -1): Promise<T[]> {
     const filterObj: Record<string, string> = Object.fromEntries(request.nextUrl.searchParams.entries());
-    const items: T[] = await repo.findAll({ filter: filterObj });
+
+    let limit = defaultLimit;
+    let offset = defaultOffset;
+    if (filterObj.limit) {
+        limit = parseInt(filterObj.limit);
+    }
+    if (filterObj.offset) {
+        offset = parseInt(filterObj.offset);
+    }
+    const items: T[] = await repo.findAll({ filter: filterObj, limit, offset });
     return items;
 }
 
