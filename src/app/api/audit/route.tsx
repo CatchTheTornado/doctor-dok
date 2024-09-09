@@ -13,7 +13,7 @@ export async function PUT(request: NextRequest, response: NextResponse) {
     }
 
     const logObj = valRes.data;
-    logObj.ip = request.ip;
+    logObj.ip = request.headers.get('x-real-ip') || request.headers.get('x-forwarded-for') || request.ip;
     const { device, ua } = userAgent(request)
     logObj.ua = ua;
     logObj.databaseIdHash = requestContext.databaseIdHash

@@ -5,7 +5,7 @@ import RecordForm from "./record-form";
 import { FolderContext } from "@/contexts/folder-context";
 import { useContext, useEffect, useState } from "react";
 import { Chat } from "./chat";
-import { Edit3Icon, FolderIcon, FolderOpen, FoldersIcon, KeyIcon, LogOutIcon, MenuIcon, MenuSquareIcon, MessageCircleIcon, PlusIcon, SaveAllIcon, Settings2Icon, SettingsIcon, Share2Icon, UsersIcon, Wand2 } from "lucide-react";
+import { Edit3Icon, FolderIcon, FolderOpen, FoldersIcon, KeyIcon, LogOutIcon, LogsIcon, MenuIcon, MenuSquareIcon, MessageCircleIcon, PlusIcon, SaveAllIcon, Settings2Icon, SettingsIcon, Share2Icon, UsersIcon, Wand2 } from "lucide-react";
 import { DatabaseContext } from "@/contexts/db-context";
 import { toast } from "sonner";
 import { useTheme } from 'next-themes';
@@ -20,6 +20,9 @@ import { useEffectOnce } from "react-use";
 import StatsPopup from "@/components/stats-popup";
 import { RecordEditMode } from "@/components/record-form";
 import ChatCommands from "@/components/chat-commands";
+import { audit } from "@/data/server/db-schema-audit";
+import { AuditContext } from "@/contexts/audit-context";
+import AuditLogPopup from "./audit-log";
 
 export default function TopHeader() {
     const folderContext = useContext(FolderContext);
@@ -27,6 +30,7 @@ export default function TopHeader() {
     const keyContext = useContext(KeyContext);
     const chatContext = useContext(ChatContext);
     const recordContext = useContext(RecordContext);
+    const auditContext = useContext(AuditContext);
     const config = useContext(ConfigContext);
     const { theme, systemTheme } = useTheme();
     const currentTheme = (theme === 'system' ? systemTheme : theme)
@@ -62,6 +66,7 @@ export default function TopHeader() {
 
 
             <StatsPopup />
+            {!dbContext?.acl || dbContext.acl.role === 'owner' ? (<AuditLogPopup />) : null}
             {!dbContext?.acl || dbContext.acl.role === 'owner' ? (<SharedKeysPopup />) : null}
             {!dbContext?.acl || dbContext.acl.role === 'owner' ? (<SettingsPopup />) : null}
             {!dbContext?.acl || dbContext.acl.role === 'owner' ? (<ChangeKeyPopup />) : null}
@@ -75,6 +80,7 @@ export default function TopHeader() {
                   <CommandEmpty>No results found.</CommandEmpty>
                   <CommandGroup heading="Suggestions">
                   <CommandItem key="cmd-edit-folder" className="cursor-pointer text-xs"  onSelect={(e) => { recordContext?.setRecordEditMode(true); }}><PlusIcon /> Add record</CommandItem>
+                  {!dbContext?.acl || dbContext.acl.role === 'owner' ? (<CommandItem key="cmd-audit" className="cursor-pointer text-xs" onSelect={(v) => { auditContext?.setAuditLogDialogOpen(true);  }}><LogsIcon className="w-6 h-6" />  Data Audit Log</CommandItem>) : null}
                   {!dbContext?.acl || dbContext.acl.role === 'owner' ? (<CommandItem key="cmd-settings" className="cursor-pointer text-xs" onSelect={(v) => { config?.setConfigDialogOpen(true);  }}><Settings2Icon className="w-6 h-6" />  Settings</CommandItem>) : null}
                     <CommandItem key="cmd-list-folders" className="cursor-pointer text-xs"  onSelect={(e) => { folderContext?.setFolderListPopup(true); folderContext?.setFolderEditOpen(false); }}><FoldersIcon /> List folders</CommandItem>
                     <CommandItem key="cmd-edit-current-folder" className="cursor-pointer text-xs"  onSelect={(e) => { folderContext?.setFolderListPopup(true); folderContext?.setFolderEditOpen(true); }}><Edit3Icon /> Edit currrent folder</CommandItem>

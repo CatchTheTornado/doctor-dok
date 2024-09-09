@@ -29,6 +29,7 @@ import filenamify from 'filenamify/browser';
 import showdown from 'showdown'
 import { auditLog } from '@/lib/audit';
 import { diff, addedDiff, deletedDiff, updatedDiff, detailedDiff } from 'deep-object-diff';
+import { AuditContext } from './audit-context';
 
 
 let parseQueueInProgress = false;
@@ -115,6 +116,7 @@ export const RecordContextProvider: React.FC<PropsWithChildren> = ({ children })
     const dbContext = useContext(DatabaseContext)
     const chatContext = useContext(ChatContext);
     const folderContext = useContext(FolderContext)
+    const auditContext = useContext(AuditContext);
 
     const cache = async () => {
       return await caches.open('recordContext');      
@@ -203,7 +205,7 @@ export const RecordContextProvider: React.FC<PropsWithChildren> = ({ children })
                     prevRecords.map(pr => pr.id === updatedRecord.id ?  updatedRecord : pr)
                 )
 
-                if (dbContext) auditLog({ eventName: 'updateRecord', encryptedDiff: prevRecord ? JSON.stringify(detailedDiff(prevRecord, updatedRecord)) : '',  recordLocator: JSON.stringify([{ recordIds: [record.id]}])}, dbContext);
+                if (dbContext) auditContext?.record({ eventName: 'updateRecord', encryptedDiff: prevRecord ? JSON.stringify(detailedDiff(prevRecord, updatedRecord)) : '',  recordLocator: JSON.stringify([{ recordIds: [record.id]}])}, dbContext);
 
                 //chatContext.setRecordsLoaded(false); // reload context next time - TODO we can reload it but we need time framed throthling #97
                 return updatedRecord;
@@ -275,7 +277,7 @@ export const RecordContextProvider: React.FC<PropsWithChildren> = ({ children })
         } else {
             toast.success('Folder record removed successfully!')
             setRecords(prvRecords => prvRecords.filter((pr) => pr.id !== record.id));    
-            if (dbContext) auditLog({ eventName: 'deleteRecord',  recordLocator: JSON.stringify([{ recordIds: [record.id]}])}, dbContext);
+            if (dbContext) auditContext.record({ eventName: 'deleteRecord',  recordLocator: JSON.stringify([{ recordIds: [record.id]}])}, dbContext);
 
             //chatContext.setRecordsLoaded(false); // reload context next time        
             return Promise.resolve(true);
@@ -305,7 +307,7 @@ export const RecordContextProvider: React.FC<PropsWithChildren> = ({ children })
             setFilterAvailableTags(fetchedTags);
             setRecords(fetchedRecords);
             setLoaderStatus(DataLoadingStatus.Success);
-            if (dbContext) auditLog({ eventName: 'listRecords', recordLocator: JSON.stringify([{folderId: forFolder.id, recordIds: [fetchedRecords.map(r=>r.id)]}])}, dbContext);
+            if (dbContext) auditContext.record({ eventName: 'listRecords', recordLocator: JSON.stringify([{folderId: forFolder.id, recordIds: [fetchedRecords.map(r=>r.id)]}])}, dbContext);
             return fetchedRecords;
         } catch (error) {
             setLoaderStatus(DataLoadingStatus.Error);
