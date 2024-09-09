@@ -1,6 +1,6 @@
 import '@enhances/with-resolvers';
 import React, { createContext, useState, useEffect, useContext, PropsWithChildren, useRef } from 'react';
-import { EncryptedAttachmentDTO, RecordDTO } from '@/data/dto';
+import { EncryptedAttachmentDTO, EncryptedAttachmentDTOEncSettings, RecordDTO } from '@/data/dto';
 import { RecordApiClient } from '@/data/client/record-api-client';
 import { ApiEncryptionConfig } from '@/data/client/base-api-client';
 import { DataLoadingStatus, DisplayableDataObject, EncryptedAttachment, Folder, Record } from '@/data/client/models';
@@ -20,7 +20,7 @@ import { FolderContext } from './folder-context';
 import { findCodeBlocks, getCurrentTS, getErrorMessage, getTS } from '@/lib/utils';
 import { parse } from 'path';
 import { CreateMessage, Message } from 'ai/react';
-import { sha256 } from '@/lib/crypto';
+import { DTOEncryptionFilter, EncryptionUtils, sha256 } from '@/lib/crypto';
 import { jsonrepair } from 'jsonrepair'
 import { GPTTokens } from 'gpt-tokens'
 import JSZip, { file } from 'jszip'
@@ -86,6 +86,7 @@ export type RecordContextType = {
     getTagsTimeline: () => { year: string, freq: number }[];
 
     exportRecords: () => void;
+    importRecords: (zipFileInput: ArrayBuffer) => void;
 }
 
 export const RecordContext = createContext<RecordContextType | null>(null);
@@ -205,7 +206,7 @@ export const RecordContextProvider: React.FC<PropsWithChildren> = ({ children })
                     prevRecords.map(pr => pr.id === updatedRecord.id ?  updatedRecord : pr)
                 )
 
-                if (dbContext) auditContext?.record({ eventName: 'updateRecord', encryptedDiff: prevRecord ? JSON.stringify(detailedDiff(prevRecord, updatedRecord)) : '',  recordLocator: JSON.stringify([{ recordIds: [record.id]}])}, dbContext);
+                if (dbContext) auditContext?.record({ eventName: 'updateRecord', encryptedDiff: prevRecord ? JSON.stringify(detailedDiff(prevRecord, updatedRecord)) : '',  recordLocator: JSON.stringify([{ recordIds: [updatedRecord.id]}])});
 
                 //chatContext.setRecordsLoaded(false); // reload context next time - TODO we can reload it but we need time framed throthling #97
                 return updatedRecord;
@@ -563,6 +564,76 @@ export const RecordContextProvider: React.FC<PropsWithChildren> = ({ children })
         });
       }
 
+      const importRecords = async (zipFileInput:ArrayBuffer) => {
+        try {
+          if (!folderContext?.currentFolder) {
+            toast.error('No folder selected');
+            return;
+          }
+          const zip = new JSZip();
+          const zipFile = await zip.loadAsync(zipFileInput as ArrayBuffer);
+          const recordsFile = zipFile.file('records.json');
+          const recordsJSON = await recordsFile?.async('string');
+          const recordsData = JSON.parse(recordsJSON as string);
+          const records = recordsData.map((recordDTO: RecordDTO) => Record.fromDTO(recordDTO)) as Record[];
+          console.log('Imported records: ', records);
+          const encUtils = dbContext?.masterKey ? new EncryptionUtils(dbContext.masterKey as string) : null;
+          const encFilter = dbContext?.masterKey ? new DTOEncryptionFilter(dbContext.masterKey as string) : null;
+
+          let idx = 1;
+          for(const record of records) {
+            delete record.id; // new id is required
+            toast.info('Importing record (' + idx + ' of ' + records.length + '): ' + record.title);
+            record.folderId = folderContext?.currentFolder?.id ?? 1;
+            const uploadedAttachments:EncryptedAttachmentDTO[] = [];
+
+            if (record.attachments) {
+                for(const attachment of record.attachments) {
+                  if(attachment.filePath) {
+                    const attachmentContent = await zipFile.file(attachment.filePath)?.async('arraybuffer');
+                    if (attachmentContent) {
+                      const encryptedBuffer = await encUtils?.encryptArrayBuffer(attachmentContent as ArrayBuffer) as ArrayBuffer;
+                      const encryptedFile = new File([encryptedBuffer], attachment.displayName, { type: attachment.mimeType });
+                      const formData = new FormData();
+                      formData.append("file", encryptedFile); // TODO: encrypt file here
+      
+                    let attachmentDTO: EncryptedAttachmentDTO = attachment.toDTO();
+                    delete attachmentDTO.id;
+                    delete attachmentDTO.filePath;
+                  
+                    attachmentDTO = encFilter ? await encFilter.encrypt(attachmentDTO, EncryptedAttachmentDTOEncSettings) as EncryptedAttachmentDTO : attachmentDTO;
+                    formData.append("attachmentDTO", JSON.stringify(attachmentDTO));
+                    try {
+                      const apiClient = new EncryptedAttachmentApiClient('', dbContext, {
+                        useEncryption: false  // for FormData we're encrypting records by ourselves - above
+                      })
+                      toast.info('Uploading attachment: ' + attachment.displayName);
+                      const result = await apiClient.put(formData);
+                      if (result.status === 200) {
+                        const decryptedAttachmentDTO: EncryptedAttachmentDTO = (encFilter ? await encFilter.decrypt(result.data, EncryptedAttachmentDTOEncSettings) : result.data) as EncryptedAttachmentDTO;
+                        console.log('Attachment saved', decryptedAttachmentDTO);
+                        uploadedAttachments.push(decryptedAttachmentDTO);
+                      }
+                    } catch (error) {
+                      console.error(error);
+                      toast.error('Error saving attachment: ' + error);
+                    } 
+                  }
+                }
+              }
+            }
+            record.attachments = uploadedAttachments.map(ea => new EncryptedAttachment(ea));
+            console.log('Importing record: ', record);
+            const updatedRecord = await updateRecord(record);
+            idx++;
+          }
+          toast.success('Records imported successfully!');
+        } catch (error) {
+          console.error(error);
+          toast.error('Error importing records: ' + error);
+        }
+      }
+
       const exportRecords = async () => {
         // todo: download attachments
 
@@ -671,7 +742,8 @@ export const RecordContextProvider: React.FC<PropsWithChildren> = ({ children })
                  sortBy,
                  setSortBy,
                  getTagsTimeline,
-                 exportRecords
+                 exportRecords,
+                 importRecords
                 }}
         >
             {children}

@@ -85,6 +85,7 @@
     "tailwindcss-animate": "^1.0.7",
     "tesseract.js": "^5.1.0",
     "typescript-string-operations": "^1.5.1",
+    "use-file-picker": "^2.1.2",
     "use-mask-input": "^3.4.0",
     "uuid": "^10.0.0",
     "vaul": "^0.9.1",

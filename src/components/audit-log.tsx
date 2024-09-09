@@ -30,7 +30,7 @@ export default function AuditLogPopup() {
   useEffect(() => {
     auditContext?.loadLogs(limit, offset);
     keyContext.loadKeys();
-  }, [limit, offset, auditContext?.lastAudit]);
+  }, [limit, offset/*, auditContext?.lastAudit*/]); // we re not loading the records and keys each time new recod is added due to performance reasons
 
   return (
     <Credenza open={auditContext.auditLogOpen} onOpenChange={auditContext.setAuditLogDialogOpen}>
@@ -39,7 +39,7 @@ export default function AuditLogPopup() {
           <CredenzaTitle>Audit log
           </CredenzaTitle>
           <CredenzaDescription>
-            Check which Keys had access and what was changed in your data
+            Check which Keys had access and what was changed in your data. There could be a slight delay for new records to show. If you need inspect the last records please refresh the page.
           </CredenzaDescription>
         </CredenzaHeader>
         <div className="bg-white dark:bg-zinc-900 border-r border-zinc-200 dark:border-zinc-800">

@@ -5,7 +5,7 @@ import RecordForm from "./record-form";
 import { FolderContext } from "@/contexts/folder-context";
 import { useContext, useEffect, useState } from "react";
 import { Chat } from "./chat";
-import { Edit3Icon, FolderIcon, FolderOpen, FoldersIcon, KeyIcon, LogOutIcon, LogsIcon, MenuIcon, MenuSquareIcon, MessageCircleIcon, PlusIcon, SaveAllIcon, Settings2Icon, SettingsIcon, Share2Icon, UsersIcon, Wand2 } from "lucide-react";
+import { Edit3Icon, FolderIcon, FolderOpen, FoldersIcon, ImportIcon, KeyIcon, LogOutIcon, LogsIcon, MenuIcon, MenuSquareIcon, MessageCircleIcon, PlusIcon, SaveAllIcon, Settings2Icon, SettingsIcon, Share2Icon, Wand2 } from "lucide-react";
 import { DatabaseContext } from "@/contexts/db-context";
 import { toast } from "sonner";
 import { useTheme } from 'next-themes';
@@ -23,6 +23,7 @@ import ChatCommands from "@/components/chat-commands";
 import { audit } from "@/data/server/db-schema-audit";
 import { AuditContext } from "@/contexts/audit-context";
 import AuditLogPopup from "./audit-log";
+import { useFilePicker } from 'use-file-picker';
 
 export default function TopHeader() {
     const folderContext = useContext(FolderContext);
@@ -36,6 +37,16 @@ export default function TopHeader() {
     const currentTheme = (theme === 'system' ? systemTheme : theme)
     const [commandDialogOpen, setCommandDialogOpen] = useState(false);
     const [chatCommandsOpen, setChatCommandsOpen] = useState(false);
+    const { openFilePicker, filesContent, loading } = useFilePicker({
+      accept: '.zip',
+      readAs: 'ArrayBuffer',
+      onFilesSuccessfullySelected: async () => {
+        filesContent.map(async (fileContent) => {
+          await recordContext?.importRecords(fileContent.content);
+          if (folderContext?.currentFolder) recordContext?.listRecords(folderContext?.currentFolder);
+        });
+      }
+    });
 
     useEffectOnce(() => {
       chatContext.checkApiConfig();
@@ -90,7 +101,9 @@ export default function TopHeader() {
                   </CommandGroup>
                   <CommandGroup heading="Export & import">
                     <CommandItem key="cmd-export" className="cursor-pointer text-xs" onSelect={(v) => { recordContext?.exportRecords(); }}><SaveAllIcon className="w-6 h-6" /> Export filtered records</CommandItem>
-                    {/* <CommandItem key="cmd-import" className="cursor-pointer text-xs" onSelect={(v) => { recordContext?.importRecords(); }}><UsersIcon className="w-6 h-6" /> Import records</CommandItem> */}
+                    <CommandItem key="cmd-import" className="cursor-pointer text-xs" onSelect={(v) => { 
+                        openFilePicker();
+                      }}><ImportIcon className="w-6 h-6" /> Import records</CommandItem>
                   </CommandGroup>                  
                   <CommandGroup heading="Security">
                     <CommandItem key="cmd-change-key" className="cursor-pointer text-xs" onSelect={(v) => { keyContext.setChangeEncryptionKeyDialogOpen(true);  }}><KeyIcon className="w-6 h-6" /> Change encryption key</CommandItem>
