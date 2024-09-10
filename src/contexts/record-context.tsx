@@ -209,7 +209,7 @@ export const RecordContextProvider: React.FC<PropsWithChildren> = ({ children })
                     prevRecords.map(pr => pr.id === updatedRecord.id ?  updatedRecord : pr)
                 )
 
-                if (dbContext) auditContext?.record({ eventName: 'updateRecord', encryptedDiff: prevRecord ? JSON.stringify(detailedDiff(prevRecord, updatedRecord)) : '',  recordLocator: JSON.stringify([{ recordIds: [updatedRecord.id]}])});
+                if (dbContext) auditContext?.record({ eventName: prevRecord ? 'updateRecord' : 'createRecord', encryptedDiff: prevRecord ? JSON.stringify(detailedDiff(prevRecord, updatedRecord)) : '',  recordLocator: JSON.stringify([{ recordIds: [updatedRecord.id]}])});
 
                 //chatContext.setRecordsLoaded(false); // reload context next time - TODO we can reload it but we need time framed throthling #97
                 return updatedRecord;
@@ -246,6 +246,7 @@ export const RecordContextProvider: React.FC<PropsWithChildren> = ({ children })
                 if (hasError) {
                   toast.error('Uploaded file is not valid health data. Record will be deleted: ' + hasError.error);
                   deleteRecord(record as Record);
+                  auditContext.record({ eventName: 'invalidRecord',  recordLocator: JSON.stringify([{ recordIds: [record?.id]}])});
                   return record;
                 }
               }
