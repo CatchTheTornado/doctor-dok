@@ -181,7 +181,7 @@ export default function RecordForm({ folder, mode }: { folder?: Folder, mode?: R
           pr.attachments = uploadedAttachments;
           pr.updatedAt = getCurrentTS();
           pr.tags = tags ? tags.map((tag) => tag.text) : [];
-          pr.updateChecksum();
+          await pr.updateChecksum();
           const savedRecord = await recordContext?.updateRecord(pr) as Record;
           savedRecords.push(savedRecord);
           await assignAttachments(savedRecord);
@@ -198,7 +198,7 @@ export default function RecordForm({ folder, mode }: { folder?: Folder, mode?: R
               createdAt: getCurrentTS(),
               eventDate: getCurrentTS()
             } as Record)
-            pr.updateChecksum();
+            await pr.updateChecksum();
             const savedRecord = await recordContext?.updateRecord(pr) as Record;
             savedRecords.push(savedRecord);
           } else {
@@ -214,7 +214,7 @@ export default function RecordForm({ folder, mode }: { folder?: Folder, mode?: R
                 eventDate: getCurrentTS(),
                 attachments: [uploadedAttachment]
               } as Record)
-              pr.updateChecksum();
+              await pr.updateChecksum();
               const savedRecord = await recordContext?.updateRecord(pr) as Record;
               savedRecords.push(savedRecord);
               await assignAttachments(savedRecord);
