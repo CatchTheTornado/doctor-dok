@@ -35,6 +35,7 @@ import { Checkbox } from "@/components/ui/checkbox"
 import ChatCommands from "@/components/chat-commands"
 import { MagicWandIcon } from "@radix-ui/react-icons"
 import TemplateStringRenderer from "./template-string-renderer"
+import { OnboardingChat } from "@/components/onboarding-chat"
 
 
 export function Chat() {
@@ -117,7 +118,10 @@ export function Chat() {
         </DrawerHeader>
         <div className="flex flex-col h-[500px] overflow-y-auto">
           <div className="flex-1 p-4 space-y-4">
-            {chatContext.visibleMessages.slice(chatContext.visibleMessages.length > 5 ? chatContext.visibleMessages.length-5 : 0, chatContext.visibleMessages.length).map((message, index) => ( // display only last 5 messages
+            {chatContext.messages.length === 1 ? (
+              <OnboardingChat />              
+            ) : null}
+            {chatContext.messages.length > 1 && chatContext.visibleMessages.slice(chatContext.visibleMessages.length > 5 ? chatContext.visibleMessages.length-5 : 0, chatContext.visibleMessages.length).map((message, index) => ( // display only last 5 messages
               <ChatMessage key={index} message={message} />
             ))}
             {chatContext.isStreaming ? (
