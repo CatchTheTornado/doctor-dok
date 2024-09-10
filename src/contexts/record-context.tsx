@@ -54,6 +54,8 @@ export type RecordContextType = {
     recordEditMode: boolean;
     parseQueueLength: number;
     setRecordEditMode: (editMode: boolean) => void;
+    recordDialogOpen: boolean;
+    setRecordDialogOpen: (open: boolean) => void;
     currentRecord: Record | null; 
     updateRecord: (record: Record) => Promise<Record>;
     deleteRecord: (record: Record) => Promise<boolean>;
@@ -93,6 +95,7 @@ export const RecordContext = createContext<RecordContextType | null>(null);
 
 export const RecordContextProvider: React.FC<PropsWithChildren> = ({ children }) => {
     const [recordEditMode, setRecordEditMode] = useState<boolean>(false);
+    const [recordDialogOpen, setRecordDialogOpen] = useState<boolean>(false);
     const [records, setRecords] = useState<Record[]>([]);
     const [filteredRecords, setFilteredRecords] = useState<Record[]>([]);
     const [loaderStatus, setLoaderStatus] = useState<DataLoadingStatus>(DataLoadingStatus.Loading);
@@ -237,6 +240,14 @@ export const RecordContextProvider: React.FC<PropsWithChildren> = ({ children })
                   if (block.syntax === 'markdown') {
                       recordMarkdown += block.code;
                   }
+              }
+              if (recordJSON.length > 0) {
+                const hasError = recordJSON.find(item => item.error);
+                if (hasError) {
+                  toast.error('Uploaded file is not valid health data. Record will be deleted: ' + hasError.error);
+                  deleteRecord(record as Record);
+                  return record;
+                }
               }
               const discoveredEventDate = getTS(new Date(recordJSON.length > 0 ? recordJSON.find(item => item.test_date)?.test_date || recordJSON.find(item => item.admission_date)?.admission_date : record?.createdAt));
               const discoveredType = recordJSON.length > 0 ? recordJSON.map(item => item.subtype ? item.subtype : item.type).join(", ") : 'note';
@@ -748,7 +759,9 @@ export const RecordContextProvider: React.FC<PropsWithChildren> = ({ children })
                  setSortBy,
                  getTagsTimeline,
                  exportRecords,
-                 importRecords
+                 importRecords,
+                 recordDialogOpen,
+                 setRecordDialogOpen
                 }}
         >
             {children}

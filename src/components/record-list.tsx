@@ -13,6 +13,7 @@ import { Button } from "./ui/button";
 import { record } from "zod";
 import { DataLoadingStatus, Folder } from "@/data/client/models";
 import RecordsFilter from "./records-filter";
+import { OnboardingHealthActions } from "@/components/onboarding-health-actions";
 
 export default function RecordList({ folder }: {folder: Folder}) {
   const recordContext = useContext(RecordContext);
@@ -61,10 +62,13 @@ export default function RecordList({ folder }: {folder: Folder}) {
             </AlertDescription>
           </Alert>
         ) : (null) }
-        { (recordContext?.loaderStatus === "success" && recordContext?.records.length === 0) ? (
+        { (recordContext?.loaderStatus === "success" && recordContext?.records.length > 0 && recordContext?.filteredRecords.length === 0) ? ( // no filtered records in the database
           <NoRecordsAlert title="No records found">
-            No records found in the database. Please add a new folder using <strong>+</strong> icon above.
+            No records found in the database. Please add a new record using <strong>+</strong> icon above.
           </NoRecordsAlert>
+        ) : (null) }
+        { (recordContext?.loaderStatus === "success" && recordContext?.filteredRecords.length === 0) ? ( // no records at all in the database
+          <OnboardingHealthActions />          
         ) : (null) }
             <div className={(recordContext?.records && recordContext?.records.length > 0 && (recordContext.filterAvailableTags && recordContext.filterAvailableTags.length > 0)) || recordContext?.loaderStatus === DataLoadingStatus.Loading ? `flex xs:p-2 md:pl-0` : `hidden` }>
                <div className="flex flex-wrap items-center gap-1 w-full ">

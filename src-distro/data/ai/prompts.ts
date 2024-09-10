@@ -10,7 +10,7 @@ const itemSchema = zodToJsonSchema(recordItemSchema);
 
 export const prompts = {
     recordParseMultimodal: (context: PromptContext) => {
-        return 'This is my health result data. Please parse it to JSON array of records including all findings, records, details, tests results, medications, diagnosis and others. \
+        return 'Check if this data contains health results or info. If not return Error message + JSON: { error: ""}. If valid health data, please parse it to JSON array of records including all findings, records, details, tests results, medications, diagnosis and others. \
                 First: JSON should be all in original language. \
                 Each medical record should a row of returned JSON array of objects in format given below. If value contains multiple data (eg. numbers) store it as separate items. Freely extend it when needed to not miss any data!\
                 Include the type of this results in english (eg. "blood_results", "rmi") in "type" key of JSON and then more detailed type in "subtype" key.  \
@@ -22,7 +22,7 @@ export const prompts = {
                 ' + JSON.stringify(itemSchema) + '```\r\n\r\n'
     }, // [ { type: "blood_results", subtype: "morphology", findings: [], ... }, {type: "mri", subtype: "head mri", ...}]
     recordParseOCR: (context: PromptContext, ocrText: string) => {
-        return 'Below is my health result data in plain text. Parse it to JSON array of records including all findings, records, details, tests results, medications, diagnosis and others. \
+        return 'Below is my health result data in plain text. Check if this data contains health results or info. If not return Error message + JSON: { error: ""}. If valid health data, parse it to JSON array of records including all findings, records, details, tests results, medications, diagnosis and others. \
                 First: JSON should be all in original language. \
                 Each medical record should a row of returned JSON array of objects in format given below. If value contains multiple data (eg. numbers) store it as separate items. Freely extend it when needed to not miss any data!\
                 Include the type of this results in english (eg. "blood_results", "rmi") in "type" key of JSON and then more detailed type in "subtype" key.  \
@@ -34,7 +34,7 @@ export const prompts = {
     }, // [ { type: "blood_results", subtype: "morphology", findings: [], ... }, {type: "mri", subtype: "head mri", ...}]
 
     recordParseMultimodalTranscription: (context: PromptContext) => {
-        return 'This is my health result data AND audio transcription. Fix errors in transcription. Please parse it to JSON array of records including all findings, records, details, tests results, medications, diagnosis and others. \
+        return 'This is my health result data AND audio transcription. Check if this data contains health results or info. If not return Error message + JSON: { error: ""}. If valid health data, fix errors in transcription. Please parse it to JSON array of records including all findings, records, details, tests results, medications, diagnosis and others. \
                 Audio transcription: ' + context.record?.transcription + '\r\n\
                 First: JSON should be all in original language. \
                 Each medical record should a row of returned JSON array of objects in format given below. If value contains multiple data (eg. numbers) store it as separate items. Freely extend it when needed to not miss any data!\
@@ -47,7 +47,7 @@ export const prompts = {
                 ' + JSON.stringify(itemSchema) + '```\r\n\r\n'
     }, // [ { type: "blood_results", subtype: "morphology", findings: [], ... }, {type: "mri", subtype: "head mri", ...}]
     recordParseOCRTranscription: (context: PromptContext, ocrText: string) => {
-        return 'Below is my health result data in plain text AND audio transcription. Fix errors in transcription. Parse it to JSON array of records including all findings, records, details, tests results, medications, diagnosis and others. \
+        return 'Below is my health result data in plain text AND audio transcription. Check if this data contains health results or info. If not return Error message + JSON: { error: ""}. If valid health data, fix errors in transcription. Parse it to JSON array of records including all findings, records, details, tests results, medications, diagnosis and others. \
                 Audio transcription: ' + context.record?.transcription + '\r\n\
                 First: JSON should be all in original language. \
                 Each medical record should a row of returned JSON array of objects in format given below. If value contains multiple data (eg. numbers) store it as separate items. Freely extend it when needed to not miss any data!\

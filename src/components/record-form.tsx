@@ -74,7 +74,6 @@ export default function RecordForm({ folder, mode }: { folder?: Folder, mode?: R
   const [files, setFiles] = useState<UploadedFile[]>([]);
   const [transcription, setTranscription] = useState<string>("");
   const [removeFiles, setRemoveFiles] = useState<UploadedFile[]>([]);
-  const [dialogOpen, setDialogOpen] = useState(false);
   const [tags, setTags] = useState<Tag[]>([]);
   const [chatGptApiKey, setChatGptApiKey] = useState<string>('');
 
@@ -172,7 +171,7 @@ export default function RecordForm({ folder, mode }: { folder?: Folder, mode?: R
         }); 
       }      
 
-      setDialogOpen(false);
+      recordContext?.setRecordDialogOpen(false);
 
       try {
         if (recordContext?.currentRecord && recordContext?.recordEditMode) { // edit mode
@@ -223,7 +222,7 @@ export default function RecordForm({ folder, mode }: { folder?: Folder, mode?: R
           }
         }
       } catch (err) {
-        setDialogOpen(true);
+        recordContext?.setRecordDialogOpen(true);
         toast.error('Error saving record ' + err);
         console.log(err);
         return;
@@ -250,7 +249,7 @@ export default function RecordForm({ folder, mode }: { folder?: Folder, mode?: R
         recordContext?.setRecordEditMode(false);
       } else {
         toast.error('Error adding records. Please try again later');
-        setDialogOpen(false);
+        recordContext?.setRecordDialogOpen(false);
       }
     } else {
       toast.error("Please select a folder first");
@@ -258,7 +257,7 @@ export default function RecordForm({ folder, mode }: { folder?: Folder, mode?: R
   };
 
   return (
-    <Credenza open={dialogOpen || recordContext?.recordEditMode} onOpenChange={(value) => { setDialogOpen(value); if(!value) {
+    <Credenza open={recordContext?.recordDialogOpen || recordContext?.recordEditMode} onOpenChange={(value) => { recordContext?.setRecordDialogOpen(value); if(!value) {
       setFiles([]);
       setTags([]);
       setRemoveFiles([]);

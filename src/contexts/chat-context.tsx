@@ -134,7 +134,7 @@ export const useChatContext = () => useContext(ChatContext);
 export const ChatContextProvider: React.FC<PropsWithChildren> = ({ children }) => {
     
     const [ messages, setMessages ] = useState([
-        { role: 'user', name: 'You', content: 'Hi there! I will send in this conversation some medical records, please help me understand it and answer the questions as if you were physican!', visibility: MessageVisibility.Visible } as MessageEx,
+        { role: 'user', name: 'You', content: 'Hi there! I will send in this conversation some medical records, please help me understand it and answer the questions. Because you are not a real phisican, never suggest diagnosis or non OTC medicaments.', visibility: MessageVisibility.Visible } as MessageEx,
 //        { role: 'assistant', name: 'AI', content: 'Sure! I will do my best to answer all your questions specifically to your records' }
     ] as MessageEx[]);
     const [visibleMessages, setVisibleMessages] = useState<MessageEx[]>(messages);
