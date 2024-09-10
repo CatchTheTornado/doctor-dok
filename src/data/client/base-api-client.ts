@@ -27,7 +27,7 @@ export class ApiClient {
     this.encryptionConfig = encryptionConfig;
   }
 
-  protected async getArrayBuffer(
+  public async getArrayBuffer(
     endpoint: string,
     repeatedRequestAccessToken = ''
   ): Promise<ArrayBuffer | null | undefined> {
@@ -84,7 +84,7 @@ export class ApiClient {
     }
   }
 
-  protected async request<T>(
+  public async request<T>(
     endpoint: string,
     method: 'GET' | 'POST' | 'PUT' | 'DELETE',
     encryptionSettings?: DTOEncryptionSettings,
