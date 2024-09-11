@@ -5,7 +5,7 @@ import RecordForm from "./record-form";
 import { FolderContext } from "@/contexts/folder-context";
 import { useContext, useEffect, useState } from "react";
 import { Chat } from "./chat";
-import { Edit3Icon, FolderIcon, FolderOpen, FoldersIcon, ImportIcon, KeyIcon, LogOutIcon, LogsIcon, MenuIcon, MenuSquareIcon, MessageCircleIcon, PlusIcon, SaveAllIcon, Settings2Icon, SettingsIcon, Share2Icon, Wand2 } from "lucide-react";
+import { Edit3Icon, FileIcon, FolderIcon, FolderOpen, FoldersIcon, ImportIcon, KeyIcon, LogOutIcon, LogsIcon, MenuIcon, MenuSquareIcon, MessageCircleIcon, PlusIcon, SaveAllIcon, Settings2Icon, SettingsIcon, Share2Icon, Wand2 } from "lucide-react";
 import { DatabaseContext } from "@/contexts/db-context";
 import { toast } from "sonner";
 import { useTheme } from 'next-themes';
@@ -24,6 +24,7 @@ import { audit } from "@/data/server/db-schema-audit";
 import { AuditContext } from "@/contexts/audit-context";
 import AuditLogPopup from "./audit-log";
 import { useFilePicker } from 'use-file-picker';
+import { TermsContext } from "@/contexts/terms-context";
 
 export default function TopHeader() {
     const folderContext = useContext(FolderContext);
@@ -31,6 +32,7 @@ export default function TopHeader() {
     const keyContext = useContext(KeyContext);
     const chatContext = useContext(ChatContext);
     const recordContext = useContext(RecordContext);
+    const termsContext = useContext(TermsContext);
     const auditContext = useContext(AuditContext);
     const config = useContext(ConfigContext);
     const { theme, systemTheme } = useTheme();
@@ -108,6 +110,9 @@ export default function TopHeader() {
                   <CommandGroup heading="Security">
                     <CommandItem key="cmd-change-key" className="cursor-pointer text-xs" onSelect={(v) => { keyContext.setChangeEncryptionKeyDialogOpen(true);  }}><KeyIcon className="w-6 h-6" /> Change encryption key</CommandItem>
                     <CommandItem key="cmd-logout" className="cursor-pointer text-xs" onSelect={(v) => { dbContext?.logout(); }}><LogOutIcon className="w-6 h-6" /> Logout</CommandItem>
+                  </CommandGroup>
+                  <CommandGroup heading="Help">
+                    <CommandItem key="cmd-terms" className="cursor-pointer text-xs" onSelect={(v) => { termsContext.setTermsDialogOpen(true); }}><FileIcon className="w-6 h-6" /> Accepted terms</CommandItem>
                   </CommandGroup>
               </CommandList>
             </CommandDialog>

@@ -145,10 +145,10 @@ export const defaultKeyACL: KeyACLDTO = { role: 'guest', features: [] };
 
 export const termsDTOSchema = z.object({
   id: z.number().positive().optional(),
-  key: z.string().min(1),
+  key: z.string().min(1).optional(),
   code: z.string().min(1),
   content: z.string().min(1),
-  signature: z.string().min(1),
+  signature: z.string().optional(),
   ip: z.string().nullable().optional(),
   ua: z.string().nullable().optional(),
   name: z.string().nullable().optional(),

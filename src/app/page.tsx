@@ -11,6 +11,8 @@ import { ChatContextProvider } from "@/contexts/chat-context";
 import RecordsWrapper from "@/components/records-wrapper";
 import { KeyContextProvider } from "@/contexts/key-context";
 import { AuditContext, AuditContextProvider } from "@/contexts/audit-context";
+import { TermsContext, TermsContextProvider } from "@/contexts/terms-context";
+import TermsPopup from "@/components/terms";
 
 // part of bundle size optimization (https://github.com/CatchTheTornado/doctor-dok/issues/67)
 // const DynamicRecordsWrapper = dynamic(() => import('@/components/records-wrapper'), { ssr: false });
@@ -22,21 +24,24 @@ export default function FolderPad() {
   return (
     <DatabaseContextProvider>
       <ConfigContextProvider>
-      <AuditContextProvider>
-          <AuthorizationGuard>
-          <ChatContextProvider>
-            <FolderContextProvider>
-                <RecordContextProvider>
-                  <KeyContextProvider>
-                    <div>
-                      <TopHeader />
-                      <RecordsWrapper />
-                    </div>
-                  </KeyContextProvider>
-                </RecordContextProvider>
-              </FolderContextProvider>
-            </ChatContextProvider>
-          </AuthorizationGuard> 
+        <AuditContextProvider>
+          <TermsContextProvider>
+            <AuthorizationGuard>
+              <ChatContextProvider>
+                <FolderContextProvider>
+                  <RecordContextProvider>
+                    <KeyContextProvider>
+                      <div>
+                        <TopHeader />
+                        <TermsPopup />
+                        <RecordsWrapper />
+                      </div>
+                    </KeyContextProvider>
+                  </RecordContextProvider>
+                </FolderContextProvider>
+              </ChatContextProvider>
+            </AuthorizationGuard> 
+          </TermsContextProvider>
         </AuditContextProvider>
       </ConfigContextProvider>
     </DatabaseContextProvider>
