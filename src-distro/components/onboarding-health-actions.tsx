@@ -8,10 +8,13 @@ import { RecordContext } from "@/contexts/record-context";
 import { ApiClient } from "@/data/client/base-api-client";
 import { DatabaseContext } from "@/contexts/db-context";
 import { toast } from "sonner";
+import { FolderContext } from "@/contexts/folder-context";
+import { Folder } from "@/data/client/models";
 
 export function OnboardingHealthActions() {
   const recordContext = useContext(RecordContext);
   const dbContext = useContext(DatabaseContext);
+  const folderContext = useContext(FolderContext);
   
   const handleImportExamples = async () => {
     try {
@@ -19,7 +22,8 @@ export function OnboardingHealthActions() {
       toast.info('Downloading examples ...');
 
       const examplesArrayBuffer = await apiClient.getArrayBuffer('/onboarding/DoctorDok-onboarding.zip');
-      recordContext?.importRecords(examplesArrayBuffer as ArrayBuffer);
+      await recordContext?.importRecords(examplesArrayBuffer as ArrayBuffer);
+      recordContext?.listRecords(folderContext?.currentFolder as Folder);
     } catch (error) {
       toast.error('Error while downloading examples');
     }

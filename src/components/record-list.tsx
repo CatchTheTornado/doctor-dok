@@ -54,22 +54,6 @@ export default function RecordList({ folder }: {folder: Folder}) {
   return (
     <div className="bg-white dark:bg-zinc-900 md:p-4 md:rounded-lg shadow-sm">
       <div>
-        { (recordContext?.loaderStatus === "error") ? (
-          <Alert>
-            <AlertTitle>Error</AlertTitle>
-            <AlertDescription>
-              Error while loading folder records. Please try again later.
-            </AlertDescription>
-          </Alert>
-        ) : (null) }
-        { (recordContext?.loaderStatus === "success" && recordContext?.records.length > 0 && recordContext?.filteredRecords.length === 0) ? ( // no filtered records in the database
-          <NoRecordsAlert title="No records found">
-            No records found in the database. Please add a new record using <strong>+</strong> icon above.
-          </NoRecordsAlert>
-        ) : (null) }
-        { (recordContext?.loaderStatus === "success" && recordContext?.filteredRecords.length === 0) ? ( // no records at all in the database
-          <OnboardingHealthActions />          
-        ) : (null) }
             <div className={(recordContext?.records && recordContext?.records.length > 0 && (recordContext.filterAvailableTags && recordContext.filterAvailableTags.length > 0)) || recordContext?.loaderStatus === DataLoadingStatus.Loading ? `flex xs:p-2 md:pl-0` : `hidden` }>
                <div className="flex flex-wrap items-center gap-1 w-full ">
                 { recordContext?.filterAvailableTags && recordContext?.filterAvailableTags.length > 0 ? (
@@ -104,6 +88,23 @@ export default function RecordList({ folder }: {folder: Folder}) {
                 </div>
 
             </div>
+
+            { (recordContext?.loaderStatus === "error") ? (
+              <Alert>
+                <AlertTitle>Error</AlertTitle>
+                <AlertDescription>
+                  Error while loading folder records. Please try again later.
+                </AlertDescription>
+              </Alert>
+            ) : (null) }
+            { (recordContext?.loaderStatus === "success" && recordContext?.records.length > 0 && recordContext?.filteredRecords.length === 0) ? ( // no filtered records in the database
+              <NoRecordsAlert title="No records found">
+                No records found in the database. Please add a new record using <strong>+</strong> icon above.
+              </NoRecordsAlert>
+            ) : (null) }
+            { (recordContext?.loaderStatus === "success" && recordContext?.records.length === 0) ? ( // no records at all in the database
+              <OnboardingHealthActions />          
+            ) : (null) }            
 
             {sort(recordContext?.filteredRecords ?? []).by(getSortBy(recordContext?.sortBy ?? 'eventDate desc')).map((record, index) => (
               <RecordItem key={index} record={record} displayAttachmentPreviews={displayAttachmentPreviews} />

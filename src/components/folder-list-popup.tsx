@@ -36,7 +36,7 @@ export default function FolderListPopup() {
           </CredenzaDescription>
         </CredenzaHeader>
         <div className="bg-white dark:bg-zinc-900 border-r border-zinc-200 dark:border-zinc-800">
-          <div className="h-auto overflow-auto">
+          <div className="h-auto overflow-y-scroll max-h-[500px]">
             {(dbContext?.authStatus == DatabaseAuthStatus.Authorized) ? (
               <div className="p-4 space-y-4">
                 {foldersContext?.loaderStatus === DataLoadingStatus.Loading ? (
@@ -45,7 +45,7 @@ export default function FolderListPopup() {
                   </div>
                 ) : (
                   (foldersContext?.folders.length > 0) ?
-                    foldersContext?.folders.map((folder, index) => (
+                    foldersContext?.folders.sort((a,b) => a.name.localeCompare(b.name)).map((folder, index) => (
                       <FolderItem key={index} folder={folder} selected={foldersContext?.currentFolder?.id === folder.id} />
                     ))
                     : (
