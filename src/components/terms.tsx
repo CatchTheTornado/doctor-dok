@@ -57,7 +57,7 @@ export default function TermsPopup() {
                   </div>
                 ) : (
                   Object.entries(requiredTerms).map(([key, term]) => (
-                  <div className="w-full flex grid-cols-2">
+                  <div key={key} className="w-full flex grid-cols-2">
                       <div className="w-[85%]"><strong>{term.title}</strong><br />{term.content}</div>
                       <div>
                         {termsContext?.terms.find((t) => t.code === key && t.key?.endsWith(dbContext.keyLocatorHash)) ? (
