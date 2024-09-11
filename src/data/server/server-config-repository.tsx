@@ -29,7 +29,7 @@ export default class ServerConfigRepository extends BaseRepository<ConfigDTO> {
 
     async delete(query: Record<string, string>): Promise<boolean> {
         const db = (await this.db());
-        return db.delete(config).where(eq(config.key, query.key)).run()
+        return db.delete(config).where(eq(config.key, query.key)).run().changes > 0
     }
 
     async findAll(): Promise<ConfigDTO[]> {

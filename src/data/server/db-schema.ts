@@ -75,3 +75,16 @@ export const encryptedAttachments = sqliteTable('encryptedAttachments', {
     createdAt: text('updatedAt').notNull().default(sql`CURRENT_TIMESTAMP`),
     updatedAt: text('updatedAt').notNull().default(sql`CURRENT_TIMESTAMP`)
 });
+
+export const terms = sqliteTable('terms', {
+    id: integer('id', { mode: 'number' }).primaryKey({ autoIncrement: true }),
+    content: text('content'),
+    code: text('code'),
+    key: text('key'),
+    signature: text('signature'),
+    ip: text('ip'),
+    ua: text('ua'),
+    name: text('name'),
+    email: text('email'),
+    signedAt: text('signedAt').notNull().default(sql`CURRENT_TIMESTAMP`)
+});

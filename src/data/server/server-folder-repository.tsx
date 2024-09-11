@@ -29,7 +29,7 @@ export default class ServerFolderRepository extends BaseRepository<FolderDTO> {
 
     async delete(query: Record<string, string>): Promise<boolean> {
         const db = (await this.db());
-        return db.delete(folders).where(eq(folders.id, parseInt(query.id))).run()
+        return db.delete(folders).where(eq(folders.id, parseInt(query.id))).run().changes > 0
     }
 
     async findAll(): Promise<FolderDTO[]> {

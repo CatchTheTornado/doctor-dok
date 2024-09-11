@@ -16,7 +16,7 @@ export default class ServerEncryptedAttachmentRepository extends BaseRepository<
 
     async delete(query:Record<string, any>): Promise<boolean> {
         const db = (await this.db());
-        return db.delete(encryptedAttachments).where(eq(encryptedAttachments.storageKey, query.storageKey)).run()  
+        return db.delete(encryptedAttachments).where(eq(encryptedAttachments.storageKey, query.storageKey)).run().changes > 0
     }
 
     // update folder

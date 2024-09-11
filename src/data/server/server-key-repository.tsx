@@ -35,7 +35,7 @@ export default class ServerKeyRepository extends BaseRepository<KeyDTO> {
 
     async delete(query: IFilter): Promise<boolean> {
         const db = (await this.db());
-        return db.delete(keys).where(eq(keys.keyLocatorHash, query['keyLocatorHash'])).run()
+        return db.delete(keys).where(eq(keys.keyLocatorHash, query['keyLocatorHash'])).run().changes > 0
     }
 
     async findAll(query: KeysQuery): Promise<KeyDTO[]> {

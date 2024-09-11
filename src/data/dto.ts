@@ -143,7 +143,19 @@ export const keyACLSchema = z.object({
 export type KeyACLDTO = z.infer<typeof keyACLSchema>;
 export const defaultKeyACL: KeyACLDTO = { role: 'guest', features: [] };
 
-
+export const termsDTOSchema = z.object({
+  id: z.number().positive().optional(),
+  key: z.string().min(1),
+  code: z.string().min(1),
+  content: z.string().min(1),
+  signature: z.string().min(1),
+  ip: z.string().nullable().optional(),
+  ua: z.string().nullable().optional(),
+  name: z.string().nullable().optional(),
+  email: z.string().nullable().optional(),
+  signedAt: z.string().default(() => getCurrentTS()),
+});
+export type TermDTO = z.infer<typeof termsDTOSchema>;
 
 // Stats DTO's 
 export const statsSchema = z.object({
