@@ -8,10 +8,15 @@ import { DatabaseContext } from "@/contexts/db-context";
 import { TermsContext } from "@/contexts/terms-context";
 import { requiredTerms } from "@/terms/terms";
 import { getCurrentTS } from "@/lib/utils";
+import { Input } from "@/components/ui/input";
 
 export default function TermsPopup() {
   const dbContext = useContext(DatabaseContext);
   const termsContext = useContext(TermsContext);
+
+  const [name, setName] = useState('');
+  const [email, setEmail] = useState('');
+  const [errorMessage, setErrorMessage] = useState('');
 
   const [requiredTermsAccepted, setRequiredTermsAccepted] = useState<{[key: string]: boolean}>({});
   const checkTerms = () => {
@@ -48,6 +53,34 @@ export default function TermsPopup() {
         </CredenzaHeader>
         <div className="bg-white dark:bg-zinc-900 border-r border-zinc-200 dark:border-zinc-800">
           <div className="h-auto overflow-auto">
+            <div className="">
+              <div className="p-4">
+                To accept terms, please enter your name and email address and click "Accept":
+              </div>
+              {errorMessage ? (
+                <div className="p-4 border border-red-500 text-red-200">
+                  {errorMessage}
+                </div>
+              ) : null}
+              <div className="flex">
+                <div className="flex">
+                  <div className="p-4">
+                    Name:
+                  </div>
+                  <div className="p-4">
+                    <Input value={name} onChange={(e) => setName(e.target.value)} />
+                  </div>
+                </div>
+                <div className="flex">
+                  <div className="p-4 col-span-2">
+                    E-mail:
+                  </div>
+                  <div className="p-4">
+                    <Input value={email} onChange={(e) => setEmail(e.target.value)} />
+                  </div>
+                </div>
+              </div>
+            </div>
             
             {(dbContext?.authStatus == DatabaseAuthStatus.Authorized) ? (
               <div className="p-4 space-y-4">
@@ -64,14 +97,22 @@ export default function TermsPopup() {
                           <div className="text-green-500">Accepted<br/><span className="text-xs">{termsContext?.terms.find((t) => t.code === key && t.key?.endsWith(dbContext.keyLocatorHash))?.signedAt}</span></div>
                         ) : (
                           <Button onClick={(e) => {
-                            termsContext?.sign({
-                              code: key,
-                              content: term.contentPlain? term.contentPlain : term.content.toString(),
-                              key: key + dbContext?.keyLocatorHash,
-                              signedAt: getCurrentTS(),
-                            }).then(() => {
-                              setRequiredTermsAccepted(prev => ({...prev, [key]: true}));
-                            });
+                            if (!name || !email) {
+                              setErrorMessage('Please enter your name and email address');
+                              return;
+                            } else {
+                              setErrorMessage('');                             
+                              termsContext?.sign({
+                                code: key,
+                                name: name,
+                                email: email,
+                                content: term.contentPlain? term.contentPlain : term.content.toString(),
+                                key: key + dbContext?.keyLocatorHash,
+                                signedAt: getCurrentTS(),
+                              }).then(() => {
+                                setRequiredTermsAccepted(prev => ({...prev, [key]: true}));
+                              });
+                            }
                           }}>Accept</Button>
                         )}
                       </div>
