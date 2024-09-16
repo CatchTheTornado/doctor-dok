@@ -157,6 +157,24 @@ export const termsDTOSchema = z.object({
 });
 export type TermDTO = z.infer<typeof termsDTOSchema>;
 
+
+export const saasDTOSchema = z.object({
+  currentQuota: z.object({
+    allowedDatabases: z.number().int(),
+    allowedUSDBudget: z.number().int(),
+    allowedTokenBudget: z.number().int()
+  }),
+  currentUsage: z.object({
+      usedDatabases: z.number().int(),
+      usedUSDBudget: z.number().int(),
+      usedTokenBudget: z.number().int()
+  }),
+  email: z.string().nullable().optional(),
+  userId: z.string().nullable().optional(),
+  saasToken: z.string(),
+});
+export type SaaSDTO = z.infer<typeof saasDTOSchema>;
+
 // Stats DTO's 
 export const statsSchema = z.object({
   id: z.number().positive().int().optional(),

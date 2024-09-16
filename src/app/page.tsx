@@ -13,6 +13,9 @@ import { KeyContextProvider } from "@/contexts/key-context";
 import { AuditContext, AuditContextProvider } from "@/contexts/audit-context";
 import { TermsContext, TermsContextProvider } from "@/contexts/terms-context";
 import TermsPopup from "@/components/terms";
+import { useSearchParams } from "next/navigation";
+import { useEffect } from "react";
+import { SaaSContext, SaaSContextProvider } from "@/contexts/saas-context";
 
 // part of bundle size optimization (https://github.com/CatchTheTornado/doctor-dok/issues/67)
 // const DynamicRecordsWrapper = dynamic(() => import('@/components/records-wrapper'), { ssr: false });
@@ -24,25 +27,27 @@ export default function FolderPad() {
   return (
     <DatabaseContextProvider>
       <ConfigContextProvider>
-        <AuditContextProvider>
-          <TermsContextProvider>
-            <AuthorizationGuard>
-              <ChatContextProvider>
-                <FolderContextProvider>
-                  <RecordContextProvider>
-                    <KeyContextProvider>
-                      <div>
-                        <TopHeader />
-                        <TermsPopup />
-                        <RecordsWrapper />
-                      </div>
-                    </KeyContextProvider>
-                  </RecordContextProvider>
-                </FolderContextProvider>
-              </ChatContextProvider>
-            </AuthorizationGuard> 
-          </TermsContextProvider>
-        </AuditContextProvider>
+        <SaaSContextProvider>
+          <AuditContextProvider>
+            <TermsContextProvider>
+              <AuthorizationGuard>
+                <ChatContextProvider>
+                  <FolderContextProvider>
+                    <RecordContextProvider>
+                      <KeyContextProvider>
+                        <div>
+                          <TopHeader />
+                          <TermsPopup />
+                          <RecordsWrapper />
+                        </div>
+                      </KeyContextProvider>
+                    </RecordContextProvider>
+                  </FolderContextProvider>
+                </ChatContextProvider>
+              </AuthorizationGuard> 
+            </TermsContextProvider>
+          </AuditContextProvider>
+        </SaaSContextProvider>
       </ConfigContextProvider>
     </DatabaseContextProvider>
   );

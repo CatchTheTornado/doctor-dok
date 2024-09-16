@@ -4,14 +4,16 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Card, CardContent, CardDescription, CardHeader } from "./ui/card";
 import { AuthorizeDatabaseForm } from "./authorize-database-form";
 import { CreateDatabaseForm } from "./create-database-form";
-import { useEffect, useState } from 'react';
+import { useContext, useEffect, useState } from 'react';
 import DataLoader from './data-loader';
 import { useTheme } from 'next-themes';
+import { SaaSContext } from '@/contexts/saas-context';
 
 export function AuthorizePopup({ autoLoginInProgress }: { autoLoginInProgress: boolean }) {
   const [applicationLoaded, setApplicationLoaded] = useState(false);
   const { theme, systemTheme } = useTheme();
   const currentTheme = (theme === 'system' ? systemTheme : theme)
+  const saasContext = useContext(SaaSContext);
 
   useEffect(() => {
     setApplicationLoaded(true);
@@ -20,6 +22,11 @@ export function AuthorizePopup({ autoLoginInProgress }: { autoLoginInProgress: b
     <div className="p-4 grid items-center justify-center h-screen">
      {!applicationLoaded || autoLoginInProgress ? (<div className="w-96 flex items-center justify-center flex-col"><div className="flex-row h-40 w-40"><img src="/img/doctor-dok-logo.svg" /></div><div><DataLoader /></div></div>):(
       <div>
+        {saasContext?.email ? (
+          <div className="flex">
+            Hello {saasContext?.email}! Welcome to Doctor Dok's Beta Tests. You can create: {saasContext?.quota.allowedDatabases} database(s).
+          </div>
+        ): (null)}
         <div className="flex">
           <img alt="Application logo" className="w-20" src={currentTheme === 'dark' ? `/img/doctor-dok-logo-white.svg` : `/img/doctor-dok-logo.svg`} />
           <h1 className="text-5xl text-center p-8 pl-0">Doctor Dok</h1>
