@@ -6,12 +6,16 @@ import { NextRequest, NextResponse } from "next/server";
 export async function GET(request: NextRequest, response: NextResponse) {
     try {
         const saasToken = request.nextUrl.searchParams.get('saasToken');
-        if(!saasToken) {
+        const databaseIdHash = request.headers.get('database-id-hash')
+        if(!saasToken && !databaseIdHash) {
             return Response.json({ message: 'saasToken is required' }, { status: 400 });
         }
 
-        const platformApiClient = new PlatformApiClient(saasToken);
-        const saasResponse = await platformApiClient.account();
+        const platformApiClient = new PlatformApiClient(saasToken ?? '');
+        const saasResponse = await platformApiClient.account({
+            apiKey: saasToken,
+            databaseIdHash
+        });
         if(saasResponse.status !== 200) {
             return Response.json({ message: 'Invalid saasToken', status: 400 });
         } else {
@@ -22,7 +26,7 @@ export async function GET(request: NextRequest, response: NextResponse) {
                     currentUsage: saasContext.currentUsage,
                     email: saasContext.email,
                     userId: saasContext.userId,
-                    saasToken: saasToken
+                    saasToken: saasContext.saasToken
                 },
                 status: 200,
                 message: 'Success'
