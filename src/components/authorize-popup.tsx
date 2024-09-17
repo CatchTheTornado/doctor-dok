@@ -23,8 +23,8 @@ export function AuthorizePopup({ autoLoginInProgress }: { autoLoginInProgress: b
      {!applicationLoaded || autoLoginInProgress ? (<div className="w-96 flex items-center justify-center flex-col"><div className="flex-row h-40 w-40"><img src="/img/doctor-dok-logo.svg" /></div><div><DataLoader /></div></div>):(
       <div>
         {saasContext?.email ? (
-          <div className="flex">
-            Hello {saasContext?.email}! Welcome to Doctor Dok's Beta Tests. You can create: {saasContext?.quota.allowedDatabases} database(s).
+          <div className="text-xs w-96 p-3 border-2 border-green-500 background-green-200 text-sm font-semibold text-green-500">
+            Hello {saasContext?.email}! Welcome to Doctor Dok's Beta Tests. You can create: {saasContext?.currentQuota.allowedDatabases} database(s) and spend {saasContext.currentQuota.allowedUSDBudget}$ for AI requests.
           </div>
         ): (null)}
         <div className="flex">

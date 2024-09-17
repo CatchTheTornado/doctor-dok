@@ -7,16 +7,16 @@ import { TermApiClient } from '@/data/client/term-api-client';
 import { TermDTO } from '@/data/dto';
 import { sha256 } from '@/lib/crypto';
 import { useSearchParams } from 'next/navigation';
-import { SaasApiClient } from '@/data/client/saas-api-client';
+import { GetSaaSResponseSuccess, SaasApiClient } from '@/data/client/saas-api-client';
 
 
 interface SaaSContextProps {
-    quota: {
+    currentQuota: {
         allowedDatabases: number,
         allowedUSDBudget: number,
         allowedTokenBudget: number
     },
-    usage: {
+    currentUsage: {
         usedDatabases: number,
         usedUSDBudget: number,
         usedTokenBudget: number
@@ -28,12 +28,12 @@ interface SaaSContextProps {
 }
 
 export const SaaSContext = createContext<SaaSContextProps>({
-    quota: {
+    currentQuota: {
         allowedDatabases: 0,
         allowedUSDBudget: 0,
         allowedTokenBudget: 0
     },
-    usage: {
+    currentUsage: {
         usedDatabases: 0,
         usedUSDBudget: 0,
         usedTokenBudget: 0
@@ -47,12 +47,12 @@ export const SaaSContext = createContext<SaaSContextProps>({
 export const SaaSContextProvider: React.FC<PropsWithChildren> = ({ children }) => {
     const dbContext = useContext(DatabaseContext);
     const [saasToken, setSaasToken] = useState<string | null>(null);
-    const [quota, setQuota] = useState({
+    const [currentQuota, setCurrentQuota] = useState({
         allowedDatabases: 0,
         allowedUSDBudget: 0,
         allowedTokenBudget: 0
     });
-    const [usage, setUsage] = useState({
+    const [currentUsage, setCurrentUsage] = useState({
         usedDatabases: 0,
         usedUSDBudget: 0,
         usedTokenBudget: 0
@@ -78,11 +78,16 @@ export const SaaSContextProvider: React.FC<PropsWithChildren> = ({ children }) =
                 setSaasToken(saasToken);
 
                 const client = await setupApiClient(null);
-                const saasAccount = await client.get(saasToken);
-                setQuota(saasAccount.quota);
-                setUsage(saasAccount.usage);
-                setEmail(saasAccount.email || null);
-                setUserId(saasAccount.userId || null);
+                const saasAccount = await client.get(saasToken) as GetSaaSResponseSuccess;
+
+                if(saasAccount.status !== 200) {
+                    toast.error('Failed to load SaaS account. Your account may be disabled or the token is invalid.');
+                } else {
+                    setCurrentQuota(saasAccount.data.currentQuota);
+                    setCurrentUsage(saasAccount.data.currentUsage);
+                    setEmail(saasAccount.data.email || null);
+                    setUserId(saasAccount.data.userId || null);
+                }
             }
         }
         loadSaaSContext();
@@ -92,8 +97,8 @@ export const SaaSContextProvider: React.FC<PropsWithChildren> = ({ children }) =
 
     return (
         <SaaSContext.Provider value={{ 
-            quota,
-            usage,
+            currentQuota,
+            currentUsage,
             saasToken,
             email,
             userId,
