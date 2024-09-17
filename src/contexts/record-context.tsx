@@ -30,6 +30,7 @@ import showdown from 'showdown'
 import { auditLog } from '@/lib/audit';
 import { diff, addedDiff, deletedDiff, updatedDiff, detailedDiff } from 'deep-object-diff';
 import { AuditContext } from './audit-context';
+import { SaaSContext } from './saas-context';
 
 
 let parseQueueInProgress = false;
@@ -118,6 +119,7 @@ export const RecordContextProvider: React.FC<PropsWithChildren> = ({ children })
     
     const config = useContext(ConfigContext);
     const dbContext = useContext(DatabaseContext)
+    const saasContext = useContext(SaaSContext);
     const chatContext = useContext(ChatContext);
     const folderContext = useContext(FolderContext)
     const auditContext = useContext(AuditContext);
@@ -335,7 +337,7 @@ export const RecordContextProvider: React.FC<PropsWithChildren> = ({ children })
             secretKey: masterKey,
             useEncryption: true
         };
-        const client = new RecordApiClient('', dbContext, encryptionConfig);
+        const client = new RecordApiClient('', dbContext, saasContext, encryptionConfig);
         return client;
     }
 
@@ -345,7 +347,7 @@ export const RecordContextProvider: React.FC<PropsWithChildren> = ({ children })
             secretKey: masterKey,
             useEncryption: true
         };
-        const client = new EncryptedAttachmentApiClient('', dbContext, encryptionConfig);
+        const client = new EncryptedAttachmentApiClient('', dbContext, saasContext, encryptionConfig);
         return client;
     }
 
@@ -617,7 +619,7 @@ export const RecordContextProvider: React.FC<PropsWithChildren> = ({ children })
                       attachmentDTO = encFilter ? await encFilter.encrypt(attachmentDTO, EncryptedAttachmentDTOEncSettings) as EncryptedAttachmentDTO : attachmentDTO;
                       formData.append("attachmentDTO", JSON.stringify(attachmentDTO));
                       try {
-                        const apiClient = new EncryptedAttachmentApiClient('', dbContext, {
+                        const apiClient = new EncryptedAttachmentApiClient('', dbContext, saasContext, {
                           useEncryption: false  // for FormData we're encrypting records by ourselves - above
                         })
                         toast.info('Uploading attachment: ' + attachment.displayName);

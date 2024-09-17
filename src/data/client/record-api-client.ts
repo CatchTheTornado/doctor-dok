@@ -1,4 +1,5 @@
 import { ApiClient, ApiEncryptionConfig } from "./base-api-client";
+import { SaaSContextType } from "@/contexts/saas-context";
 import { FolderDTO, RecordDTO, RecordDTOEncSettings } from "../dto";
 import { DatabaseContextType } from "@/contexts/db-context";
 
@@ -26,8 +27,8 @@ export type PutRecordResponse = PutRecordResponseSuccess | PutRecordResponseErro
 
 
 export class RecordApiClient extends ApiClient {
-    constructor(baseUrl: string, dbContext?: DatabaseContextType | null, encryptionConfig?: ApiEncryptionConfig) {
-      super(baseUrl, dbContext, encryptionConfig);
+    constructor(baseUrl: string, dbContext?: DatabaseContextType | null, saasContext?: SaaSContextType | null, encryptionConfig?: ApiEncryptionConfig) {
+      super(baseUrl, dbContext, saasContext, encryptionConfig);
     }
   
     async get(folder: FolderDTO): Promise<GetRecordsResponse> {

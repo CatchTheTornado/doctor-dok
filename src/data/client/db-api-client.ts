@@ -1,4 +1,5 @@
 import { DatabaseContextType } from "@/contexts/db-context";
+import { SaaSContextType } from "@/contexts/saas-context";
 import { DatabaseAuthorizeChallengeRequestDTO, DatabaseAuthorizeRequestDTO, DatabaseCreateRequestDTO, DatabaseRefreshRequestDTO, KeyACLDTO, KeyHashParamsDTO } from "../dto";
 import { ApiClient, ApiEncryptionConfig } from "./base-api-client";
 
@@ -40,8 +41,8 @@ export type RefreshDbResponse = {
 };
 
 export class DbApiClient extends ApiClient {
-    constructor(baseUrl: string, dbContext?: DatabaseContextType | null, encryptionConfig?: ApiEncryptionConfig) {
-      super(baseUrl, dbContext, encryptionConfig);
+    constructor(baseUrl: string, dbContext?: DatabaseContextType | null, saasContext?: SaaSContextType, encryptionConfig?: ApiEncryptionConfig) {
+      super(baseUrl, dbContext, saasContext, encryptionConfig);
     }
   
     async create(createRequest:DatabaseCreateRequestDTO): Promise<CreateDbResponse> {

@@ -1,4 +1,5 @@
 import { DatabaseContextType } from "@/contexts/db-context";
+import { SaaSContextType } from "@/contexts/saas-context";
 import { FolderDTO, FolderDTOEncSettings } from "../dto";
 import { ApiClient, ApiEncryptionConfig } from "./base-api-client";
 
@@ -26,8 +27,8 @@ export type DeleteFolderResponse = {
 export type PutFolderResponse = PutFolderResponseSuccess | PutFolderResponseError;
 
 export class FolderApiClient extends ApiClient {
-    constructor(baseUrl: string, dbContext?: DatabaseContextType | null, encryptionConfig?: ApiEncryptionConfig) {
-      super(baseUrl, dbContext, encryptionConfig);
+    constructor(baseUrl: string, dbContext?: DatabaseContextType | null, saasContext?: SaaSContextType | null, encryptionConfig?: ApiEncryptionConfig) {
+      super(baseUrl, dbContext, saasContext, encryptionConfig);
     }
   
     async get(): Promise<GetFoldersResponse> {

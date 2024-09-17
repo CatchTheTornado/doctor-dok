@@ -7,6 +7,7 @@ import React, { PropsWithChildren, useContext, useReducer, useRef } from 'react'
 import { DatabaseContext, DatabaseContextType } from './db-context';
 import { DatabaseAuthStatus } from '@/data/client/models';
 import {Mutex, Semaphore, withTimeout} from 'async-mutex';
+import { SaaSContextType } from './saas-context';
 
 function isNumber(value:any){
   return !isNaN(value);
@@ -51,12 +52,12 @@ export type ConfigContextType = {
     setConfigDialogOpen: (value: boolean) => void;
 }
 
-function getConfigApiClient(encryptionKey: string, dbContext?: DatabaseContextType | null): ConfigApiClient {
+function getConfigApiClient(encryptionKey: string, dbContext?: DatabaseContextType | null, saasContext?: SaaSContextType | null): ConfigApiClient {
   const encryptionConfig: ApiEncryptionConfig = {
     secretKey: encryptionKey, // TODO: for entities other than Config we should take the masterKey from server config
     useEncryption: encryptionKey !== null
   };
-  return new ConfigApiClient('', dbContext, encryptionConfig);  
+  return new ConfigApiClient('', dbContext, saasContext, encryptionConfig);  
 }
 
 export const ConfigContext = React.createContext<ConfigContextType | null>(null);

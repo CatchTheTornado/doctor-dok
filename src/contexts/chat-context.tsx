@@ -11,6 +11,7 @@ import { StatDTO, AggregatedStatsDTO } from '@/data/dto';
 import { AggregatedStatsResponse, AggregateStatResponse, StatApiClient } from '@/data/client/stat-api-client';
 import { DatabaseContext } from './db-context';
 import { getErrorMessage } from '@/lib/utils';
+import { SaaSContext } from './saas-context';
 
 export enum MessageDisplayMode {
     Text = 'text',
@@ -151,6 +152,7 @@ export const ChatContextProvider: React.FC<PropsWithChildren> = ({ children }) =
 
 
     const dbContext = useContext(DatabaseContext);
+    const saasContext = useContext(SaaSContext);
     const config = useContext(ConfigContext);
     const checkApiConfig = async (): Promise<boolean> => {
         const apiKey = await config?.getServerConfig('chatGptApiKey') as string;
@@ -305,7 +307,7 @@ export const ChatContextProvider: React.FC<PropsWithChildren> = ({ children }) =
     }
 
     const aggregatedStats = async (): Promise<AggregatedStatsDTO> => {
-        const apiClient = new StatApiClient('', dbContext, { useEncryption: false });
+        const apiClient = new StatApiClient('', dbContext, saasContext, { useEncryption: false });
         const aggregatedStats = await apiClient.aggregated() as AggregatedStatsResponse;
         if (aggregatedStats.status === 200) {
             console.log('Stats this and last month: ', aggregatedStats);
@@ -316,7 +318,7 @@ export const ChatContextProvider: React.FC<PropsWithChildren> = ({ children }) =
     }
 
     const aggregateStats = async (newItem: StatDTO): Promise<StatDTO> => {
-        const apiClient = new StatApiClient('', dbContext, { useEncryption: false });
+        const apiClient = new StatApiClient('', dbContext, saasContext, { useEncryption: false });
         const aggregatedStats = await apiClient.aggregate(newItem) as AggregateStatResponse;
         if (aggregatedStats.status === 200) {
             console.log('Stats aggregated', aggregatedStats);

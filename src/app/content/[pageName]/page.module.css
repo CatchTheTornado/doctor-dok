@@ -24,8 +24,21 @@
   text-decoration: underline;
 }
 
+.markdown a {
+  text-decoration: underline;
+  color: gray;
+}
+
 .markdown ul, .markdown ol {
   padding-left: 1.5em;
+}
+
+.markdown ol {
+  list-style: decimal;
+}
+
+.markdown ol li {
+  list-style-position: outside;
 }
 
 .markdown code {

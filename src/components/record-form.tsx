@@ -27,6 +27,7 @@ import { DatabaseContext } from "@/contexts/db-context";
 import { MicIcon } from "lucide-react"; // Add this import statement
 import dynamic from "next/dynamic";
 import { record } from "zod";
+import { SaaSContext } from "@/contexts/saas-context";
 
 const FileSvgDraw = () => {
   return (
@@ -70,6 +71,7 @@ export default function RecordForm({ folder, mode }: { folder?: Folder, mode?: R
   const folderContext = useContext(FolderContext);
   const configContext = useContext(ConfigContext);
   const dbContext = useContext(DatabaseContext);
+  const saasContext = useContext(SaaSContext);
   const recordContext = useContext(RecordContext);
   const [files, setFiles] = useState<UploadedFile[]>([]);
   const [transcription, setTranscription] = useState<string>("");
@@ -159,7 +161,7 @@ export default function RecordForm({ folder, mode }: { folder?: Folder, mode?: R
       let pr: Record;
       const savedRecords:Record[] = []
 
-      const eaac = new EncryptedAttachmentApiClient('', dbContext, {
+      const eaac = new EncryptedAttachmentApiClient('', dbContext, saasContext, {
         secretKey: dbContext?.masterKey,
         useEncryption: true
       });

@@ -8,6 +8,7 @@ import { KeyApiClient, PutKeyResponse, PutKeyResponseError } from '@/data/client
 import { ConfigContextType } from '@/contexts/config-context';
 import { getCurrentTS } from '@/lib/utils';
 import assert from 'assert';
+import { SaaSContext, SaaSContextType } from './saas-context';
 const argon2 = require("argon2-browser");
 
 interface KeyContextProps {
@@ -49,10 +50,10 @@ export const KeyContextProvider: React.FC<PropsWithChildren> = ({ children }) =>
     const [currentKey, setCurrentKey] = useState<Key | null>(null);
     const [changeEncryptionKeyDialogOpen, setChangeEncryptionKeyDialogOpen] = useState(false);
     const dbContext = useContext(DatabaseContext);
+    const saasContext = useContext(SaaSContext);
 
-
-    const setupApiClient = async (config: ConfigContextType | null) => {
-        const client = new KeyApiClient('', dbContext);
+    const setupApiClient = async (config: ConfigContextType | null, saasContext?: SaaSContextType | null) => {
+        const client = new KeyApiClient('', dbContext, saasContext);
         return client;
     }
 

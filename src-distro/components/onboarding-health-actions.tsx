@@ -10,15 +10,17 @@ import { DatabaseContext } from "@/contexts/db-context";
 import { toast } from "sonner";
 import { FolderContext } from "@/contexts/folder-context";
 import { Folder } from "@/data/client/models";
+import { SaaSContext } from "@/contexts/saas-context";
 
 export function OnboardingHealthActions() {
   const recordContext = useContext(RecordContext);
   const dbContext = useContext(DatabaseContext);
   const folderContext = useContext(FolderContext);
+  const saasContext = useContext(SaaSContext);
   
   const handleImportExamples = async () => {
     try {
-      const apiClient = new ApiClient('', dbContext)
+      const apiClient = new ApiClient('', dbContext, saasContext)
       toast.info('Downloading examples ...');
 
       const examplesArrayBuffer = await apiClient.getArrayBuffer('/onboarding/DoctorDok-onboarding.zip');

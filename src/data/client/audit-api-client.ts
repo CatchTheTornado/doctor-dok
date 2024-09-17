@@ -2,6 +2,7 @@ import { DatabaseContextType } from "@/contexts/db-context";
 import { AuditDTO, ConfigDTO, ConfigDTOEncSettings, KeyDTO } from "../dto";
 import { ApiClient, ApiEncryptionConfig } from "./base-api-client";
 import { ZodIssue } from "zod";
+import { SaaSContextType } from "@/contexts/saas-context";
 
 export type PutAuditRequest = AuditDTO;
 
@@ -20,8 +21,8 @@ export type PutAuditResponseError = {
 export type PutAuditResponse = PutAuditResponseSuccess | PutAuditResponseError;
 
 export class AuditApiClient extends ApiClient {
-    constructor(baseUrl: string, dbContext?: DatabaseContextType | null, encryptionConfig?: ApiEncryptionConfig) {
-      super(baseUrl, dbContext, encryptionConfig);
+    constructor(baseUrl: string, dbContext?: DatabaseContextType | null, saasContext?: SaaSContextType, encryptionConfig?: ApiEncryptionConfig) {
+      super(baseUrl, dbContext, saasContext, encryptionConfig);
     }
   
     async get(limit: number, offset: number): Promise<AuditDTO[]> {

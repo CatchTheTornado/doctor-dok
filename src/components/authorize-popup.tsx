@@ -24,9 +24,14 @@ export function AuthorizePopup({ autoLoginInProgress }: { autoLoginInProgress: b
       <div>
         {saasContext?.email ? (
           <div className="text-xs w-96 p-3 border-2 border-green-500 background-green-200 text-sm font-semibold text-green-500">
-            Hello {saasContext?.email}! Welcome to Doctor Dok's Beta Tests. You can create: {saasContext?.currentQuota.allowedDatabases} database(s) and spend {saasContext.currentQuota.allowedUSDBudget}$ for AI requests.
+            Hello {saasContext?.email}! Welcome to Doctor Dok's Beta Tests. You can create: {saasContext?.currentQuota.allowedDatabases} database(s) and spend {saasContext.currentQuota.allowedUSDBudget}$ for AI requests. Read <a className="underline" href="/content/terms">terms</a> and <a className="underline" href="/content/privacy">privacy</a> before using the app.
           </div>
-        ): (null)}
+        ): ((process.env.NEXT_PUBLIC_SAAS_REGISTER_URL) ? (
+          <div className="text-xs w-96 p-3 border-2 border-red-500 background-red-200 text-sm font-semibold text-red-500">
+            This is a closed beta test period. <a className="underline" href={process.env.NEXT_PUBLIC_SAAS_REGISTER_URL}>Please apply</a> for the beta test to use the application.
+          </div>
+        ) : (null))}
+        
         <div className="flex">
           <img alt="Application logo" className="w-20" src={currentTheme === 'dark' ? `/img/doctor-dok-logo-white.svg` : `/img/doctor-dok-logo.svg`} />
           <h1 className="text-5xl text-center p-8 pl-0">Doctor Dok</h1>

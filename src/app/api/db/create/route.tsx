@@ -1,6 +1,7 @@
 import { KeyDTO, DatabaseCreateRequestDTO, databaseCreateRequestSchema } from "@/data/dto";
 import { maintenance } from "@/data/server/db-provider";
 import ServerKeyRepository from "@/data/server/server-key-repository";
+import { authorizeSaasContext } from "@/lib/generic-api";
 import { getCurrentTS, getErrorMessage, getZedErrorMessage } from "@/lib/utils";
 import { NextRequest, userAgent } from "next/server";
 import { features } from "process";
@@ -11,7 +12,16 @@ import { features } from "process";
 export async function POST(request: NextRequest) {
     try {
         const jsonRequest = await request.json();
-        console.log(jsonRequest);
+        const saasContext = await authorizeSaasContext(request); // authorize SaaS context
+        console.log(saasContext);
+        if (!saasContext.hasAccess) {
+            return Response.json({
+                message: saasContext.error,
+                status: 403
+            });
+        }
+
+
         const validationResult = databaseCreateRequestSchema.safeParse(jsonRequest); // validation
         if (validationResult.success === true) {
             const authCreateRequest = validationResult.data;

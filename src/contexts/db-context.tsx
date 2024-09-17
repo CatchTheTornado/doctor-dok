@@ -1,4 +1,4 @@
-import React, { createContext, useState,  PropsWithChildren } from 'react';
+import React, { createContext, useState,  PropsWithChildren, useContext } from 'react';
 import { KeyHashParamsDTO } from '@/data/dto';
 import { DatabaseAuthorizeRequest, DatabaseAuthStatus, DatabaseCreateRequest, DatabaseKeepLoggedInRequest, DatabaseRefreshRequest, DataLoadingStatus, KeyACL, Folder, Record } from '@/data/client/models';
 import { AuthorizeDbResponse, DbApiClient, RefreshDbResponse } from '@/data/client/db-api-client';
@@ -6,6 +6,7 @@ import { ConfigContextType } from '@/contexts/config-context';
 import { EncryptionUtils, generateEncryptionKey, sha256 } from '@/lib/crypto';
 import { toast } from 'sonner';
 import { ZodIssue } from 'zod';
+import { SaaSContext } from './saas-context';
 const argon2 = require("argon2-browser");
 
 // the salts are static as they're used as record locators in the DB - once changed the whole DB needs to be re-hashed
@@ -105,13 +106,14 @@ export const DatabaseContextProvider: React.FC<PropsWithChildren> = ({ children 
         parallelism: 1
     });
 
+    const saasContext = useContext(SaaSContext);
     const [saasToken, setSaasToken] = useState<string>('');
     const [accessToken, setAccesToken] = useState<string>('');
     const [refreshToken, setRefreshToken] = useState<string>('');
     const [authStatus, setAuthStatus] = useState<DatabaseAuthStatus>(DatabaseAuthStatus.NotAuthorized);
 
     const setupApiClient = async (config: ConfigContextType | null) => {
-        const client = new DbApiClient('');
+        const client = new DbApiClient('', null, saasContext);
         return client;
     }
     const create = async (createRequest: DatabaseCreateRequest): Promise<CreateDatabaseResult> => {
@@ -147,7 +149,6 @@ export const DatabaseContextProvider: React.FC<PropsWithChildren> = ({ children 
             keyHashParams: JSON.stringify(keyHashParams),
             keyLocatorHash,
         };
-        console.log(apiRequest);
         const apiResponse = await apiClient.create(apiRequest);
 
         if(apiResponse.status === 200) { // user is virtually logged in

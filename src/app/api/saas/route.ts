@@ -16,7 +16,6 @@ export async function GET(request: NextRequest, response: NextResponse) {
             return Response.json({ message: 'Invalid saasToken', status: 400 });
         } else {
             const saasContext = await saasResponse.data
-            console.log('saasContext', saasContext);
             let response:GetSaaSResponseSuccess = {
                 data: {
                     currentQuota: saasContext.currentQuota,

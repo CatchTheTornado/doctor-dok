@@ -30,6 +30,7 @@ import { ConfigContext } from "@/contexts/config-context";
 import { DTOEncryptionFilter, EncryptionUtils } from "@/lib/crypto";
 import { DatabaseContext } from "@/contexts/db-context";
 import internal from "stream";
+import { SaaSContext } from "@/contexts/saas-context";
 
 type DirectionOptions = "rtl" | "ltr" | undefined;
 
@@ -117,6 +118,7 @@ export const EncryptedAttachmentUploader = forwardRef<
     const [uploadQueueSize, setQueueSize] = useState(0);
     const config = useContext(ConfigContext);
     const dbContext = useContext(DatabaseContext)
+    const saasContext = useContext(SaaSContext);
     const {
       accept = {
         "image/*": [".jpg", ".jpeg", ".png", ".pdf"],
@@ -244,7 +246,7 @@ export const EncryptedAttachmentUploader = forwardRef<
 
             formData.append("attachmentDTO", JSON.stringify(attachmentDTO));
             try {
-              const apiClient = new EncryptedAttachmentApiClient('', dbContext, {
+              const apiClient = new EncryptedAttachmentApiClient('', dbContext, saasContext, {
                 useEncryption: false  // for FormData we're encrypting records by ourselves - above
               })
               const result = await apiClient.put(formData);

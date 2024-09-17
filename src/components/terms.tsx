@@ -47,8 +47,7 @@ export default function TermsPopup() {
           <CredenzaTitle>Terms and conditions
           </CredenzaTitle>
           <CredenzaDescription>
-            Please carefully read and accpet all required terms and conditions before using the application.
-            Note: Once accepted, terms and conditions can only be changed by stopping to use the application and deleting all data.
+          Please read the <a href="/content/terms">terms of service</a> and <a href="/content/privacy">privacy policy</a> before using Doctor Dok.
           </CredenzaDescription>
         </CredenzaHeader>
         <div className="bg-white dark:bg-zinc-900 border-r border-zinc-200 dark:border-zinc-800">

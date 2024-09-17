@@ -6,6 +6,7 @@ import { ConfigContextType } from '@/contexts/config-context';
 import { TermApiClient } from '@/data/client/term-api-client';
 import { TermDTO } from '@/data/dto';
 import { sha256 } from '@/lib/crypto';
+import { SaaSContext } from './saas-context';
 const argon2 = require("argon2-browser");
 
 interface TermsContextProps {
@@ -36,9 +37,10 @@ export const TermsContextProvider: React.FC<PropsWithChildren> = ({ children }) 
     const [loaderStatus, setLoaderStatus] = useState<DataLoadingStatus>(DataLoadingStatus.Idle);
     const [termsRequired, setTermsRequired] = useState(false);
     const dbContext = useContext(DatabaseContext);
+    const saasContext = useContext(SaaSContext);
 
     const setupApiClient = async (config: ConfigContextType | null) => {
-        const client = new TermApiClient('', dbContext, { secretKey: dbContext?.masterKey, useEncryption: true });
+        const client = new TermApiClient('', dbContext, saasContext, { secretKey: dbContext?.masterKey, useEncryption: true });
         return client;
     }
 

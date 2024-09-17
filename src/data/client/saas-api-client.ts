@@ -19,7 +19,7 @@ export type GetSaasResponse = GetSaaSResponseSuccess | GetSaaSResponseError;
 
 export class SaasApiClient extends ApiClient {
     constructor(baseUrl: string, dbContext?: DatabaseContextType | null, encryptionConfig?: ApiEncryptionConfig) {
-      super(baseUrl, dbContext, encryptionConfig);
+      super(baseUrl, dbContext, null, encryptionConfig);
     }
   
     async get(saasToken: string): Promise<GetSaasResponse> {

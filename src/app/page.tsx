@@ -25,9 +25,9 @@ import { SaaSContext, SaaSContextProvider } from "@/contexts/saas-context";
 
 export default function FolderPad() {
   return (
-    <DatabaseContextProvider>
-      <ConfigContextProvider>
-        <SaaSContextProvider>
+    <SaaSContextProvider>
+      <DatabaseContextProvider>
+       <ConfigContextProvider>
           <AuditContextProvider>
             <TermsContextProvider>
               <AuthorizationGuard>
@@ -47,8 +47,8 @@ export default function FolderPad() {
               </AuthorizationGuard> 
             </TermsContextProvider>
           </AuditContextProvider>
-        </SaaSContextProvider>
-      </ConfigContextProvider>
-    </DatabaseContextProvider>
+        </ConfigContextProvider>
+      </DatabaseContextProvider>
+    </SaaSContextProvider>
   );
 }

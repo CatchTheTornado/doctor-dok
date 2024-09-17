@@ -1,4 +1,5 @@
 import { DatabaseContextType } from "@/contexts/db-context";
+import { SaaSContextType } from "@/contexts/saas-context";
 import { TermDTO } from "../dto";
 import { ApiClient, ApiEncryptionConfig } from "./base-api-client";
 import { ZodIssue } from "zod";
@@ -20,8 +21,8 @@ export type PutTermResponseError = {
 export type PutTermResponse = PutTermResponseSuccess | PutTermResponseError;
 
 export class TermApiClient extends ApiClient {
-    constructor(baseUrl: string, dbContext?: DatabaseContextType | null, encryptionConfig?: ApiEncryptionConfig) {
-      super(baseUrl, dbContext, encryptionConfig);
+    constructor(baseUrl: string, dbContext?: DatabaseContextType | null, saasContext?: SaaSContextType | null, encryptionConfig?: ApiEncryptionConfig) {
+      super(baseUrl, dbContext, saasContext, encryptionConfig);
     }
   
     async get(): Promise<TermDTO[]> {

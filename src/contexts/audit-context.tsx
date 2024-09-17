@@ -9,6 +9,7 @@ import { ConfigContextType } from '@/contexts/config-context';
 import { getCurrentTS } from '@/lib/utils';
 import assert from 'assert';
 import { AuditApiClient } from '@/data/client/audit-api-client';
+import { SaaSContext } from './saas-context';
 const argon2 = require("argon2-browser");
 
 interface AuditContextProps {
@@ -55,9 +56,10 @@ export const AuditContextProvider: React.FC<PropsWithChildren> = ({ children }) 
     const [currentAudit, setCurrentAudit] = useState<AuditDTO | undefined>(undefined);
 
     const dbContext = useContext(DatabaseContext);
+    const saasContext = useContext(SaaSContext);
 
     const setupApiClient = async (config: ConfigContextType | null) => {
-        const client = new AuditApiClient('', dbContext, { secretKey: dbContext?.masterKey, useEncryption: true });
+        const client = new AuditApiClient('', dbContext, saasContext, { secretKey: dbContext?.masterKey, useEncryption: true });
         return client;
     }
 

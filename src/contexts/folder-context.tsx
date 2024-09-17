@@ -7,6 +7,7 @@ import { ApiEncryptionConfig } from '@/data/client/base-api-client';
 import { DataLoadingStatus, Folder } from '@/data/client/models';
 import { ConfigContext, ConfigContextType } from '@/contexts/config-context';
 import { DatabaseContext } from './db-context';
+import { SaaSContext } from './saas-context';
 import { toast } from 'sonner';
 
 
@@ -37,6 +38,7 @@ export const FolderContextProvider: React.FC<PropsWithChildren> = ({ children })
     const [addingNewFolder, setAddingNewFolder] = useState<boolean>(false);
     const config = useContext(ConfigContext);
     const dbContext = useContext(DatabaseContext);
+    const saasContext = useContext(SaaSContext);
 
     useEffect(() => {
         listFolders();
@@ -54,7 +56,7 @@ export const FolderContextProvider: React.FC<PropsWithChildren> = ({ children })
             secretKey: masterKey,
             useEncryption: true
         };
-        const client = new FolderApiClient('', dbContext, encryptionConfig);
+        const client = new FolderApiClient('', dbContext, saasContext, encryptionConfig);
         return client;
     }    
 

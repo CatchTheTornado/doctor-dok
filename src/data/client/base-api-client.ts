@@ -2,6 +2,7 @@ import { DTOEncryptionFilter, EncryptionUtils } from "@/lib/crypto";
 import { DTOEncryptionSettings } from "../dto";
 import axios, { AxiosRequestConfig, AxiosResponse } from 'axios';
 import { DatabaseContextType } from "@/contexts/db-context";
+import { SaaSContextType } from "@/contexts/saas-context";
 import { toast } from "sonner";
 
 export type ApiEncryptionConfig = {
@@ -16,15 +17,23 @@ export class ApiClient {
   private encryptionConfig?: ApiEncryptionConfig | null = null;
   private encryptionUtils: EncryptionUtils | null = null;
   private dbContext?: DatabaseContextType | null = null;
+  private saasContext?: SaaSContextType | null = null;
+  private saasToken: string | null = null;
 
-  constructor(baseUrl: string, databaseContext?: DatabaseContextType | null, encryptionConfig?: ApiEncryptionConfig) {
+  constructor(baseUrl: string, databaseContext?: DatabaseContextType | null, saasContext?: SaaSContextType | null, encryptionConfig?: ApiEncryptionConfig) {
     this.baseUrl = baseUrl;
     this.dbContext = databaseContext;
+    this.saasContext = saasContext;
+    if (this.saasContext) this.setSaasToken(this.saasContext.saasToken ?? '');
     if (encryptionConfig?.useEncryption) {
       this.encryptionFilter = new DTOEncryptionFilter(encryptionConfig.secretKey as string);
     }
     this.encryptionUtils = new EncryptionUtils(encryptionConfig?.secretKey as string);
     this.encryptionConfig = encryptionConfig;
+  }
+
+  public setSaasToken(token: string) {
+    this.saasToken = token;
   }
 
   public async getArrayBuffer(
@@ -41,8 +50,8 @@ export class ApiClient {
       headers['Database-Id-Hash'] = this.dbContext?.databaseHashId;
     }
 
-    if(this.dbContext?.saasToken) {
-      headers['SaaS-Token'] = this.dbContext?.saasToken;
+    if(this.saasToken) {
+      headers['SaaS-Token'] = this.saasToken;
     }
 
     const config: AxiosRequestConfig = {
@@ -106,8 +115,8 @@ export class ApiClient {
       headers['Database-Id-Hash'] = this.dbContext?.databaseHashId;
     }
 
-    if(this.dbContext?.saasToken) {
-      headers['SaaS-Token'] = this.dbContext?.saasToken;
+    if(this.saasToken) {
+      headers['SaaS-Token'] = this.saasToken;
     }
 
     if (!repeatedRequestAccessToken) { //  if this is just a repeated request - in case of token refresh we're not encrypting data second time

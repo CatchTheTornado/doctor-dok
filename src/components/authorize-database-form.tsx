@@ -18,6 +18,7 @@ import { useEffectOnce } from "react-use";
 import Link from "next/link";
 
 const termsUrl = process.env.NEXT_PUBLIC_TERMS_URL ?? '/content/terms';
+const privacyUrl = process.env.NEXT_PUBLIC_PRIVACY_URL ?? '/content/privacy';
 
 interface AuthorizeDatabaseFormProps {
 }
@@ -124,7 +125,7 @@ export function AuthorizeDatabaseForm({
         </div>
         {termsUrl ? (
           <div className="items-center justify-between gap-4 mt-4 text-sm">
-            By opening the database You accept Doctor Dok <Link className="underline hover:text-blue-500" href={termsUrl}>Terms of Service and Privacy Policy</Link>.
+            By opening the database You accept Doctor Dok <Link className="underline hover:text-blue-500" href={termsUrl}>Terms of Service</Link> and <Link className="underline hover:text-blue-500" href={privacyUrl}>Privacy Policy</Link>.
           </div>
         ) : null}
         <div className="flex items-center justify-between gap-4 mt-4">

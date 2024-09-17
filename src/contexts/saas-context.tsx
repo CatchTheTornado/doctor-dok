@@ -10,7 +10,7 @@ import { useSearchParams } from 'next/navigation';
 import { GetSaaSResponseSuccess, SaasApiClient } from '@/data/client/saas-api-client';
 
 
-interface SaaSContextProps {
+export interface SaaSContextType {
     currentQuota: {
         allowedDatabases: number,
         allowedUSDBudget: number,
@@ -27,7 +27,8 @@ interface SaaSContextProps {
     setSaasToken: (token: string) => void;
 }
 
-export const SaaSContext = createContext<SaaSContextProps>({
+
+export const SaaSContext = createContext<SaaSContextType>({
     currentQuota: {
         allowedDatabases: 0,
         allowedUSDBudget: 0,
@@ -45,7 +46,6 @@ export const SaaSContext = createContext<SaaSContextProps>({
 });
 
 export const SaaSContextProvider: React.FC<PropsWithChildren> = ({ children }) => {
-    const dbContext = useContext(DatabaseContext);
     const [saasToken, setSaasToken] = useState<string | null>(null);
     const [currentQuota, setCurrentQuota] = useState({
         allowedDatabases: 0,
@@ -64,7 +64,7 @@ export const SaaSContextProvider: React.FC<PropsWithChildren> = ({ children }) =
 
 
     const setupApiClient = async (config: ConfigContextType | null) => {
-        const client = new SaasApiClient('', dbContext);
+        const client = new SaasApiClient('');
         return client;
     }
 
@@ -76,7 +76,6 @@ export const SaaSContextProvider: React.FC<PropsWithChildren> = ({ children }) =
                 if (typeof localStorage !== 'undefined')
                     localStorage.setItem('saasToken', saasToken);
                 setSaasToken(saasToken);
-                dbContext?.setSaasToken(saasToken);
 
                 const client = await setupApiClient(null);
                 const saasAccount = await client.get(saasToken) as GetSaaSResponseSuccess;

@@ -14,6 +14,7 @@ import { Button } from "./ui/button";
 import { useDocumentVisibility } from "@/hooks/use-document-visibility";
 import Link from 'next/link'; // Add this import
 const termsUrl = process.env.NEXT_PUBLIC_TERMS_URL ?? '/content/terms';
+const privacyUrl = process.env.NEXT_PUBLIC_TERMS_URL ?? '/content/privacy';
 
 export default function RecordsWrapper({}) {
   const folderContext = useContext(FolderContext);
@@ -52,7 +53,7 @@ export default function RecordsWrapper({}) {
         ) }
       </div>
       <div className="items-center justify-between gap-4 mt-4 text-sm text-center p-6">
-        By using the application You accept Doctor Dok <Link className="underline hover:text-blue-500" href={termsUrl}>Terms of Service and Privacy Policy</Link>.
+        By using the application You accept Doctor Dok <Link className="underline hover:text-blue-500" href={termsUrl}>Terms of Service</Link> and <Link href={privacyUrl}>Privacy Policy</Link>.
       </div>
     </div>
   )

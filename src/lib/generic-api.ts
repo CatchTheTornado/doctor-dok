@@ -39,22 +39,40 @@ export async function authorizeSaasContext(request: NextRequest): Promise<Author
             isSaasMode: false
         }
     } else {
-        const client = new PlatformApiClient(process.env.SAAS_PLATFORM_URL);
-        const response = await client.account();
-        if(response.status !== 200) {
+        const saasToken = request.headers.get('saas-token');
+        if (!saasToken) {
             return {
                 saasContex: null,
                 isSaasMode: false,
                 hasAccess: false,
-                error: response.message
-            }
+                error: 'No SaaS Token provided. Please register your account / apply for beta tests on official landing page.'
+            }            
+        }
+        const client = new PlatformApiClient(saasToken);
+        try {
+            const response = await client.account();
+            if(response.status !== 200) {
+                return {
+                    saasContex: null,
+                    isSaasMode: false,
+                    hasAccess: false,
+                    error: response.message
+                }
 
-        } else {
-            const saasContext = await response.data;
+            } else {
+                const saasContext = await response.data;
+                return {
+                    saasContex: saasContext as SaaSDTO,
+                    hasAccess: true,
+                    isSaasMode: true
+                }
+            }
+        } catch (e) {
             return {
-                saasContex: saasContext as SaaSDTO,
-                hasAccess: true,
-                isSaasMode: true
+                saasContex: null,
+                isSaasMode: false,
+                hasAccess: false,
+                error: getErrorMessage(e)
             }
         }
     }
