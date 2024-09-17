@@ -1,7 +1,8 @@
 import { TermDTO, termsDTOSchema } from "@/data/dto";
 import ServerTermRepository from "@/data/server/server-term-repository";
 import { EncryptionUtils } from "@/lib/crypto";
-import { authorizeRequestContext, genericGET, genericPUT } from "@/lib/generic-api";
+import { authorizeRequestContext, authorizeSaasContext, genericGET, genericPUT } from "@/lib/generic-api";
+import { getCurrentTS } from "@/lib/utils";
 import { NextRequest, NextResponse, userAgent } from "next/server";
 
 export async function PUT(request: NextRequest, response: NextResponse) {
@@ -13,6 +14,26 @@ export async function PUT(request: NextRequest, response: NextResponse) {
     if(!valRes.success) {
         return Response.json({ message: 'Invalid input', issues: valRes.error.issues }, { status: 400 });
     }
+
+    const saasContext = await authorizeSaasContext(request); // authorize SaaS context
+    if (!saasContext.hasAccess) {
+        return Response.json({
+            message: saasContext.error,
+            status: 403
+        });
+    }
+
+    if (saasContext.isSaasMode) {
+        saasContext.apiClient?.storeTerm({
+            content: valRes.data.content,
+            signedAt: getCurrentTS(),
+            email: valRes.data.email ?? '',
+            name: valRes.data.name ?? '',
+            code: valRes.data.code
+        })
+    }
+
+
 
     const termObj = valRes.data;
     termObj.ip = request.headers.get('x-real-ip') || request.headers.get('x-forwarded-for') || request.ip;

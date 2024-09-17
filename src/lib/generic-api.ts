@@ -29,6 +29,7 @@ export type AuthorizedSaaSContext = {
     isSaasMode: boolean
     hasAccess: boolean;
     error?: string;
+    apiClient: PlatformApiClient|null
 }
 
 export async function authorizeSaasContext(request: NextRequest): Promise<AuthorizedSaaSContext> {
@@ -36,7 +37,8 @@ export async function authorizeSaasContext(request: NextRequest): Promise<Author
         return {
             saasContex: null,
             hasAccess: true,
-            isSaasMode: false
+            isSaasMode: false,
+            apiClient: null
         }
     } else {
         const saasToken = request.headers.get('saas-token');
@@ -45,6 +47,7 @@ export async function authorizeSaasContext(request: NextRequest): Promise<Author
                 saasContex: null,
                 isSaasMode: false,
                 hasAccess: false,
+                apiClient: null,
                 error: 'No SaaS Token provided. Please register your account / apply for beta tests on official landing page.'
             }            
         }
@@ -56,6 +59,7 @@ export async function authorizeSaasContext(request: NextRequest): Promise<Author
                     saasContex: null,
                     isSaasMode: false,
                     hasAccess: false,
+                    apiClient: null,
                     error: response.message
                 }
 
@@ -64,7 +68,8 @@ export async function authorizeSaasContext(request: NextRequest): Promise<Author
                 return {
                     saasContex: saasContext as SaaSDTO,
                     hasAccess: true,
-                    isSaasMode: true
+                    isSaasMode: true,
+                    apiClient: client
                 }
             }
         } catch (e) {
@@ -72,6 +77,7 @@ export async function authorizeSaasContext(request: NextRequest): Promise<Author
                 saasContex: null,
                 isSaasMode: false,
                 hasAccess: false,
+                apiClient: null,
                 error: getErrorMessage(e)
             }
         }

@@ -13,12 +13,22 @@ export async function POST(request: NextRequest) {
     try {
         const jsonRequest = await request.json();
         const saasContext = await authorizeSaasContext(request); // authorize SaaS context
-        console.log(saasContext);
         if (!saasContext.hasAccess) {
             return Response.json({
                 message: saasContext.error,
                 status: 403
             });
+        }
+
+        if (saasContext.isSaasMode) {
+            if (saasContext.saasContex?.currentQuota) {
+                if(saasContext.saasContex?.currentQuota.allowedDatabases <= saasContext.saasContex?.currentUsage.usedDatabases) {
+                    return Response.json({
+                        message: 'You have reached the limit of databases you can create. Please upgrade your plan.',
+                        status: 403
+                    });
+                }
+            }
         }
 
 
@@ -72,6 +82,17 @@ export async function POST(request: NextRequest) {
                         updatedAt: getCurrentTS(),
                     })
                     // TODO: authorize + return access key (?)
+
+                    if (saasContext.isSaasMode) {
+                        try {
+                            saasContext.apiClient?.newDatabase({
+                                databaseIdHash: authCreateRequest.databaseIdHash,
+                                createdAt: getCurrentTS()
+                            })
+                        } catch (e) {
+                            console.log(e)
+                        }
+                    }
 
                     return Response.json({
                         message: 'Database created successfully. Now you can log in.',
