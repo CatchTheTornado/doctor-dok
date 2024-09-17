@@ -39,7 +39,11 @@ export class ApiClient {
 
     if(this.dbContext?.databaseHashId) {
       headers['Database-Id-Hash'] = this.dbContext?.databaseHashId;
-    }    
+    }
+
+    if(this.dbContext?.saasToken) {
+      headers['SaaS-Token'] = this.dbContext?.saasToken;
+    }
 
     const config: AxiosRequestConfig = {
       method: 'GET',
@@ -100,6 +104,10 @@ export class ApiClient {
 
     if(this.dbContext?.databaseHashId) {
       headers['Database-Id-Hash'] = this.dbContext?.databaseHashId;
+    }
+
+    if(this.dbContext?.saasToken) {
+      headers['SaaS-Token'] = this.dbContext?.saasToken;
     }
 
     if (!repeatedRequestAccessToken) { //  if this is just a repeated request - in case of token refresh we're not encrypting data second time

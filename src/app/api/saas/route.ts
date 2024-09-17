@@ -1,4 +1,5 @@
 import { GetSaaSResponseSuccess } from "@/data/client/saas-api-client";
+import { PlatformApiClient } from "@/data/server/platform-api-client";
 import { getErrorMessage } from "@/lib/utils";
 import { NextRequest, NextResponse } from "next/server";
 
@@ -9,19 +10,19 @@ export async function GET(request: NextRequest, response: NextResponse) {
             return Response.json({ message: 'saasToken is required' }, { status: 400 });
         }
 
-        const saasPlatformUrl = process.env.SAAS_PLATFORM_URL || 'http://localhost:3001'
-        const saasResponse = await fetch(saasPlatformUrl + '/api/users/me?apiKey=' + encodeURIComponent(saasToken));
+        const platformApiClient = new PlatformApiClient(saasToken);
+        const saasResponse = await platformApiClient.account();
         if(saasResponse.status !== 200) {
             return Response.json({ message: 'Invalid saasToken', status: 400 });
         } else {
-            const saasContext = await saasResponse.json();
+            const saasContext = await saasResponse.data
             console.log('saasContext', saasContext);
             let response:GetSaaSResponseSuccess = {
                 data: {
-                    currentQuota: saasContext.data.currentQuota,
-                    currentUsage: saasContext.data.currentUsage,
-                    email: saasContext.data.email,
-                    userId: saasContext.data.id,
+                    currentQuota: saasContext.currentQuota,
+                    currentUsage: saasContext.currentUsage,
+                    email: saasContext.email,
+                    userId: saasContext.userId,
                     saasToken: saasToken
                 },
                 status: 200,

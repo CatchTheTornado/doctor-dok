@@ -76,6 +76,7 @@ export const SaaSContextProvider: React.FC<PropsWithChildren> = ({ children }) =
                 if (typeof localStorage !== 'undefined')
                     localStorage.setItem('saasToken', saasToken);
                 setSaasToken(saasToken);
+                dbContext?.setSaasToken(saasToken);
 
                 const client = await setupApiClient(null);
                 const saasAccount = await client.get(saasToken) as GetSaaSResponseSuccess;

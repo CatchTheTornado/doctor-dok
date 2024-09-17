@@ -4,8 +4,9 @@ import { ZodError, ZodObject } from "zod";
 import { NextRequest, NextResponse } from "next/server";
 import { authorizeKey } from "@/data/server/server-key-helpers";
 import { jwtVerify } from "jose";
-import { defaultKeyACL, KeyACLDTO, KeyDTO } from "@/data/dto";
+import { defaultKeyACL, KeyACLDTO, KeyDTO, SaaSDTO } from "@/data/dto";
 import { Key } from "react";
+import { PlatformApiClient } from "@/data/server/platform-api-client";
 
 export type ApiResult = {
     message: string;
@@ -21,6 +22,42 @@ export type AuthorizedRequestContext = {
     keyLocatorHash: string;
     acl: KeyACLDTO;
     extra: any;
+}
+
+export type AuthorizedSaaSContext = {
+    saasContex: SaaSDTO|null
+    isSaasMode: boolean
+    hasAccess: boolean;
+    error?: string;
+}
+
+export async function authorizeSaasContext(request: NextRequest): Promise<AuthorizedSaaSContext> {
+    if(!process.env.SAAS_PLATFORM_URL) {
+        return {
+            saasContex: null,
+            hasAccess: true,
+            isSaasMode: false
+        }
+    } else {
+        const client = new PlatformApiClient(process.env.SAAS_PLATFORM_URL);
+        const response = await client.account();
+        if(response.status !== 200) {
+            return {
+                saasContex: null,
+                isSaasMode: false,
+                hasAccess: false,
+                error: response.message
+            }
+
+        } else {
+            const saasContext = await response.data;
+            return {
+                saasContex: saasContext as SaaSDTO,
+                hasAccess: true,
+                isSaasMode: true
+            }
+        }
+    }
 }
 
 export async function authorizeRequestContext(request: Request, response?: NextResponse): Promise<AuthorizedRequestContext> {
