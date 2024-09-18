@@ -47,6 +47,15 @@ export class PlatformApiClient extends ApiClient {
         return this.request<UniversalApiResult>('/api/terms' + qr(databaseIdHash, this.apiKey), 'POST', { ecnryptedFields: [] }, term) as Promise<UniversalApiResult>;
     }
 
+    async saveEvent(databaseIdHash:string, event: {
+        databaseIdHash: string;
+        eventName: string;
+        params?: any | null | undefined;
+        createdAt?: Date | null | undefined;
+    }): Promise<UniversalApiResult> {
+        return this.request<UniversalApiResult>('/api/events' + qr(databaseIdHash, this.apiKey), 'POST', { ecnryptedFields: [] }, event) as Promise<UniversalApiResult>;
+    }
+
     async newDatabase(dbData: {
         databaseIdHash: string;
         createdAt: string;

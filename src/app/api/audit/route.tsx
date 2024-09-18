@@ -1,11 +1,13 @@
 import { AuditDTO, auditDTOSchema, KeyDTO, keyDTOSchema } from "@/data/dto";
 import ServerAuditRepository from "@/data/server/server-audit-repository";
-import { authorizeRequestContext, genericGET, genericPUT } from "@/lib/generic-api";
+import { authorizeRequestContext, authorizeSaasContext, genericGET, genericPUT } from "@/lib/generic-api";
 import { getErrorMessage } from "@/lib/utils";
 import { NextRequest, NextResponse, userAgent } from "next/server";
 
 export async function PUT(request: NextRequest, response: NextResponse) {
     const requestContext = await authorizeRequestContext(request, response);
+    const saasContext = await authorizeSaasContext(request); // authorize SaaS context
+
     const inputObj = (await request.json())
     const valRes = auditDTOSchema.safeParse(inputObj);
     if(!valRes.success) {
@@ -24,6 +26,15 @@ export async function PUT(request: NextRequest, response: NextResponse) {
     const now = new Date();
     const dbPartition = `${now.getFullYear()}-${now.getMonth()}`; // partition daily
     const apiResult = await genericPUT<AuditDTO>(logObj, auditDTOSchema, new ServerAuditRepository(requestContext.databaseIdHash, 'audit', dbPartition), 'id');
+
+    if (saasContext.apiClient) {
+         saasContext.apiClient.saveEvent(requestContext.databaseIdHash, {
+            eventName: logObj.eventName as string,
+            databaseIdHash: requestContext.databaseIdHash,
+            params: { recordLocator: valRes.data.recordLocator}
+        });
+    }
+
     return Response.json(apiResult, { status: apiResult.status });
 }
 
