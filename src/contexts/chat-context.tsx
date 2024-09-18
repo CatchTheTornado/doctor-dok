@@ -210,7 +210,15 @@ export const ChatContextProvider: React.FC<PropsWithChildren> = ({ children }) =
     }
 
     const aiApiCall = async (messages: MessageEx[], onResult?: OnResultCallback, providerName?: string) => {
+
+        if (saasContext.userId) {
+            if (saasContext.currentUsage.usedUSDBudget > saasContext.currentQuota.allowedUSDBudget) {
+                toast.error('You have exceeded your monthly budget. Please contact us to upgrade your plan');
+                return;
+            }
+        }
         
+
         setIsStreaming(true);
         const resultMessage:MessageEx = {
             id: nanoid(),
@@ -323,6 +331,7 @@ export const ChatContextProvider: React.FC<PropsWithChildren> = ({ children }) =
         if (aggregatedStats.status === 200) {
             console.log('Stats aggregated', aggregatedStats);
             setLastRequestStat(aggregatedStats.data);
+            if (saasContext.userId) await saasContext.loadSaaSContext(); // bc. this loads the current usage
             return aggregatedStats.data;
         } else {
             throw new Error(aggregatedStats.message)

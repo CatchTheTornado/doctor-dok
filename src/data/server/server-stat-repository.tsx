@@ -4,7 +4,7 @@ import { AggregatedStatsDTO, StatDTO } from "../dto";
 import { stats } from "./db-schema-stats";
 import currentPricing from '@/data/ai/pricing.json'
 
-function roundToTwoDigits(num: number): number {
+export function roundToTwoDigits(num: number): number {
     return Math.round(num * 100) / 100;
 }
 

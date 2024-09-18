@@ -45,8 +45,8 @@ export async function authorizeSaasContext(request: NextRequest): Promise<Author
         }
     } else {
         
-        const saasToken = request.headers.get('saas-token') ? request.headers.get('saas-token') : request.nextUrl.searchParams.get('saasToken');
-        const databaseIdHash = request.headers.get('database-id-hash') ? request.headers.get('database-id-hash') : request.nextUrl.searchParams.get('database-id-hash');
+        const saasToken = request.headers.get('saas-token') !== null ? request.headers.get('saas-token') : request.nextUrl.searchParams.get('saasToken');
+        const databaseIdHash = request.headers.get('database-id-hash') !== null ? request.headers.get('database-id-hash') : request.nextUrl.searchParams.get('databaseIdHash');
         if (!saasToken && !databaseIdHash) {
              return {
                  saasContex: null,

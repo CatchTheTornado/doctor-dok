@@ -25,6 +25,7 @@ export interface SaaSContextType {
     userId: string | null;
     saasToken: string | null;
     setSaasToken: (token: string) => void;
+    loadSaaSContext: () => Promise<void>;
 }
 
 
@@ -42,7 +43,8 @@ export const SaaSContext = createContext<SaaSContextType>({
     email: null,
     userId: null,
     saasToken: null,
-    setSaasToken: (token: string) => {}
+    setSaasToken: (token: string) => {},
+    loadSaaSContext: async () => {}
 });
 
 export const SaaSContextProvider: React.FC<PropsWithChildren> = ({ children }) => {
@@ -61,35 +63,36 @@ export const SaaSContextProvider: React.FC<PropsWithChildren> = ({ children }) =
     const [userId, setUserId] = useState<string | null>(null);
 
     const searchParams = useSearchParams();
+    const dbContext = useContext(DatabaseContext);
 
 
     const setupApiClient = async (config: ConfigContextType | null) => {
-        const client = new SaasApiClient('');
+        const client = new SaasApiClient('', dbContext);
         return client;
     }
 
- 
-    useEffect(() => {
-        const loadSaaSContext = async () => {
-            const saasToken = searchParams?.get('saasToken')
-            if(saasToken) {
-                if (typeof localStorage !== 'undefined')
-                    localStorage.setItem('saasToken', saasToken);
-                setSaasToken(saasToken);
+    const loadSaaSContext = async () => {
+        const saasToken = searchParams?.get('saasToken')
+        if(saasToken) {
+            if (typeof localStorage !== 'undefined')
+                localStorage.setItem('saasToken', saasToken);
+            setSaasToken(saasToken);
+        } 
 
-                const client = await setupApiClient(null);
-                const saasAccount = await client.get(saasToken) as GetSaaSResponseSuccess;
+        const client = await setupApiClient(null);
+        const saasAccount = await client.get(saasToken && saasToken !== null ? saasToken : '') as GetSaaSResponseSuccess;
 
-                if(saasAccount.status !== 200) {
-                    toast.error('Failed to load SaaS account. Your account may be disabled or the token is invalid.');
-                } else {
-                    setCurrentQuota(saasAccount.data.currentQuota);
-                    setCurrentUsage(saasAccount.data.currentUsage);
-                    setEmail(saasAccount.data.email || null);
-                    setUserId(saasAccount.data.userId || null);
-                }
-            }
+        if(saasAccount.status !== 200) {
+//            toast.error('Failed to load SaaS account. Your account may be disabled or the token is invalid.');
+        } else {
+            setCurrentQuota(saasAccount.data.currentQuota);
+            setCurrentUsage(saasAccount.data.currentUsage);
+            setEmail(saasAccount.data.email || null);
+            setUserId(saasAccount.data.userId || null);
         }
+    
+    } 
+    useEffect(() => {
         loadSaaSContext();
     }, [searchParams]);
     
@@ -102,7 +105,8 @@ export const SaaSContextProvider: React.FC<PropsWithChildren> = ({ children }) =
             saasToken,
             email,
             userId,
-            setSaasToken
+            setSaasToken,
+            loadSaaSContext
          }}>
             {children}
         </SaaSContext.Provider>

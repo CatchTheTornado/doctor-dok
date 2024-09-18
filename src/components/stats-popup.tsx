@@ -15,16 +15,24 @@ import { DatabaseContext } from "@/contexts/db-context";
 import { ChatContext } from "@/contexts/chat-context";
 import { AggregatedStatsDTO } from "@/data/dto";
 import { toast } from "sonner";
-
+import { SaaSContext } from "@/contexts/saas-context";
+import Link from "next/link";
+export function roundToTwoDigits(num: number): number {
+  return Math.round(num * 100) / 100;
+}
 export default function FolderListPopup() {
   const dbContext = useContext(DatabaseContext);
   const chatContext = useContext(ChatContext);
   const [aggregatedStats, setAggregatedStats] = useState<AggregatedStatsDTO>({});
+  const saasContext = useContext(SaaSContext);
+  const [availableBudget, setAvailableBudget] = useState(0);
 
   useEffect(() => {
     const loadStats = async () => {
       if (dbContext?.authStatus == DatabaseAuthStatus.Authorized) {
         try { 
+          await saasContext.loadSaaSContext();
+          setAvailableBudget(roundToTwoDigits(saasContext.currentQuota.allowedUSDBudget - saasContext.currentUsage.usedUSDBudget));
           setAggregatedStats(await chatContext.aggregatedStats());
         } catch (e) {
           console.error(e);
@@ -54,6 +62,16 @@ export default function FolderListPopup() {
           <div className="h-auto overflow-auto">
             {(dbContext?.authStatus == DatabaseAuthStatus.Authorized && aggregatedStats && aggregatedStats.thisMonth && aggregatedStats.today) ? (
               <div>
+                <div className="p-4 space-y-4">
+                  <div className="text-sm font-bold w-full">Available funds</div>
+                  <div className="grid grid-cols-2 w-full">
+                    <div className="text-xs font-bold">available budget</div>
+                    <div className={availableBudget<= 0 ? `text-red-500 text-xs` : `text-xs`}>{availableBudget}$ of {saasContext.currentQuota.allowedUSDBudget}$</div>
+                    <div className="text-xs font-bold">available databases</div>
+                    <div className="text-xs">{saasContext?.currentQuota.allowedDatabases - saasContext.currentUsage.usedDatabases} of {saasContext.currentQuota.allowedDatabases}</div>
+                  </div>
+                  <div className="text-xs w-full"><Link className="underline hover-gray" href="mailto:info@catchthetornado.com">Contact us if you need more</Link></div>
+                </div>
                 <div className="p-4 space-y-4">
                   <div className="text-sm font-bold w-full">Today</div>
                   <div className="grid grid-cols-2 w-full">

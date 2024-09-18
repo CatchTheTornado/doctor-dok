@@ -1,30 +1,30 @@
 {
-    "gpt-4": {
-      "input": 0.03,
-      "output": 0.06
-    },
-    "gpt-4-turbo": {
-      "input": 0.01,
-      "output": 0.03
-    },
-    "gpt-3.5-turbo": {
-      "input": 0.0015,
-      "output": 0.002
-    },
-    "gpt-4o": {
-      "input": 0.005,
-      "output": 0.015
-    },
-    "gpt-4o-mini": {
-      "input": 0.0003,
-      "output": 0.0012
-    },
-    "davinci-002": {
-      "input": 0.012,
-      "output": 0.012
-    },
-    "babbage-002": {
-      "input": 0.0016,
-      "output": 0.0016
-    }
+  "gpt-4": {
+    "input": 0.0345,
+    "output": 0.069
+  },
+  "gpt-4-turbo": {
+    "input": 0.0115,
+    "output": 0.0345
+  },
+  "gpt-3.5-turbo": {
+    "input": 0.001725,
+    "output": 0.0023
+  },
+  "gpt-4o": {
+    "input": 0.00575,
+    "output": 0.01725
+  },
+  "gpt-4o-mini": {
+    "input": 0.000345,
+    "output": 0.00138
+  },
+  "davinci-002": {
+    "input": 0.0138,
+    "output": 0.0138
+  },
+  "babbage-002": {
+    "input": 0.00184,
+    "output": 0.00184
   }
+}
