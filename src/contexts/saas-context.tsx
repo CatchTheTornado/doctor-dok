@@ -72,6 +72,7 @@ export const SaaSContextProvider: React.FC<PropsWithChildren> = ({ children }) =
     }
 
     const loadSaaSContext = async () => {
+        if (!process.env.NEXT_PUBLIC_SAAS) return;
         const saasToken = searchParams?.get('saasToken')
         if(saasToken) {
             if (typeof localStorage !== 'undefined')
