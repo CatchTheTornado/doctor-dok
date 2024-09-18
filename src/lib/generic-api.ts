@@ -41,15 +41,16 @@ export async function authorizeSaasContext(request: NextRequest): Promise<Author
             apiClient: null
         }
     } else {
-        const saasToken = request.headers.get('saas-token');
-        const databaseIdHash = request.headers.get('database-id-hash');
+        
+        const saasToken = request.headers.get('saas-token') ? request.headers.get('saas-token') : request.nextUrl.searchParams.get('saasToken');
+        const databaseIdHash = request.headers.get('database-id-hash') ? request.headers.get('database-id-hash') : request.nextUrl.searchParams.get('database-id-hash');
         if (!saasToken && !databaseIdHash) {
              return {
                  saasContex: null,
                  isSaasMode: false,
                  hasAccess: false,
                  apiClient: null,
-                 error: 'No SaaS Token provided. Please register your account / apply for beta tests on official landing page.'
+                 error: 'No SaaS Token / Database Id Hash provided. Please register your account / apply for beta tests on official landing page.'
             }            
         }
         const client = new PlatformApiClient(saasToken ?? '');

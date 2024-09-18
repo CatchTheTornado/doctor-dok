@@ -1,5 +1,6 @@
 import { KeyDTO, DatabaseCreateRequestDTO, databaseCreateRequestSchema } from "@/data/dto";
 import { maintenance } from "@/data/server/db-provider";
+import ServerFolderRepository from "@/data/server/server-folder-repository";
 import ServerKeyRepository from "@/data/server/server-key-repository";
 import { authorizeSaasContext } from "@/lib/generic-api";
 import { getCurrentTS, getErrorMessage, getZedErrorMessage } from "@/lib/utils";
@@ -53,7 +54,8 @@ export async function POST(request: NextRequest) {
                         ua: userAgent(request).ua,
                         geo: request.geo
                     }                
-                });                     
+                });
+                const folderRepo = new ServerFolderRepository(authCreateRequest.databaseIdHash); // creating a first User Key                     
                 const keyRepo = new ServerKeyRepository(authCreateRequest.databaseIdHash); // creating a first User Key
                 const existingKeys = await keyRepo.findAll({  filter: { databaseIdHash: authCreateRequest.databaseIdHash } }); // check if key already exists
 
@@ -81,7 +83,16 @@ export async function POST(request: NextRequest) {
                         expiryDate: null,
                         updatedAt: getCurrentTS(),
                     })
-                    // TODO: authorize + return access key (?)
+
+                    const firstFolder = folderRepo.create({
+                        name: 'General',
+                        json: JSON.stringify({
+                            name: 'root',
+                            type: 'folder',
+                            children: []
+                        }),
+                        updatedAt: getCurrentTS()
+                    });
 
                     if (saasContext.isSaasMode) {
                         try {
