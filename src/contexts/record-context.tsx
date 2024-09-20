@@ -292,7 +292,7 @@ export const RecordContextProvider: React.FC<PropsWithChildren> = ({ children })
         } else {
             toast.success('Folder record removed successfully!')
             setRecords(prvRecords => prvRecords.filter((pr) => pr.id !== record.id));    
-            if (dbContext) auditContext.record({ eventName: 'deleteRecord',  recordLocator: JSON.stringify([{ recordIds: [record.id]}])}, dbContext);
+            if (dbContext) auditContext.record({ eventName: 'deleteRecord',  recordLocator: JSON.stringify([{ recordIds: [record.id]}])});
 
             //chatContext.setRecordsLoaded(false); // reload context next time        
             return Promise.resolve(true);
@@ -322,7 +322,7 @@ export const RecordContextProvider: React.FC<PropsWithChildren> = ({ children })
             setFilterAvailableTags(fetchedTags);
             setRecords(fetchedRecords);
             setLoaderStatus(DataLoadingStatus.Success);
-            if (dbContext) auditContext.record({ eventName: 'listRecords', recordLocator: JSON.stringify([{folderId: forFolder.id, recordIds: [fetchedRecords.map(r=>r.id)]}])}, dbContext);
+            if (dbContext) auditContext.record({ eventName: 'listRecords', recordLocator: JSON.stringify([{folderId: forFolder.id, recordIds: [fetchedRecords.map(r=>r.id)]}])});
             return fetchedRecords;
         } catch (error) {
             setLoaderStatus(DataLoadingStatus.Error);

@@ -281,7 +281,7 @@ export default function RecordForm({ folder, mode }: { folder?: Folder, mode?: R
             { mode === RecordEditMode.VoiceRecorder && ((recordContext?.recordEditMode && recordContext?.currentRecord?.transcription || !recordContext?.recordEditMode)) ? (<VoiceRecorder prevTranscription={transcription} chatGptKey={chatGptApiKey} onTranscriptionChange={(trs) => {
               setTranscription(trs);
             }} />) : null }
-            {recordContext?.currentRecord ? (
+            {recordContext?.currentRecord && recordContext?.recordEditMode ? (
               <div>
                 <div className="flex items-center gap-4 resize-x">
                   <Textarea
