@@ -5,7 +5,7 @@ import RecordForm from "./record-form";
 import { FolderContext } from "@/contexts/folder-context";
 import { useContext, useEffect, useState } from "react";
 import { Chat } from "./chat";
-import { Edit3Icon, FileIcon, FolderIcon, FolderOpen, FoldersIcon, ImportIcon, KeyIcon, LogOutIcon, LogsIcon, MenuIcon, MenuSquareIcon, MessageCircleIcon, PlusIcon, SaveAllIcon, Settings2Icon, SettingsIcon, Share2Icon, Wand2 } from "lucide-react";
+import { Edit3Icon, FileIcon, FolderIcon, FolderOpen, FoldersIcon, FormInputIcon, ImportIcon, KeyIcon, LogOutIcon, LogsIcon, MenuIcon, MenuSquareIcon, MessageCircleIcon, PlusIcon, SaveAllIcon, Settings2Icon, SettingsIcon, Share2Icon, Wand2 } from "lucide-react";
 import { DatabaseContext } from "@/contexts/db-context";
 import { toast } from "sonner";
 import { useTheme } from 'next-themes';
@@ -26,6 +26,7 @@ import AuditLogPopup from "./audit-log";
 import { useFilePicker } from 'use-file-picker';
 import { TermsContext } from "@/contexts/terms-context";
 import { SaaSContext } from "@/contexts/saas-context";
+import FeedbackWidget from "./feedback-widget";
 
 export default function TopHeader() {
     const folderContext = useContext(FolderContext);
@@ -79,7 +80,7 @@ export default function TopHeader() {
           ) : ("")}
             <ChatCommands open={chatCommandsOpen} setOpen={setChatCommandsOpen} />
 
-
+            <FeedbackWidget />
             <StatsPopup />
             {!dbContext?.acl || dbContext.acl.role === 'owner' ? (<AuditLogPopup />) : null}
             {!dbContext?.acl || dbContext.acl.role === 'owner' ? (<SharedKeysPopup />) : null}
@@ -110,10 +111,13 @@ export default function TopHeader() {
                       }}><ImportIcon className="w-6 h-6" /> Import records</CommandItem>
                   </CommandGroup>                  
                   <CommandGroup heading="Security">
+                    <CommandItem key="cmd-security-report" className="cursor-pointer text-xs" onSelect={(v) => { window.open('mailto:info@catchthetornado.com?subject=' + encodeURIComponent('Security incident report for ' + dbContext?.databaseHashId)) }}><FormInputIcon className="w-6 h-6" /> Report incident</CommandItem>
+                    <CommandItem key="cmd-security-close-account" className="cursor-pointer text-xs" onSelect={(v) => { window.open('mailto:info@catchthetornado.com?subject=' + encodeURIComponent('Close account request for ' + dbContext?.databaseHashId)) }}><FormInputIcon className="w-6 h-6" /> Close account</CommandItem>
                     <CommandItem key="cmd-change-key" className="cursor-pointer text-xs" onSelect={(v) => { keyContext.setChangeEncryptionKeyDialogOpen(true);  }}><KeyIcon className="w-6 h-6" /> Change encryption key</CommandItem>
                     <CommandItem key="cmd-logout" className="cursor-pointer text-xs" onSelect={(v) => { dbContext?.logout(); }}><LogOutIcon className="w-6 h-6" /> Logout</CommandItem>
                   </CommandGroup>
                   <CommandGroup heading="Help">
+                    <CommandItem key="cmd-contact-us" className="cursor-pointer text-xs" onSelect={(v) => { window.open('mailto:info@catchthetornado.com?subject=' + encodeURIComponent('Contact us for ' + dbContext?.databaseHashId)) }}><FormInputIcon className="w-6 h-6" /> Contact us</CommandItem>
                     <CommandItem key="cmd-terms" className="cursor-pointer text-xs" onSelect={(v) => { termsContext.setTermsDialogOpen(true); }}><FileIcon className="w-6 h-6" /> Accepted terms</CommandItem>
                   </CommandGroup>
               </CommandList>
