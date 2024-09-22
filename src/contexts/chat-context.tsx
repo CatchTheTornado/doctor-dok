@@ -217,6 +217,11 @@ export const ChatContextProvider: React.FC<PropsWithChildren> = ({ children }) =
                 return;
             }
         }
+
+        if (isStreaming) {
+            toast.error('Please wait until the previous request is finished');
+            return;
+        }
         
 
         setIsStreaming(true);
