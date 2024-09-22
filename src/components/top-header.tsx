@@ -25,6 +25,7 @@ import { AuditContext } from "@/contexts/audit-context";
 import AuditLogPopup from "./audit-log";
 import { useFilePicker } from 'use-file-picker';
 import { TermsContext } from "@/contexts/terms-context";
+import { SaaSContext } from "@/contexts/saas-context";
 
 export default function TopHeader() {
     const folderContext = useContext(FolderContext);
@@ -34,6 +35,7 @@ export default function TopHeader() {
     const recordContext = useContext(RecordContext);
     const termsContext = useContext(TermsContext);
     const auditContext = useContext(AuditContext);
+    const saasContext = useContext(SaaSContext);
     const config = useContext(ConfigContext);
     const { theme, systemTheme } = useTheme();
     const currentTheme = (theme === 'system' ? systemTheme : theme)
@@ -81,7 +83,7 @@ export default function TopHeader() {
             <StatsPopup />
             {!dbContext?.acl || dbContext.acl.role === 'owner' ? (<AuditLogPopup />) : null}
             {!dbContext?.acl || dbContext.acl.role === 'owner' ? (<SharedKeysPopup />) : null}
-            {!dbContext?.acl || dbContext.acl.role === 'owner' ? (<SettingsPopup />) : null}
+            {!process.env.NEXT_PUBLIC_SAAS && (!dbContext?.acl || dbContext.acl.role === 'owner') ? (<SettingsPopup />) : null}
             {!dbContext?.acl || dbContext.acl.role === 'owner' ? (<ChangeKeyPopup />) : null}
 
             <Button variant="outline" size="icon" onClick={() => { setCommandDialogOpen(true); }}>
@@ -94,7 +96,7 @@ export default function TopHeader() {
                   <CommandGroup heading="Suggestions">
                   <CommandItem key="cmd-edit-folder" className="cursor-pointer text-xs"  onSelect={(e) => { recordContext?.setRecordEditMode(true); }}><PlusIcon /> Add record</CommandItem>
                   {!dbContext?.acl || dbContext.acl.role === 'owner' ? (<CommandItem key="cmd-audit" className="cursor-pointer text-xs" onSelect={(v) => { auditContext?.setAuditLogDialogOpen(true);  }}><LogsIcon className="w-6 h-6" />  Data Audit Log</CommandItem>) : null}
-                  {!dbContext?.acl || dbContext.acl.role === 'owner' ? (<CommandItem key="cmd-settings" className="cursor-pointer text-xs" onSelect={(v) => { config?.setConfigDialogOpen(true);  }}><Settings2Icon className="w-6 h-6" />  Settings</CommandItem>) : null}
+                  {!process.env.NEXT_PUBLIC_SAAS && (!dbContext?.acl || dbContext.acl.role === 'owner') ? (<CommandItem key="cmd-settings" className="cursor-pointer text-xs" onSelect={(v) => { config?.setConfigDialogOpen(true);  }}><Settings2Icon className="w-6 h-6" />  Settings</CommandItem>) : null}
                     <CommandItem key="cmd-list-folders" className="cursor-pointer text-xs"  onSelect={(e) => { folderContext?.setFolderListPopup(true); folderContext?.setFolderEditOpen(false); }}><FoldersIcon /> List folders</CommandItem>
                     <CommandItem key="cmd-edit-current-folder" className="cursor-pointer text-xs"  onSelect={(e) => { folderContext?.setFolderListPopup(true); folderContext?.setFolderEditOpen(true); }}><Edit3Icon /> Edit currrent folder</CommandItem>
                     <CommandItem key="cmd-open-chat" className="cursor-pointer text-xs"  onSelect={(e) => { chatContext?.setChatOpen(true); }}><MessageCircleIcon /> Open AI Chat</CommandItem>
