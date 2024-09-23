@@ -25,7 +25,7 @@ export interface SaaSContextType {
     userId: string | null;
     saasToken: string | null;
     setSaasToken: (token: string) => void;
-    loadSaaSContext: () => Promise<void>;
+    loadSaaSContext: (saasToken: string) => Promise<void>;
 }
 
 
@@ -44,7 +44,7 @@ export const SaaSContext = createContext<SaaSContextType>({
     userId: null,
     saasToken: null,
     setSaasToken: (token: string) => {},
-    loadSaaSContext: async () => {}
+    loadSaaSContext: async (saasToken: string) => {}
 });
 
 export const SaaSContextProvider: React.FC<PropsWithChildren> = ({ children }) => {
@@ -62,7 +62,6 @@ export const SaaSContextProvider: React.FC<PropsWithChildren> = ({ children }) =
     const [email, setEmail] = useState<string | null>(null);
     const [userId, setUserId] = useState<string | null>(null);
 
-    const searchParams = useSearchParams();
     const dbContext = useContext(DatabaseContext);
 
 
@@ -71,9 +70,8 @@ export const SaaSContextProvider: React.FC<PropsWithChildren> = ({ children }) =
         return client;
     }
 
-    const loadSaaSContext = async () => {
+    const loadSaaSContext = async (saasToken: string) => {
         if (!process.env.NEXT_PUBLIC_SAAS) return;
-        const saasToken = searchParams?.get('saasToken')
         if(saasToken) {
             if (typeof localStorage !== 'undefined')
                 localStorage.setItem('saasToken', saasToken);
@@ -93,11 +91,6 @@ export const SaaSContextProvider: React.FC<PropsWithChildren> = ({ children }) =
         }
     
     } 
-    useEffect(() => {
-        loadSaaSContext();
-    }, [searchParams]);
-    
-
 
     return (
         <SaaSContext.Provider value={{ 

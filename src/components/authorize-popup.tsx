@@ -4,11 +4,12 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Card, CardContent, CardDescription, CardHeader } from "./ui/card";
 import { AuthorizeDatabaseForm } from "./authorize-database-form";
 import { CreateDatabaseForm } from "./create-database-form";
-import { useContext, useEffect, useState } from 'react';
+import { Suspense, useContext, useEffect, useState } from 'react';
 import DataLoader from './data-loader';
 import { useTheme } from 'next-themes';
 import { SaaSContext } from '@/contexts/saas-context';
 import { CookieConsentBannerComponent } from '@/components/cookie-consent-banner';
+import { SaaSContextLoader } from './saas-context-loader';
 
 export function AuthorizePopup({ autoLoginInProgress }: { autoLoginInProgress: boolean }) {
   const [applicationLoaded, setApplicationLoaded] = useState(false);
@@ -23,6 +24,9 @@ export function AuthorizePopup({ autoLoginInProgress }: { autoLoginInProgress: b
     <div className="p-4 grid items-center justify-center h-screen">
      {!applicationLoaded || autoLoginInProgress ? (<div className="w-96 flex items-center justify-center flex-col"><div className="flex-row h-40 w-40"><img src="/img/doctor-dok-logo.svg" /></div><div><DataLoader /></div></div>):(
       <div>
+        <Suspense fallback={<div>Loading SaaSContext...</div>}>
+          <SaaSContextLoader />
+        </Suspense>
         {saasContext?.email ? (
           <div className="text-xs w-96 p-3 border-2 border-green-500 background-green-200 text-sm font-semibold text-green-500">
             Hello {saasContext?.email}! Welcome to Doctor Dok Beta Tests. You can create: {saasContext?.currentQuota.allowedDatabases - saasContext.currentUsage.usedDatabases} database(s) and spend {saasContext.currentQuota.allowedUSDBudget}$ for AI requests. Read <a className="underline" href="/content/terms">terms</a> and <a className="underline" href="/content/privacy">privacy</a> before using the app.

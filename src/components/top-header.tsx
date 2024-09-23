@@ -3,7 +3,7 @@ import { SettingsPopup } from "@/components/settings-popup";
 import FolderListPopup from "./folder-list-popup";
 import RecordForm from "./record-form";
 import { FolderContext } from "@/contexts/folder-context";
-import { useContext, useEffect, useState } from "react";
+import { Suspense, useContext, useEffect, useState } from "react";
 import { Chat } from "./chat";
 import { Edit3Icon, FileIcon, FolderIcon, FolderOpen, FoldersIcon, FormInputIcon, ImportIcon, KeyIcon, LogOutIcon, LogsIcon, MenuIcon, MenuSquareIcon, MessageCircleIcon, PlusIcon, SaveAllIcon, Settings2Icon, SettingsIcon, Share2Icon, Wand2 } from "lucide-react";
 import { DatabaseContext } from "@/contexts/db-context";
@@ -27,6 +27,7 @@ import { useFilePicker } from 'use-file-picker';
 import { TermsContext } from "@/contexts/terms-context";
 import { SaaSContext } from "@/contexts/saas-context";
 import FeedbackWidget from "./feedback-widget";
+import { SaaSContextLoader } from "./saas-context-loader";
 
 export default function TopHeader() {
     const folderContext = useContext(FolderContext);
@@ -58,6 +59,9 @@ export default function TopHeader() {
     }); 
     return (
       <div className="sticky top-0 z-1000 flex items-center justify-between border-b border-zinc-200 dark:border-zinc-800 p-4 bg-zinc-200 dark:bg-zinc-800 h-12">
+        <Suspense fallback={<div>Loading SaaSContext...</div>}>
+          <SaaSContextLoader />
+        </Suspense>        
         <div className="font-medium flex justify-center items-center">
           <div><img className="h-14 w-14" src={currentTheme === 'dark' ? `/img/doctor-dok-logo-white.svg` : `/img/doctor-dok-logo.svg`} /></div>
           <div className="xs:hidden xxs:hidden sm:flex justify-center items-center sm:flex">Doctor Dok {folderContext?.currentFolder ? (<FolderOpen className="w-6 h-6 ml-2 mr-2"/>) : ''} {folderContext?.currentFolder?.displayName()} {folderContext?.currentFolder ? <Button className="ml-3" variant="outline" onClick={(e) => { folderContext?.setFolderListPopup(true); folderContext?.setFolderEditOpen(true); }}>Edit folder</Button> : null } </div>
