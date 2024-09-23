@@ -17,6 +17,7 @@ import { useSearchParams } from "next/navigation";
 import { useEffect } from "react";
 import { SaaSContext, SaaSContextProvider } from "@/contexts/saas-context";
 import FeedbackButton from "@/components/feedback-button";
+import { CookieConsentBannerComponent } from "@/components/cookie-consent-banner";
 
 // part of bundle size optimization (https://github.com/CatchTheTornado/doctor-dok/issues/67)
 // const DynamicRecordsWrapper = dynamic(() => import('@/components/records-wrapper'), { ssr: false });
@@ -41,6 +42,7 @@ export default function FolderPad() {
                           <TermsPopup />
                           <FeedbackButton/>
                           <RecordsWrapper />
+                          <CookieConsentBannerComponent />
                         </div>
                       </KeyContextProvider>
                     </RecordContextProvider>

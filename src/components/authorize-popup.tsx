@@ -8,6 +8,7 @@ import { useContext, useEffect, useState } from 'react';
 import DataLoader from './data-loader';
 import { useTheme } from 'next-themes';
 import { SaaSContext } from '@/contexts/saas-context';
+import { CookieConsentBannerComponent } from '@/components/cookie-consent-banner';
 
 export function AuthorizePopup({ autoLoginInProgress }: { autoLoginInProgress: boolean }) {
   const [applicationLoaded, setApplicationLoaded] = useState(false);
@@ -68,6 +69,7 @@ export function AuthorizePopup({ autoLoginInProgress }: { autoLoginInProgress: b
         </Tabs>
       </div>
         )}
+      <CookieConsentBannerComponent />
     </div>
   )
 }
