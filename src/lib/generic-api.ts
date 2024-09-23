@@ -8,6 +8,7 @@ import { defaultKeyACL, KeyACLDTO, KeyDTO, SaaSDTO } from "@/data/dto";
 import { Key } from "react";
 import { PlatformApiClient } from "@/data/server/platform-api-client";
 import NodeCache from "node-cache";
+import { ApiError } from "@/data/client/base-api-client";
 
 const saasCtxCache = new NodeCache({ stdTTL: 60 * 60 * 10 /* 10 min cache */});
 
@@ -89,12 +90,21 @@ export async function authorizeSaasContext(request: NextRequest): Promise<Author
                     return resp;
                 }
             } catch (e) {
-                return {
-                    saasContex: null,
-                    isSaasMode: false,
-                    hasAccess: false,
-                    apiClient: null,
-                    error: getErrorMessage(e)
+                if (e instanceof ApiError && e.code && e.code === 'ECONNREFUSED') { // saas is down
+                    return {
+                        saasContex: null,
+                        isSaasMode: false,
+                        hasAccess: true,
+                        apiClient: null
+                    }
+                } else {
+                    return {
+                        saasContex: null,
+                        isSaasMode: false,
+                        hasAccess: false,
+                        apiClient: null,
+                        error: getErrorMessage(e)
+                    }
                 }
             }
         }

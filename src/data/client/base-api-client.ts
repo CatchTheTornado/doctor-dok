@@ -11,6 +11,17 @@ export type ApiEncryptionConfig = {
   useEncryption: boolean;
 };
 
+export class ApiError extends Error {
+  public code: number|string;
+  public additionalData?: any;
+
+  constructor(message: string, code: number|string, additionalData?: any) {
+    super(message);
+    this.code = code;
+    this.additionalData = additionalData;
+  }
+}
+
 
 export class ApiClient {
   private baseUrl: string;
@@ -164,12 +175,12 @@ export class ApiClient {
           } else {
             this.dbContext?.logout();
             toast.error('Refresh token failed. Please try to log-in again.');
-            throw new Error('Request failed. Refresh token failed. Try log-in again.');
+            throw new ApiError('Request failed. Refresh token failed. Try log-in again.', 401, refreshResult);
           }
         } else {
           this.dbContext?.logout();
           toast.error('Refresh token failed. Please try to log-in again.');
-          throw new Error('Request failed. Refresh token failed. Try log-in again.');
+          throw new ApiError('Request failed. Refresh token failed. Try log-in again.', 401, null);
         }
       }
 
@@ -193,7 +204,7 @@ export class ApiClient {
       }
     } catch (error) {
       console.log(error);
-      throw new Error('Request failed' + getErrorMessage(error) + ' [' + error.code + ']');
+      throw new ApiError('Request failed' + getErrorMessage(error) + ' [' + error.code + ']', error.code, error);
     }
   }
 }
