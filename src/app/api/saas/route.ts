@@ -34,3 +34,5 @@ export async function GET(request: NextRequest, response: NextResponse) {
         return Response.json({ message: 'Error accessing saas context ' + getErrorMessage(error), status: 400 });
     }
 }
+
+export const dynamic = "force-dynamic";
