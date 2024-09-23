@@ -57,7 +57,7 @@ export default function TermsPopup() {
                 To accept terms, please enter your name and email address and click "Accept":
               </div>
               {errorMessage ? (
-                <div className="p-4 border border-red-500 text-red-200">
+                <div className="p-4 m-4 border border-red-500 text-red-200">
                   {errorMessage}
                 </div>
               ) : null}

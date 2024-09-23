@@ -75,7 +75,7 @@ export async function authorizeSaasContext(request: NextRequest): Promise<Author
                         apiClient: null,
                         error: response.message
                     }
-                    saasCtxCache.set(saasToken ?? '' + databaseIdHash, resp, 60 * 30); // errors cachef for 30s
+                    saasCtxCache.set(saasToken ?? '' + databaseIdHash, resp, 60 * 2); // errors cachef for 2s
                     return resp;
 
                 } else {
