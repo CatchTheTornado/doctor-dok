@@ -12,7 +12,7 @@ export function SaaSContextLoader() {
             saasContext.setSaasToken(saasToken);
             saasContext.loadSaaSContext(saasToken);
         }
-    }, [searchParams, saasContext]);
+    }, [searchParams]);
 
     return (
         <>
