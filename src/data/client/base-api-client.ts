@@ -4,6 +4,7 @@ import axios, { AxiosRequestConfig, AxiosResponse } from 'axios';
 import { DatabaseContextType } from "@/contexts/db-context";
 import { SaaSContextType } from "@/contexts/saas-context";
 import { toast } from "sonner";
+import { getErrorMessage } from "@/lib/utils";
 
 export type ApiEncryptionConfig = {
   secretKey?: string;
@@ -191,7 +192,8 @@ export class ApiClient {
         return responseData;
       }
     } catch (error) {
-      throw new Error('Request failed ' + error);
+      console.log(error);
+      throw new Error('Request failed' + getErrorMessage(error) + ' [' + error.code + ']');
     }
   }
 }
