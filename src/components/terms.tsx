@@ -54,7 +54,7 @@ export default function TermsPopup() {
           <div className="h-auto overflow-auto">
             <div className="">
               <div className="p-4">
-                To accept terms, please enter your name and email address and click "Accept":
+                To accept terms, please enter your name and email address and click &quot;Accept&quot;:
               </div>
               {errorMessage ? (
                 <div className="p-4 m-4 border border-red-500 text-red-200">
