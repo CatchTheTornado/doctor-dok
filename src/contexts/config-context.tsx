@@ -34,6 +34,7 @@ export const ENV_PROVIDED_CONFIG: Record<string, any> = {
   llmProviderRemovePII: process.env.NEXT_PUBLIC_LLM_PROVIDER_REMOVE_PII,
   piiGeneralData: process.env.NEXT_PUBLIC_PII_GENERAL_DATA,
   autoLoadFolderContext: process.env.NEXT_PUBLIC_AUTO_LOAD_PATIENT_CONTEXT,
+  autoParseRecord: process.env.NEXT_PUBLIC_AUTO_PARSE_RECORD
 }
 
 type ConfigSupportedValueType = string | number | boolean | null | undefined;
