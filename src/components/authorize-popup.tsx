@@ -10,6 +10,7 @@ import { useTheme } from 'next-themes';
 import { SaaSContext } from '@/contexts/saas-context';
 import { CookieConsentBannerComponent } from '@/components/cookie-consent-banner';
 import { SaaSContextLoader } from './saas-context-loader';
+import FeedbackWidget from './feedback-widget';
 
 export function AuthorizePopup({ autoLoginInProgress }: { autoLoginInProgress: boolean }) {
   const [applicationLoaded, setApplicationLoaded] = useState(false);
@@ -27,6 +28,7 @@ export function AuthorizePopup({ autoLoginInProgress }: { autoLoginInProgress: b
         <Suspense fallback={<div>Loading SaaSContext...</div>}>
           <SaaSContextLoader />
         </Suspense>
+        <FeedbackWidget />
         {saasContext?.email ? (
           <div className="text-xs w-96 p-3 border-2 border-green-500 background-green-200 text-sm font-semibold text-green-500">
             Hello {saasContext?.email}! Welcome to Doctor Dok Beta Tests. You can create: {saasContext?.currentQuota.allowedDatabases - (saasContext?.currentUsage !== null ? saasContext.currentUsage.usedDatabases : 0) } database(s) and spend {saasContext.currentQuota.allowedUSDBudget}$ for AI requests. Read <a className="underline" href="/content/terms">terms</a> and <a className="underline" href="/content/privacy">privacy</a> before using the app.
