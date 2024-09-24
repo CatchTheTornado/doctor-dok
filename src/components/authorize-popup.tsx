@@ -29,7 +29,7 @@ export function AuthorizePopup({ autoLoginInProgress }: { autoLoginInProgress: b
         </Suspense>
         {saasContext?.email ? (
           <div className="text-xs w-96 p-3 border-2 border-green-500 background-green-200 text-sm font-semibold text-green-500">
-            Hello {saasContext?.email}! Welcome to Doctor Dok Beta Tests. You can create: {saasContext?.currentQuota.allowedDatabases - saasContext.currentUsage.usedDatabases} database(s) and spend {saasContext.currentQuota.allowedUSDBudget}$ for AI requests. Read <a className="underline" href="/content/terms">terms</a> and <a className="underline" href="/content/privacy">privacy</a> before using the app.
+            Hello {saasContext?.email}! Welcome to Doctor Dok Beta Tests. You can create: {saasContext?.currentQuota.allowedDatabases - (saasContext?.currentUsage !== null ? saasContext.currentUsage.usedDatabases : 0) } database(s) and spend {saasContext.currentQuota.allowedUSDBudget}$ for AI requests. Read <a className="underline" href="/content/terms">terms</a> and <a className="underline" href="/content/privacy">privacy</a> before using the app.
           </div>
         ): ((process.env.NEXT_PUBLIC_SAAS_REGISTER_URL && process.env.NEXT_PUBLIC_SAAS) ? (
           <div className="text-xs w-96 p-3 border-2 border-red-500 background-red-200 text-sm font-semibold text-red-500">
