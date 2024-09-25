@@ -47,6 +47,11 @@ Chat GPT, LLama 3.1 and other Ollama supported AI models avaialble.
 ## Key Features:
 
 - Digitalize all your health data - even poor scans, converts it to JSON structuralized data,
+- Fully secured Data import and export (ZIP archives, created inside your Browser - end 2 end encryption)
+- Interactive chat mode,
+- Advanced filtering,
+- Data timelining according to record contents (real examination dates etc)
+- Support for advanced data processing - like conversion from/to FHIR,
 - Chat with AI with selected or All your health records in the context,
 - Translate your records to more 50+ languages,
 - Chat GPT, LLama 3.1 and other Ollama supported AI models support,
