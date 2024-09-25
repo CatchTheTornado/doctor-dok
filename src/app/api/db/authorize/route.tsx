@@ -55,7 +55,8 @@ export async function POST(request: NextRequest) {
                         encryptedMasterKey: (keyDetails as KeyDTO).encryptedMasterKey,
                         accessToken:  accessToken,
                         refreshToken: refreshToken,
-                        acl: keyACL ? JSON.parse(keyACL) : defaultKeyACL
+                        acl: keyACL ? JSON.parse(keyACL) : defaultKeyACL,
+                        saasContext: saasContext ? saasContext.saasContex : null
                     },
                     status: 200
                 });                    

@@ -266,6 +266,12 @@ export const DatabaseContextProvider: React.FC<PropsWithChildren> = ({ children 
             if(authResponse.status === 200) { // user is virtually logged in
                 const encryptionUtils = new EncryptionUtils(authorizeRequest.key);
 
+                if (authResponse.data.saasContext) {
+                    if (typeof localStorage !== 'undefined') {
+                        localStorage.setItem('saasToken', authResponse.data.saasContext.saasToken);
+                    }
+                }
+
                 setDatabaseHashId(databaseIdHash);
                 setDatabaseId(authorizeRequest.databaseId);
                 setKeyLocatorHash(keyLocatorHash);
