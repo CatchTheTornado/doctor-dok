@@ -11,11 +11,11 @@ type UniversalApiResult = {
 
 const qr = (databaseIdHash?: string|null, apiKey?: string|null) => {
 
-    if (apiKey) {
-        return '?apiKey=' + encodeURIComponent(apiKey);
+    if (databaseIdHash) {
+        return `?databaseIdHash=${encodeURIComponent(databaseIdHash)}`
     } else {
-        if (databaseIdHash) {
-            return `?databaseIdHash=${encodeURIComponent(databaseIdHash)}`
+        if (apiKey) {
+            return '?apiKey=' + encodeURIComponent(apiKey);
         }
     }
 
