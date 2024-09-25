@@ -184,11 +184,7 @@ export const DatabaseContextProvider: React.FC<PropsWithChildren> = ({ children 
         setRefreshToken('');
         setAuthStatus(DatabaseAuthStatus.NotAuthorized);
 
-        if(typeof localStorage !== 'undefined') {
-            localStorage.removeItem('keepLoggedIn');
-            localStorage.removeItem('key');
-            localStorage.removeItem('databaseId');
-        }
+        disableKeepLoggedIn();
     };
 
     const refresh = async (refreshRequest: DatabaseRefreshRequest): Promise<RefreshDatabaseResult> => {
@@ -227,6 +223,14 @@ export const DatabaseContextProvider: React.FC<PropsWithChildren> = ({ children 
             key: await encryptionUtils.decrypt(kliReqest.encryptedKey),
             keepLoggedIn: kliReqest.keepLoggedIn
         });
+    }
+
+    const disableKeepLoggedIn = () => {
+        if(typeof localStorage !== 'undefined') {
+            localStorage.setItem('keepLoggedIn', 'false');
+            localStorage.removeItem('key');
+            localStorage.removeItem('databaseId');
+        }        
     }
 
     const authorize = async (authorizeRequest: DatabaseAuthorizeRequest): Promise<AuthorizeDatabaseResult> => {
@@ -299,6 +303,8 @@ export const DatabaseContextProvider: React.FC<PropsWithChildren> = ({ children 
                 }
 
             } else {
+                disableKeepLoggedIn();
+
                 console.error('Error in authorize: ', authResponse.message);
                 setAuthStatus(DatabaseAuthStatus.AuthorizationError);
                 return {
@@ -308,6 +314,8 @@ export const DatabaseContextProvider: React.FC<PropsWithChildren> = ({ children 
                 }
             }
         } else {
+            disableKeepLoggedIn();
+
             toast.error('Error in authorization challenge. Please try again.');
             console.error('Error in authorize/challenge: ', authChallengResponse.message);
         }

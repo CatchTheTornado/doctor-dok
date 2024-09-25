@@ -47,7 +47,7 @@ export default function TermsPopup() {
           <CredenzaTitle>Terms and conditions
           </CredenzaTitle>
           <CredenzaDescription>
-          Please read the <a href="/content/terms">terms of service</a> and <a href="/content/privacy">privacy policy</a> before using Doctor Dok.
+          Please read the <a target="_blank"  href="/content/terms">terms of service</a> and <a target="_blank"  href="/content/privacy">privacy policy</a> before using Doctor Dok.
           </CredenzaDescription>
         </CredenzaHeader>
         <div className="bg-white dark:bg-zinc-900 border-r border-zinc-200 dark:border-zinc-800">

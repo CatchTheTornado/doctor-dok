@@ -221,7 +221,7 @@ export function CreateDatabaseForm({
             })}             
              />
           <Label htmlFor="acceptTerms">
-            I hereby accept Doctor Dok <Link className="underline hover:text-blue-500" href={termsUrl}>Terms of Service</Link> and <Link className="underline hover:text-blue-500" href={privacyUrl}>Privacy Policy</Link>.
+            I hereby accept Doctor Dok <Link target="_blank" className="underline hover:text-blue-500" href={termsUrl}>Terms of Service</Link> and <Link target="_blank"  className="underline hover:text-blue-500" href={privacyUrl}>Privacy Policy</Link>.
           </Label>
           {errors.acceptTerms && <p className="text-red-500 text-sm">Please read and accept terms of service and privacy policy.</p>}
         </div>

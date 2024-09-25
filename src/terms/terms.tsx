@@ -7,7 +7,7 @@ export const requiredTerms: {
 } = {
     generalTermsConsent: {
         title: 'General terms of service and privacy',
-        content: <p>I hereby that I read and accepted the <a className="underline" href="/content/terms">Terms of Service</a> and <a className="underline" href="/content/privacy">Privacy Policy</a> of Doctor Dok.</p>,
+        content: <p>I hereby that I read and accepted the <a className="underline" target="_blank" href="/content/terms">Terms of Service</a> and <a className="underline" target="_blank" href="/content/privacy">Privacy Policy</a> of Doctor Dok.</p>,
         contentPlain: 'I confirm that I read and accepted the Terms of Service and Privacy Policy of Doctor Dok.'
     },
     dataPrivacyConsent: {
