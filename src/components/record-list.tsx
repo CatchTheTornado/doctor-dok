@@ -64,7 +64,8 @@ export default function RecordList({ folder }: {folder: Folder}) {
                     tagsTimeline.map((tag, index) => (
                       <div key={index} className="text-sm inline-flex w-auto"><Button className="h-10" variant={recordContext.filterSelectedTags.includes(tag.year) ? 'default' : 'secondary' } onClick={() => { 
                         if (folderContext?.currentFolder) {
-                          recordContext?.filterToggleTag(tag.year);
+                            recordContext?.setFilterSelectedTags(recordContext.filterSelectedTags.filter(t => !tagsTimeline.map(t => t.year).includes(t)));
+                            recordContext?.filterToggleTag(tag.year);
                         }
                       }
                       }><CalendarIcon className="w-4 h-4 mr-2" /> {tag.year} ({tag.freq}) {recordContext.filterSelectedTags.includes(tag.year) ? (<XCircleIcon className="w-4 h-4 ml-2" />) : null }</Button></div>

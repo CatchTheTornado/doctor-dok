@@ -130,9 +130,9 @@ export const RecordContextProvider: React.FC<PropsWithChildren> = ({ children })
 
     const filterToggleTag = (tag: string) => {
       if (filterSelectedTags.includes(tag)) {
-        setFilterSelectedTags(filterSelectedTags.filter(t => t !== tag));
+        setFilterSelectedTags(prev => prev.filter(t => t !== tag));
       } else {
-        setFilterSelectedTags([...filterSelectedTags, tag]);
+        setFilterSelectedTags(prev => [...prev, tag]);
       }
     }
 
