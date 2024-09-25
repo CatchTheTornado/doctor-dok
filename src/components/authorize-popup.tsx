@@ -17,10 +17,18 @@ export function AuthorizePopup({ autoLoginInProgress }: { autoLoginInProgress: b
   const { theme, systemTheme } = useTheme();
   const currentTheme = (theme === 'system' ? systemTheme : theme)
   const saasContext = useContext(SaaSContext);
+  const [currentTab, setCurrentTab] = useState('authorize');
 
   useEffect(() => {
     setApplicationLoaded(true);
   },[]);
+
+  useEffect(() => {
+    if (saasContext?.email) {
+      const defaultTab = saasContext?.email && ((saasContext?.currentQuota.allowedDatabases - (saasContext?.currentUsage !== null ? saasContext.currentUsage.usedDatabases : 0)) > 0) ? `create` : `authorize`;
+      setCurrentTab(defaultTab);
+    }
+  }, [saasContext?.email]);
   return (
     <div className="p-4 grid items-center justify-center h-screen">
      {!applicationLoaded || autoLoginInProgress ? (<div className="w-96 flex items-center justify-center flex-col"><div className="flex-row h-40 w-40"><img src="/img/doctor-dok-logo.svg" /></div><div><DataLoader /></div></div>):(
@@ -43,7 +51,7 @@ export function AuthorizePopup({ autoLoginInProgress }: { autoLoginInProgress: b
           <img alt="Application logo" className="w-20" src={currentTheme === 'dark' ? `/img/doctor-dok-logo-white.svg` : `/img/doctor-dok-logo.svg`} />
           <h1 className="text-5xl text-center p-8 pl-0">Doctor Dok</h1>
         </div>
-        <Tabs defaultValue="authorize" className="w-96">
+        <Tabs defaultValue="authorize" value={currentTab} onValueChange={(value) => setCurrentTab(value)} className="w-96">
           <TabsList className="grid grid-cols-2">
             <TabsTrigger value="authorize" className="dark:data-[state=active]:bg-zinc-900 data-[state=active]:bg-zinc-100">Open database</TabsTrigger>
             <TabsTrigger value="create" className="dark:data-[state=active]:bg-zinc-900 data-[state=active]:bg-zinc-100">Create database</TabsTrigger>
