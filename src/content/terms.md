@@ -1,4 +1,4 @@
-**TERMS OF SERVICE**
+# TERMS OF SERVICE
 
 Last Updated: 22.09.2024
 
