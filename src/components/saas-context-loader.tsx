@@ -7,11 +7,13 @@ export function SaaSContextLoader() {
     const saasContext = useContext(SaaSContext);
     
     useEffect(() => {
-        const saasToken = searchParams?.get('saasToken')
-        if (saasToken) {
-            saasContext.setSaasToken(saasToken);
-            saasContext.loadSaaSContext(saasToken);
+        let saasToken = searchParams?.get('saasToken')
+        if (!saasToken) {
+            saasToken = typeof localStorage !== 'undefined' ? localStorage.getItem('saasToken') : '';
         }
+
+        saasContext.setSaasToken(saasToken ?? '');
+        saasContext.loadSaaSContext(saasToken ?? '');
     }, [searchParams]);
 
     return (

@@ -22,7 +22,7 @@ export class SaasApiClient extends ApiClient {
       super(baseUrl, dbContext, null, encryptionConfig);
     }
   
-    async get(saasToken: string): Promise<GetSaasResponse> {
-      return this.request<GetSaasResponse>('/api/saas?saasToken=' + encodeURIComponent(saasToken), 'GET', { ecnryptedFields: [] }) as Promise<GetSaasResponse>;
+    async get(saasToken: string, useCache:boolean = true): Promise<GetSaasResponse> {
+      return this.request<GetSaasResponse>('/api/saas?saasToken=' + encodeURIComponent(saasToken) + '&useCache=' + (useCache ? 'true' : 'false'), 'GET', { ecnryptedFields: [] }) as Promise<GetSaasResponse>;
     }
   }

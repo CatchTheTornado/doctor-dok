@@ -31,7 +31,7 @@ export default function FolderListPopup() {
     const loadStats = async () => {
       if (dbContext?.authStatus == DatabaseAuthStatus.Authorized) {
         try { 
-          await saasContext.loadSaaSContext();
+          await saasContext.loadSaaSContext('');
           if (saasContext.currentQuota) {
             setAvailableBudget(roundToTwoDigits(saasContext.currentQuota.allowedUSDBudget - saasContext.currentUsage.usedUSDBudget));
             setAggregatedStats(await chatContext.aggregatedStats());

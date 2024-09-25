@@ -72,14 +72,17 @@ export const SaaSContextProvider: React.FC<PropsWithChildren> = ({ children }) =
 
     const loadSaaSContext = async (saasToken: string) => {
         if (!process.env.NEXT_PUBLIC_SAAS) return;
-        if(saasToken) {
+        if(saasToken || saasToken !== '') {
             if (typeof localStorage !== 'undefined')
                 localStorage.setItem('saasToken', saasToken);
             setSaasToken(saasToken);
-        } 
+        } else {
+            if (typeof localStorage !== 'undefined')
+                setSaasToken(localStorage.getItem('saasToken'));
+        }
 
         const client = await setupApiClient(null);
-        const saasAccount = await client.get(saasToken && saasToken !== null ? saasToken : '') as GetSaaSResponseSuccess;
+        const saasAccount = await client.get(saasToken && saasToken !== null ? saasToken : '', false) as GetSaaSResponseSuccess;
 
         if(saasAccount.status !== 200) {
 //            toast.error('Failed to load SaaS account. Your account may be disabled or the token is invalid.');
