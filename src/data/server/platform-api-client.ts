@@ -29,8 +29,6 @@ export class PlatformApiClient extends ApiClient {
         this.apiKey = saasToken;
     }
 
-
-
     async account({ databaseIdHash, apiKey}:{
         databaseIdHash?: string|null;
         apiKey?: string|null;
