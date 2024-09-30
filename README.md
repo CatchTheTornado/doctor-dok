@@ -1,8 +1,8 @@
-<p align="center">
-    <img width="200" src="public/img/doctor-dok-logo.svg" />
-</p>
-
 ## Doctor Dok
+
+<p align="center">
+    <img src="readme-assets/top-header.png" />
+</p>
 
 **1 Password + AI for Health**
 
@@ -46,7 +46,9 @@ Chat GPT, LLama 3.1 and other Ollama supported AI models avaialble.
 
 ## Try it out
 
-You can Try Out Doctor Dok in hosted, fully secured, end2end encrypted environment by registering to beta tests on https://doctordok.com
+You can Try Out Doctor Dok in hosted, fully secured, end2end encrypted environment by registering to beta tests on https://doctordok.com. You'll get AI tokens + free hosting for your health data.
+
+<a href="https://doctordok.com"><img src="readme-assets/try-doctordok.png" alt="Try Doctor Dok for free" /></a>
 
 
 ## Key Features:
@@ -73,6 +75,8 @@ You can Try Out Doctor Dok in hosted, fully secured, end2end encrypted environme
 - Dark and Light themes supported,
 - Full Rest API with JWT authorization for managing `folders`, `patinet-records`, `encrypted-attachments`, ai integrations and so on.
 - 100% TypeScript, Next JS, React + Shadcn-ui tech stack.
+
+<img src="readme-assets/features.png" alt="Features ..." />
 
 ## Use cases
 - **End user** - using Doctor Dok as health AI cloud,
