@@ -44,6 +44,11 @@ Chat GPT, LLama 3.1 and other Ollama supported AI models avaialble.
 
 **Using AI Chat one might analyze years of medical history within seconds** self-formulating second opinions, checking possible treatments, checking medicine co-inferences etc.
 
+## Try it out
+
+You can Try Out Doctor Dok in hosted, fully secured, end2end encrypted environment by registering to beta tests on https://doctordok.com
+
+
 ## Key Features:
 
 - Digitalize all your health data - even poor scans, converts it to JSON structuralized data,
