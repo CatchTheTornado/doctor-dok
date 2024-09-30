@@ -46,7 +46,7 @@ Chat GPT, LLama 3.1 and other Ollama supported AI models avaialble.
 
 ## Try it out
 
-You can Try Out Doctor Dok in hosted, fully secured, end2end encrypted environment by registering to beta tests on https://doctordok.com. You'll get AI tokens + free hosting for your health data.
+You can host Doctor Dok on your own because it's <a href="LICENSE">MIT Licensed</a> Open Source. You might also want to give it a try in a hosted, fully secured, end2end encrypted environment by registering to beta tests on https://doctordok.com. You'll get AI tokens + free hosting for your health data.
 
 <a href="https://doctordok.com"><img src="readme-assets/try-doctordok.png" alt="Try Doctor Dok for free" /></a>
 
@@ -78,10 +78,10 @@ You can Try Out Doctor Dok in hosted, fully secured, end2end encrypted environme
 
 <img src="readme-assets/features.png" alt="Features ..." />
 
-## Use cases
+## Software use cases
 - **End user** - using Doctor Dok as health AI cloud,
-- **Med provider** - using Doctor Dok as secure framework EHR with per-folder sharing,
-- **Med tech** - using Doctor Dok as a framework for product development
+- **Med provider** - using Doctor Dok as secure framework - an EHR with per-patient secure folder sharing,
+- **Med tech** - using Doctor Dok as a framework for product development, AI experiments etc.
 
 ## Structured data
 
@@ -119,6 +119,62 @@ export const ENV_PROVIDED_CONFIG = {
   piiGeneralData: process.env.NEXT_PUBLIC_PII_GENERAL_DATA
 }
 ```
+
+## Medical use cases
+
+### Medical Records
+Extract key patient data points for comprehensive health timelines. Identify potential gaps in care or follow-up needs.
+
+### Clinical Findings
+Capture and categorize clinician observations. Correlate subjective findings with objective data points.
+
+### Hematology Report
+Standardize diverse hematology reporting formats. Flag unusual cell populations or counts for specialist review.
+
+### Pathology Report
+Extract key findings from narrative reports. Organize biopsy results for easy review and comparison.
+
+### Serology Results
+Standardize antibody test results across different assays. Monitor immune status changes over time.
+
+### Electrolyte Panel
+Track electrolyte balance over multiple tests. Alert to rapid changes or consistent imbalances.
+
+### Renal Function Tests
+Calculate and track kidney function metrics over time. Highlight trends that may indicate declining renal function
+
+### Radiology Report
+Extract key findings from narrative radiology reports. Link report data with actual images for comprehensive review.
+
+### Microbiology Results
+Organize culture results and antibiotic sensitivities. Track pathogen prevalence and antibiotic resistance patterns.
+
+### Blood Test Results
+Convert unstructured lab reports into structured data. Flag abnormal values and suggest relevant follow-up tests
+
+### Biomarker Levels
+Track biomarker fluctuations across time. Alert to significant changes that may indicate need for intervention.
+
+### Immunology Results
+Quantify immune response markers. Track immunological changes in response to treatments or interventions.
+
+### Patient History
+Compile chronological health events from various documents. Identify potential risk factors based on historical data.
+
+### CBC (Complete Blood Count)
+Normalize CBC data across different lab formats. Visualize trends in blood cell populations over time.
+
+### Liver Function Tests (LFTs)
+Monitor liver enzyme trends. Flag patterns indicative of potential liver stress or damage.
+
+### Metabolic Panel
+Integrate various metabolic markers for a holistic view. Suggest lifestyle or dietary changes based on metabolic trends.
+
+### Urinalysis
+Standardize urinalysis results from different lab formats. Track changes in urine composition over time.
+
+### Genetic Testing
+Structure complex genetic data into interpretable formats. Identify potential genetic factors relevant to current health status.
 
 
 ## License
