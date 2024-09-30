@@ -81,7 +81,7 @@ export function AuthorizeDatabaseForm({
       <div className="flex flex-col space-y-2 gap-2 mb-4">
         <Label htmlFor="key">Key</Label>
             <div className="relative">
-            <PasswordInput autoComplete="new-password" id="password"
+            <PasswordInput autoComplete="current-password webauthn" id="password"
                 type={showPassword ? 'text' : 'password'}
                 {...register("key", { required: true,
                     validate: {
