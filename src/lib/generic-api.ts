@@ -36,7 +36,7 @@ export type AuthorizedSaaSContext = {
     apiClient: PlatformApiClient|null
 }
 
-export async function authorizeSaasContext(request: NextRequest): Promise<AuthorizedSaaSContext> {
+export async function authorizeSaasContext(request: NextRequest, forceNoCache: boolean = false): Promise<AuthorizedSaaSContext> {
     if(!process.env.SAAS_PLATFORM_URL) {
         return {
             saasContex: null,
@@ -46,7 +46,7 @@ export async function authorizeSaasContext(request: NextRequest): Promise<Author
         }
     } else {
         
-        const useCache = request.nextUrl.searchParams.get('useCache') === 'false' ? false : true;
+        const useCache = forceNoCache ? false : (request.nextUrl.searchParams.get('useCache') === 'false' ? false : true);
         const saasToken = request.headers.get('saas-token') !== null ? request.headers.get('saas-token') : request.nextUrl.searchParams.get('saasToken');
         const databaseIdHash = request.headers.get('database-id-hash') !== null ? request.headers.get('database-id-hash') : request.nextUrl.searchParams.get('databaseIdHash');
         if (!saasToken && !databaseIdHash) {

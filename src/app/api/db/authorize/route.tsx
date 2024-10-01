@@ -11,7 +11,7 @@ export async function POST(request: NextRequest) {
         const jsonRequest = await request.json();
         const validationResult = databaseAuthorizeRequestSchema.safeParse(jsonRequest); // validation
 
-        const saasContext = await authorizeSaasContext(request); // authorize SaaS context
+        const saasContext = await authorizeSaasContext(request, true); // authorize SaaS context
         if (!saasContext.hasAccess) {
             return Response.json({
                 message: saasContext.error,

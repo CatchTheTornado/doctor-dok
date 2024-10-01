@@ -3,8 +3,6 @@ import ServerKeyRepository from "@/data/server/server-key-repository";
 import { getErrorMessage, getZedErrorMessage } from "@/lib/utils";
 
 
-
-// clear all the database
 export async function POST(request: Request) {
     try {
         const jsonRequest = await request.json();
