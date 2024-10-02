@@ -285,6 +285,22 @@ export const EncryptedAttachmentUploader = forwardRef<
     }, [value, uploadQueueSize, dbContext, onUploadError, onUploadSuccess, updateFile]);
 
 
+    const ensureUniqueFileName = (fileName: string, idx: number): string => {
+      // Find the last dot in the file name to separate the name and extension
+      const dotIndex = fileName.lastIndexOf('.');
+      
+      // If no dot is found, the file has no extension
+      if (dotIndex === -1) {
+          return `${fileName}-${idx}`;
+      }
+  
+      // Separate the base name and extension
+      const baseName = fileName.substring(0, dotIndex);
+      const extension = fileName.substring(dotIndex);
+  
+      // Return the new file name with the index appended before the extension
+      return `${baseName}-${idx}${extension}`;
+  }
 
     const onDrop = useCallback(
       (acceptedFiles: File[], rejectedFiles: FileRejection[]) => {
@@ -305,7 +321,10 @@ export const EncryptedAttachmentUploader = forwardRef<
         let idx = maxIdx + 1;
         const filesToBeUploaded:UploadedFile[] = []
         files.forEach((file) => {
-          if (newValues.length < maxFiles && newValues.find((f) => f.file.name === file.name) === undefined) {
+          if (newValues.find((f) => f.file.name === file.name) !== undefined) { // change the file name
+            file = new File([file], ensureUniqueFileName(file.name, idx) , { type: file.type });
+          }
+          if (newValues.length < maxFiles /*&& newValues.find((f) => f.file.name === file.name) === undefined*/) {
             let uploadedFile:UploadedFile = {
                 id: '',
                 file: file,
