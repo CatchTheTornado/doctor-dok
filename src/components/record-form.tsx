@@ -81,7 +81,7 @@ export default function RecordForm({ folder, mode }: { folder?: Folder, mode?: R
 
 
   const dropZoneConfig = {
-    maxFiles: 10,
+    maxFiles: 20,
     maxSize: 1024 * 1024 * 50,
     multiple: true,
   };
@@ -167,7 +167,7 @@ export default function RecordForm({ folder, mode }: { folder?: Folder, mode?: R
       });
 
       const assignAttachments = async (savedRecord: Record) => {
-        uploadedAttachments?.forEach(async (attachmentToUpdate) => {
+        savedRecord.attachments?.forEach(async (attachmentToUpdate) => {
           attachmentToUpdate.assignedTo = [{ id: savedRecord.id as number, type: "record" }, { id: folderContext?.currentFolder?.id as number, type: "folder" }];
           await eaac.put(attachmentToUpdate.toDTO());
         }); 
@@ -204,22 +204,52 @@ export default function RecordForm({ folder, mode }: { folder?: Folder, mode?: R
             const savedRecord = await recordContext?.updateRecord(pr) as Record;
             savedRecords.push(savedRecord);
           } else {
-            for(const uploadedAttachment of uploadedAttachments) {
-              pr = new Record({
-                folderId: folderContext?.currentFolder?.id as number,
-                type: 'note',
-                tags: tags ? tags.map((tag) => tag.text) : [],
-                description: data.note,
-                transcription: transcription,
-                updatedAt: getCurrentTS(),
-                createdAt: getCurrentTS(),
-                eventDate: getCurrentTS(),
-                attachments: [uploadedAttachment]
-              } as Record)
-              await pr.updateChecksum();
-              const savedRecord = await recordContext?.updateRecord(pr) as Record;
-              savedRecords.push(savedRecord);
-              await assignAttachments(savedRecord);
+            let groupedNonPdfAttachments: EncryptedAttachment[] = [];
+
+            for (const uploadedAttachment of uploadedAttachments) {
+                if (uploadedAttachment.mimeType === 'application/pdf') {
+                    // Handle each .pdf file as a separate record
+                    let pr = new Record({
+                        folderId: folderContext?.currentFolder?.id as number,
+                        type: 'note',
+                        tags: tags ? tags.map((tag) => tag.text) : [],
+                        description: data.note,
+                        transcription: transcription,
+                        updatedAt: getCurrentTS(),
+                        createdAt: getCurrentTS(),
+                        eventDate: getCurrentTS(),
+                        attachments: [uploadedAttachment] // Add the PDF attachment as a single attachment
+                    } as Record);
+                    
+                    await pr.updateChecksum();
+                    const savedRecord = await recordContext?.updateRecord(pr) as Record;
+                    savedRecords.push(savedRecord);
+                    await assignAttachments(savedRecord);
+            
+                } else {
+                    // Collect non-PDF attachments to group them into a single record later
+                    groupedNonPdfAttachments.push(uploadedAttachment);
+                }
+            }
+            
+            // If there are any non-PDF attachments, create a single record for them
+            if (groupedNonPdfAttachments.length > 0) {
+                let pr = new Record({
+                    folderId: folderContext?.currentFolder?.id as number,
+                    type: 'note',
+                    tags: tags ? tags.map((tag) => tag.text) : [],
+                    description: data.note,
+                    transcription: transcription,
+                    updatedAt: getCurrentTS(),
+                    createdAt: getCurrentTS(),
+                    eventDate: getCurrentTS(),
+                    attachments: groupedNonPdfAttachments // Group all non-PDF attachments in one record
+                } as Record);
+                
+                await pr.updateChecksum();
+                const savedRecord = await recordContext?.updateRecord(pr) as Record;
+                savedRecords.push(savedRecord);
+                await assignAttachments(savedRecord);
             }
           }
         }
