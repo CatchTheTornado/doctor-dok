@@ -32,7 +32,7 @@ export default function RecordsWrapper({}) {
   }, [folderContext?.currentFolder/*, documentVisible*/]);
     
   return (
-    <div className="grid min-h-screen w-full bg-zinc-100 dark:bg-zinc-950">
+    <div className="grid grow w-full bg-zinc-100 dark:bg-zinc-950">
       <div className="md:p-4 xs:p-0">
         { (folderContext?.currentFolder !== null) ? (
           <div>
