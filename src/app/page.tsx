@@ -36,7 +36,7 @@ export default function FolderPad() {
                   <FolderContextProvider>
                     <RecordContextProvider>
                       <KeyContextProvider>
-                        <div>
+                        <div className="flex flex-col min-h-[100svh]">
                           <TopHeader />
                           <TermsPopup />
                           <RecordsWrapper />
