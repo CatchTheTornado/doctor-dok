@@ -555,7 +555,9 @@ export const RecordContextProvider: React.FC<PropsWithChildren> = ({ children })
             content: prompts.recordsToChatDone({ records, config }),
           }];
 
-          if(customMessage) msgs.push(customMessage);
+          if(customMessage) {
+            msgs.push(customMessage);
+          }
 
             const preUsage = new GPTTokens({
               model   : 'gpt-4o',
