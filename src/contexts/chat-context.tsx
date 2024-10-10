@@ -12,6 +12,7 @@ import { AggregatedStatsResponse, AggregateStatResponse, StatApiClient } from '@
 import { DatabaseContext } from './db-context';
 import { getErrorMessage } from '@/lib/utils';
 import { SaaSContext } from './saas-context';
+import { prompts } from '@/data/ai/prompts';
 
 export enum MessageDisplayMode {
     Text = 'text',
@@ -28,7 +29,8 @@ export enum MessageVisibility {
 
 export enum MessageType {
     Chat = 'chat',
-    Parse = 'parse'
+    Parse = 'parse',
+    SafetyMessage = 'safetyMessage'
 }
 
 export type MessageEx = Message & {
@@ -135,7 +137,7 @@ export const useChatContext = () => useContext(ChatContext);
 export const ChatContextProvider: React.FC<PropsWithChildren> = ({ children }) => {
     
     const [ messages, setMessages ] = useState([
-        { role: 'user', name: 'You', content: 'Hi there! I will send in this conversation some medical records, please help me understand it and answer the questions. Because you are not a real phisican, never suggest diagnosis or non OTC medicaments.', visibility: MessageVisibility.Visible } as MessageEx,
+        { role: 'user', name: 'You', content: 'Hi there! I will send in this conversation some medical records, please help me understand it and answer the questions. Because you are not a real phisican, never suggest diagnosis or non OTC medicaments. Please provide sources and links where suitable.', visibility: MessageVisibility.Visible } as MessageEx,
 //        { role: 'assistant', name: 'AI', content: 'Sure! I will do my best to answer all your questions specifically to your records' }
     ] as MessageEx[]);
     const [visibleMessages, setVisibleMessages] = useState<MessageEx[]>(messages);
@@ -233,25 +235,40 @@ export const ChatContextProvider: React.FC<PropsWithChildren> = ({ children }) =
             visibility: MessageVisibility.Visible
         }
         try {
-            if (messages.length > 0) {
-                if (!messages[messages.length - 1].type)
-                    messages[messages.length - 1].type = MessageType.Chat; 
-                if (messages[messages.length - 1].displayMode === MessageDisplayMode.InternalJSONRequest) {
+            let messagesToSend = messages;
+            if (messagesToSend.length > 0) {
+                if (!messagesToSend[messagesToSend.length - 1].type)
+                    messagesToSend[messagesToSend.length - 1].type = MessageType.Chat; 
+                if (messagesToSend[messagesToSend.length - 1].displayMode === MessageDisplayMode.InternalJSONRequest) {
                     resultMessage.visibility = !resultMessage.finished ? MessageVisibility.ProgressWhileStreaming : MessageVisibility.Visible; // hide the response until the request is finished
                 }
 
-                if (messages[messages.length - 1].type == MessageType.Parse) {
-                    messages = [messages[messages.length - 1]] // send only the parse message - context is not required - #111
+                if (messagesToSend[messagesToSend.length - 1].type == MessageType.Parse) {
+                    messagesToSend = [messagesToSend[messagesToSend.length - 1]] // send only the parse message - context is not required - #111
                 }
+                if (process.env.NEXT_PUBLIC_CHAT_SAFE_MODE) {
+                    console.log('Adding safe mode message');
+                    if (messagesToSend[messagesToSend.length - 1].type === MessageType.Chat) {
+                        messagesToSend = messagesToSend.filter(m => m.type !== MessageType.SafetyMessage);
+                        const lastMsg = messagesToSend.splice(messagesToSend.length - 1, 1)[0];
+                        messagesToSend = [...messagesToSend, {
+                            content: prompts.safetyMessage({}),
+                            role: 'user',
+                            type: MessageType.SafetyMessage,
+                            id: nanoid(),
+                        }, lastMsg];
+
+                    }
+                 }
             }
             const result = await streamText({
                 model: await aiProvider(providerName),
-                messages: convertToCoreMessages(messages),
+                messages: convertToCoreMessages(messagesToSend),
                 maxTokens: process.env.NEXT_PUBLIC_MAX_OUTPUT_TOKENS ? parseInt(process.env.NEXT_PUBLIC_MAX_OUTPUT_TOKENS) : 4096 * 2,
                 onFinish: async (e) =>  {
                     try {
                         await aggregateStats({
-                            eventName: messages[messages.length - 1].type ?? MessageType.Chat,
+                            eventName: messagesToSend[messagesToSend.length - 1].type ?? MessageType.Chat,
                             completionTokens: e.usage.completionTokens,
                             promptTokens: e.usage.promptTokens,
                             createdAt: new Date().toISOString(),
@@ -268,12 +285,12 @@ export const ChatContextProvider: React.FC<PropsWithChildren> = ({ children }) =
 
             for await (const delta of result.textStream) {
                 resultMessage.content += delta;
-                setMessages([...messages, resultMessage])
-                setVisibleMessages(filterVisibleMessages([...messages, resultMessage]));
+                setMessages([...messagesToSend, resultMessage])
+                setVisibleMessages(filterVisibleMessages([...messagesToSend, resultMessage]));
             }
             setIsStreaming(false);
-            setMessages([...messages, resultMessage])
-            setVisibleMessages(filterVisibleMessages([...messages, resultMessage]));
+            setMessages([...messagesToSend, resultMessage])
+            setVisibleMessages(filterVisibleMessages([...messagesToSend, resultMessage]));
         } catch (e) {
             const errMsg = 'Error while streaming AI response: ' + e;
             if (onResult) onResult(resultMessage, { finishReason: 'error', text: errMsg, usage: null });

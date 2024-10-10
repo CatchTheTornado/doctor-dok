@@ -65,7 +65,7 @@ export function Chat() {
       setLlmProvider(await config?.getServerConfig('llmProviderChat') as string);
       const configOllamaUrl = await config?.getServerConfig('ollamaUrl') as string
       setOllamaUrl(configOllamaUrl);
-      setShowProviders(configOllamaUrl !== null && typeof configOllamaUrl === 'string' && configOllamaUrl.startsWith('http'));
+      setShowProviders(process.env.NEXT_PUBLIC_CHAT_PROVIDER_SELECT !== "" && (configOllamaUrl !== null && typeof configOllamaUrl === 'string' && configOllamaUrl.startsWith('http')));
 
       setFolderContext(coercedVal(await config?.getServerConfig('autoLoadFolderContext'), true) as boolean);
 //      if (chatContext.areRecordsLoaded === false && !chatContext.isStreaming && await chatContext.checkApiConfig()) {

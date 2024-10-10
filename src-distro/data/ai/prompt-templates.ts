@@ -28,25 +28,25 @@ export const promptTemplates = {
     analyzeMyLatestResults: {
         label: "Analyze my latest test results for ...",
         template: (context: PromptTemplateContext) => {
-            return "Analyze my latest test results for {select:" + promptOptions.join('|') + "}"
+            return "Analyze my latest test results for {select:" + promptOptions.join('|') + "}. Provide information sources and links."
         },
     },
     checkTrends: {
         label: "Check my test results for trends",
         template: (context: PromptTemplateContext) => {
-        return "Check my latest test results for {select:" + promptOptions.join('|') + "} and show the trends from previous ones"
+        return "Check my latest test results for {select:" + promptOptions.join('|') + "} and show the trends from previous ones. Provide information sources and links."
         },
     },    
     howCanIImprove: {
         label: "How can I improve based on my test results?",
         template: (context: PromptTemplateContext) => {
-            return "How can I improve my latest test results in the area of {select:" + promptOptions.join('|') + "}?"
+            return "How can I improve my latest test results in the area of {select:" + promptOptions.join('|') + "}? Provide information sources and links."
         },
     },    
     bestNextStep: {
         label: "What should be my best next diagnostic step?",
         template: (context: PromptTemplateContext) => {
-            return "What should be my best next diagnostic step for {select:regarding my overal results|" + promptOptions.join('|') + "}?"
+            return "What should be my best next diagnostic step for {select:regarding my overal results|" + promptOptions.join('|') + "}? Provide information sources and links."
         },
     },    
 

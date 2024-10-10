@@ -94,4 +94,7 @@ export const prompts = {
         return 'Interpret the health result data below. What are the most important findings? What are the most important exceptions from the norm? What could they mean? What are the most important recommendations? Answer in the language of original document. Return text, no code. \r\n\r\n```json\
         \r\n' + JSON.stringify(context.record?.json) + '```'
     },
+    safetyMessage: (context: PromptContext) => {
+        return 'Add information sources and links. Avoid diagnosis and any potentially dangerous recommendations.';
+    }
 };
