@@ -83,6 +83,10 @@ You can host Doctor Dok on your own because it's <a href="LICENSE">MIT Licensed<
 - **Med provider** - using Doctor Dok as secure framework - an EHR with per-patient secure folder sharing,
 - **Med tech** - using Doctor Dok as a framework for product development, AI experiments etc.
 
+## API Docs
+
+Doctor Dok includes a powerfull Web API for building health-related apps including end 2 end encryption features. [Read the docs here](./docs/README.md).
+
 ## Structured data
 
 Doctor Dok uses standarized JSON format to which parses all input health records. By doing so it opens a way for all exciting new features like data summarization, diagraming, data compression, taking even years long health history into AI context. Things that previously were very difficult or even impossible for human beings.
