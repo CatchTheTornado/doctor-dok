@@ -63,7 +63,7 @@ export type AIResultEventType = {
     };
     warnings?: CallWarning[];
 }
-type OnResultCallback = (result: MessageEx, eventData: AIResultEventType) => void;
+export type OnResultCallback = (result: MessageEx, eventData: AIResultEventType) => void;
 
 export type CreateMessageEnvelope = {
     message: CreateMessageEx;
@@ -76,15 +76,24 @@ export type CreateMessagesEnvelope = {
     onResult?: OnResultCallback
 }
 
+export type CrossCheckResultType = {
+    risk: string;
+    validity: string;
+    explanation: string;
+    nextQuestion: string;
+}
+
 export type ChatContextType = {
     messages: MessageEx[];
     visibleMessages: MessageEx[];
     lastMessage: MessageEx | null;
     providerName?: string;
     areRecordsLoaded: boolean;
+    crossCheckResult: CrossCheckResultType | null;
     setRecordsLoaded: (value: boolean) => void;
     sendMessage: (msg: CreateMessageEnvelope) => void;
     sendMessages: (msg: CreateMessagesEnvelope) => void;
+    autoCheck: (messages: MessageEx[]) => void;
     chatOpen: boolean,
     setChatOpen: (value: boolean) => void;
     chatCustomPromptVisible: boolean;
@@ -92,6 +101,7 @@ export type ChatContextType = {
     chatTemplatePromptVisible: boolean;
     setTemplatePromptVisible: (value: boolean) => void;
     isStreaming: boolean;
+    isCrossChecking: boolean;
     checkApiConfig: () => Promise<boolean>;
     promptTemplate: string;
     setPromptTemplate: (value: string) => void;
@@ -108,13 +118,16 @@ export const ChatContext = createContext<ChatContextType>({
     visibleMessages: [],
     lastMessage: null,
     providerName: '',
+    crossCheckResult: null,
     areRecordsLoaded: false,
     setRecordsLoaded: (value: boolean) => {},
+    autoCheck: (messages: MessageEx[]) => {},
     sendMessage: (msg: CreateMessageEnvelope) => {},
     sendMessages: (msg: CreateMessagesEnvelope) => {},
     chatOpen: false,
     setChatOpen: (value: boolean) => {},
     isStreaming: false,
+    isCrossChecking: false,
     checkApiConfig: async () => { return false },
     chatCustomPromptVisible: false,
     setChatCustomPromptVisible: (value: boolean) => {},
@@ -145,6 +158,8 @@ export const ChatContextProvider: React.FC<PropsWithChildren> = ({ children }) =
     const [providerName, setProviderName] = useState('');
     const [chatOpen, setChatOpen] = useState(false);
     const [isStreaming, setIsStreaming] = useState(false);
+    const [isCrossChecking, setIsCrossChecking] = useState(false);
+    const [crossCheckResult, setCrossCheckResult] = useState<CrossCheckResultType | null>(null);
     const [areRecordsLoaded, setRecordsLoaded] = useState(false);
     const [chatCustomPromptVisible, setChatCustomPromptVisible] = useState(false);
     const [chatTemplatePromptVisible, setTemplatePromptVisible] = useState(false);
@@ -209,6 +224,59 @@ export const ChatContextProvider: React.FC<PropsWithChildren> = ({ children }) =
             toast.error('Unknown AI provider ' + providerName);
             throw new Error('Unknown AI provider ' + providerName);
         }
+    }
+
+    /** make the auto check call to a different model */
+    const aiAutoCheckCall = async (messages: MessageEx[], onResult?: OnResultCallback, providerName?: string) => {
+        try {
+            let messagesToSend = messages;
+            const resultMessage:MessageEx = {
+                id: nanoid(),
+                content: '',
+                createdAt: new Date(),
+                role: 'assistant',
+                visibility: MessageVisibility.Visible
+            }            
+            setIsCrossChecking(true);
+            const result = await streamText({
+                model: await aiProvider(providerName),
+                messages: convertToCoreMessages(messagesToSend),
+                maxTokens: process.env.NEXT_PUBLIC_MAX_OUTPUT_TOKENS ? parseInt(process.env.NEXT_PUBLIC_MAX_OUTPUT_TOKENS) : 4096 * 2,
+                onFinish: async (e) =>  {
+                    resultMessage.finished = true;
+                    setIsCrossChecking(false);
+                    if (onResult) onResult(resultMessage, e);
+                }
+            });
+            
+
+            for await (const delta of result.textStream) {
+                resultMessage.content += delta;
+            }
+        } catch (e) {
+            const errMsg = 'Error while streaming AI Auto Check response: ' + e;
+            toast.error(errMsg);
+        }
+
+    }
+
+    const autoCheck = async (messages: MessageEx[]) => {
+        setCrossCheckResult(null);
+        messages.push({
+                content: 'Check the if last message is correct and valid regarding the medical knowledge and the context included within the conversaion. Score: Green, Yellow or Red the message risk and validity. If needed return the next question I should ask to fix the answer or get deeper. Add the explanation. Return JSON for example: { risk: "green", validity: "green", explanation: "Ibuprofen is not valid for treating asthma", nextQuestion: "What is the recommended treatment for asthma?" }',
+                role: 'user',
+                id: nanoid(),
+            } as MessageEx            
+        )
+        aiAutoCheckCall(messages, (result, eventData) => {
+            console.log(result.content);
+            try {
+                const jsonResult = JSON.parse(result.content);
+                setCrossCheckResult(jsonResult as CrossCheckResultType);
+            } catch (e) {
+                toast.error('Error parsing the auto check result: ' + result.content);
+            }
+        }, );
     }
 
     const aiApiCall = async (messages: MessageEx[], onResult?: OnResultCallback, providerName?: string) => {
@@ -370,6 +438,7 @@ export const ChatContextProvider: React.FC<PropsWithChildren> = ({ children }) =
         chatOpen,
         setChatOpen,
         isStreaming,
+        isCrossChecking,
         areRecordsLoaded,
         setRecordsLoaded,
         checkApiConfig,
@@ -383,7 +452,9 @@ export const ChatContextProvider: React.FC<PropsWithChildren> = ({ children }) =
         setStatsPopupOpen,
         aggregateStats,
         lastRequestStat,
-        aggregatedStats
+        aggregatedStats,
+        crossCheckResult,
+        autoCheck
     }
 
     return (

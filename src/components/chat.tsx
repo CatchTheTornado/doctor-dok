@@ -26,14 +26,14 @@ import { useContext, useEffect, useRef, useState } from "react"
 import { ChatContext, MessageVisibility } from "@/contexts/chat-context"
 import ChatMessage from "./chat-message"
 import DataLoader from "./data-loader"
-import { SettingsIcon, Wand2 } from "lucide-react"
+import { CheckIcon, SendIcon, SettingsIcon, Wand2 } from "lucide-react"
 import { coercedVal, ConfigContext } from "@/contexts/config-context"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "./ui/select"
 import { RecordContext } from "@/contexts/record-context"
 import { toast } from "sonner"
 import { Checkbox } from "@/components/ui/checkbox"
 import ChatCommands from "@/components/chat-commands"
-import { MagicWandIcon } from "@radix-ui/react-icons"
+import { CheckboxIcon, MagicWandIcon } from "@radix-ui/react-icons"
 import TemplateStringRenderer from "./template-string-renderer"
 import { OnboardingChat } from "@/components/onboarding-chat"
 
@@ -47,6 +47,7 @@ export function Chat() {
   const messageTextArea = useRef<HTMLTextAreaElement | null>(null);
   const lastMessageRef = useRef<HTMLDivElement | null>(null);
   const [addFolderContext, setFolderContext] = useState(true);
+  const [crosscheckAnswers, setCrosscheckAnswers] = useState(process.env.NEXT_PUBLIC_CHAT_CROSSCHECK_DISABLE ? false : true);
 
   const [defaultChatProvider, setDefaultChatProvider] = useState('');
   const [ollamaUrl, setOllamaUrl] = useState('');
@@ -89,7 +90,11 @@ export function Chat() {
       if (addFolderContext) {
         if (chatContext.areRecordsLoaded === false && !chatContext.isStreaming && await chatContext.checkApiConfig()) {
           try {
-            recordContext?.sendAllRecordsToChat({ role: 'user', name: 'You', content: currentMessage }, llmProvider ?? defaultChatProvider ); // send message along the context
+            recordContext?.sendAllRecordsToChat({ role: 'user', name: 'You', content: currentMessage }, llmProvider ?? defaultChatProvider, (result, eventData) => {
+              if (crosscheckAnswers) {
+                chatContext.autoCheck([...chatContext.visibleMessages, result ]);
+              }
+            }); // send message along the context
             messageWasDelivered = true;
           } catch (error) {
             console.error(error);
@@ -99,7 +104,12 @@ export function Chat() {
       } 
       
       if (!messageWasDelivered) {
-        chatContext.sendMessage({ message: { role: 'user', name: 'You', content: currentMessage}, providerName: llmProvider ?? defaultChatProvider  });
+        chatContext.sendMessage({ message: { role: 'user', name: 'You', content: currentMessage}, providerName: llmProvider ?? defaultChatProvider, onResult: (result) => {
+            if (crosscheckAnswers) {
+              chatContext.autoCheck([...chatContext.visibleMessages, result ]);
+            }   
+          }
+        });
       }
       setCurrentMessage('');
     }
@@ -114,7 +124,7 @@ export function Chat() {
       </DrawerTrigger>
       <DrawerContent className="sm:max-w-[825px] bg-white dark:bg-zinc-950">
         <DrawerHeader>
-          <DrawerTitle>Chat with AI <Button variant="ghost" onClick={(e) => { config?.setConfigDialogOpen(true); }}><SettingsIcon className="w-4 h-4" /></Button></DrawerTitle>
+          <DrawerTitle>Chat with AI <Button variant="ghost" onClick={(e) => { config?.setConfigDialogOpen(true); }}><SettingsIcon className="w-4 h-4" /></Button><Button variant={ crosscheckAnswers ? 'default' : 'secondary' } id="secondOpinion" onClick={(e) => { setCrosscheckAnswers(!crosscheckAnswers); }}><CheckIcon className="w-4 h-4 pr-2" /> AI Crosscheck</Button></DrawerTitle>
         </DrawerHeader>
         <div className="flex flex-col h-[500px] overflow-y-auto">
           <div className="flex-1 p-4 space-y-4">
@@ -124,6 +134,22 @@ export function Chat() {
             {chatContext.messages.length > 1 && chatContext.visibleMessages.slice(chatContext.visibleMessages.length > 5 ? chatContext.visibleMessages.length-5 : 0, chatContext.visibleMessages.length).map((message, index) => ( // display only last 5 messages
               <ChatMessage key={index} message={message} />
             ))}
+
+            {chatContext.crossCheckResult !== null ? (
+              <div className={ chatContext.crossCheckResult.risk === 'yellow' ? 'bg-amber-200 grid grid-cols-3 p-5' : (chatContext.crossCheckResult.risk === 'red' ? 'bg-red-200 grid grid-cols-3 p-5' : 'bg-green-200 grid grid-cols-3 p-5')  }><div><strong>AI Crosscheck with LLama 3.1</strong></div><div>validity: <strong>{chatContext.crossCheckResult.validity}</strong></div><div>risk: <strong>{chatContext.crossCheckResult.risk}</strong></div><div className="col-span-3 pt-5">{chatContext.crossCheckResult.explanation}</div>
+              <div className="col-span-3 pt-5"><strong>Suggested question to chat: </strong>{chatContext.crossCheckResult.nextQuestion}<Button className="m-2" onClick={(e) => {
+                if (chatContext.crossCheckResult)  {
+                  setCurrentMessage(chatContext.crossCheckResult.nextQuestion);
+                  handleSubmit();
+                }
+              }} ><SendIcon className="w-4 h-4" /></Button></div>
+              </div>
+            ):null}
+
+            {chatContext.isCrossChecking ? (
+              <div className="flex"><div className="ml-2 h-4 w-4 animate-spin rounded-full border-4 border-primary border-t-transparent" /> <span className="text-xs">AI crosschecking in progress, provider: LLama 3.1</span></div>
+            ):null}
+
             {chatContext.isStreaming ? (
               <div className="flex"><div className="ml-2 h-4 w-4 animate-spin rounded-full border-4 border-primary border-t-transparent" /> <span className="text-xs">AI request in progress, provider: {chatContext?.providerName}</span></div>
             ):null}
