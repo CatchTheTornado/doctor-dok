@@ -143,7 +143,7 @@ export function Chat() {
                 <Markdown className={styles.markdown} remarkPlugins={[remarkGfm]}>{chatContext.crossCheckResult.explanation}
                 </Markdown>
               </div>
-              <div className="col-span-3 pt-5"><strong>Suggested question to chat: </strong>{chatContext.crossCheckResult.nextQuestion}<Button className="m-2" onClick={(e) => {
+              <div className="col-span-3 pt-5"><strong>Suggested question to chat: </strong>{chatContext.crossCheckResult.nextQuestion}<Button className="m-2 p-1 h-6 w-6" onClick={(e) => {
                 if (chatContext.crossCheckResult)  {
                   setCurrentMessage(chatContext.crossCheckResult.nextQuestion);
                   handleSubmit();
