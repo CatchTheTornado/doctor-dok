@@ -139,7 +139,7 @@ export function Chat() {
             ))}
 
             {chatContext.crossCheckResult !== null ? (
-              <div className={ chatContext.crossCheckResult.risk === 'yellow' ? 'bg-amber-200 grid grid-cols-3 p-5' : (chatContext.crossCheckResult.risk === 'red' ? 'bg-red-200 grid grid-cols-3 p-5' : 'bg-green-200 grid grid-cols-3 p-5')  }><div><strong>AI Crosscheck with LLama 3.1</strong></div><div>validity: <strong>{chatContext.crossCheckResult.validity}</strong></div><div>risk: <strong>{chatContext.crossCheckResult.risk}</strong></div><div className="col-span-3 pt-5">
+              <div className={ chatContext.crossCheckResult.risk === 'yellow' ? 'bg-amber-200 grid grid-cols-3 p-5 text-sm' : (chatContext.crossCheckResult.risk === 'red' ? 'bg-red-200 grid grid-cols-3 p-5 text-sm' : 'bg-green-200 grid grid-cols-3 p-5 text-sm')  }><div><strong>AI Crosscheck with LLama 3.1</strong></div><div>validity: <strong>{chatContext.crossCheckResult.validity}</strong></div><div>risk: <strong>{chatContext.crossCheckResult.risk}</strong></div><div className="col-span-3 pt-5">
                 <Markdown className={styles.markdown} remarkPlugins={[remarkGfm]}>{chatContext.crossCheckResult.explanation}
                 </Markdown>
               </div>
