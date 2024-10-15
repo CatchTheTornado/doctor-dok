@@ -36,6 +36,9 @@ import ChatCommands from "@/components/chat-commands"
 import { CheckboxIcon, MagicWandIcon } from "@radix-ui/react-icons"
 import TemplateStringRenderer from "./template-string-renderer"
 import { OnboardingChat } from "@/components/onboarding-chat"
+import Markdown from 'react-markdown'
+import styles from './chat-message.module.css';
+import remarkGfm from 'remark-gfm';
 
 
 export function Chat() {
@@ -136,7 +139,10 @@ export function Chat() {
             ))}
 
             {chatContext.crossCheckResult !== null ? (
-              <div className={ chatContext.crossCheckResult.risk === 'yellow' ? 'bg-amber-200 grid grid-cols-3 p-5' : (chatContext.crossCheckResult.risk === 'red' ? 'bg-red-200 grid grid-cols-3 p-5' : 'bg-green-200 grid grid-cols-3 p-5')  }><div><strong>AI Crosscheck with LLama 3.1</strong></div><div>validity: <strong>{chatContext.crossCheckResult.validity}</strong></div><div>risk: <strong>{chatContext.crossCheckResult.risk}</strong></div><div className="col-span-3 pt-5">{chatContext.crossCheckResult.explanation}</div>
+              <div className={ chatContext.crossCheckResult.risk === 'yellow' ? 'bg-amber-200 grid grid-cols-3 p-5' : (chatContext.crossCheckResult.risk === 'red' ? 'bg-red-200 grid grid-cols-3 p-5' : 'bg-green-200 grid grid-cols-3 p-5')  }><div><strong>AI Crosscheck with LLama 3.1</strong></div><div>validity: <strong>{chatContext.crossCheckResult.validity}</strong></div><div>risk: <strong>{chatContext.crossCheckResult.risk}</strong></div><div className="col-span-3 pt-5">
+                <Markdown className={styles.markdown} remarkPlugins={[remarkGfm]}>{chatContext.crossCheckResult.explanation}
+                </Markdown>
+              </div>
               <div className="col-span-3 pt-5"><strong>Suggested question to chat: </strong>{chatContext.crossCheckResult.nextQuestion}<Button className="m-2" onClick={(e) => {
                 if (chatContext.crossCheckResult)  {
                   setCurrentMessage(chatContext.crossCheckResult.nextQuestion);

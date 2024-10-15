@@ -280,6 +280,7 @@ export const ChatContextProvider: React.FC<PropsWithChildren> = ({ children }) =
     }
 
     const aiApiCall = async (messages: MessageEx[], onResult?: OnResultCallback, providerName?: string) => {
+        setCrossCheckResult(null);
 
         if (saasContext.userId) {
             if (saasContext.currentUsage.usedUSDBudget > saasContext.currentQuota.allowedUSDBudget) {
