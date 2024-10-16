@@ -51,6 +51,7 @@ export function Chat() {
   const lastMessageRef = useRef<HTMLDivElement | null>(null);
   const [addFolderContext, setFolderContext] = useState(true);
   const [crosscheckAnswers, setCrosscheckAnswers] = useState(process.env.NEXT_PUBLIC_CHAT_CROSSCHECK_DISABLE ? false : true);
+  const [crosscheckModel, setCrosscheckModel] = useState('llama3.1:latest');
 
   const [defaultChatProvider, setDefaultChatProvider] = useState('');
   const [ollamaUrl, setOllamaUrl] = useState('');
@@ -95,7 +96,7 @@ export function Chat() {
           try {
             recordContext?.sendAllRecordsToChat({ role: 'user', name: 'You', content: currentMessage }, llmProvider ?? defaultChatProvider, (result, eventData) => {
               if (crosscheckAnswers) {
-                chatContext.autoCheck([...chatContext.visibleMessages, result ]);
+                chatContext.autoCheck([...chatContext.visibleMessages, result ], crosscheckModel);
               }
             }); // send message along the context
             messageWasDelivered = true;
@@ -109,7 +110,7 @@ export function Chat() {
       if (!messageWasDelivered) {
         chatContext.sendMessage({ message: { role: 'user', name: 'You', content: currentMessage}, providerName: llmProvider ?? defaultChatProvider, onResult: (result) => {
             if (crosscheckAnswers) {
-              chatContext.autoCheck([...chatContext.visibleMessages, result ]);
+              chatContext.autoCheck([...chatContext.visibleMessages, result ], crosscheckModel);
             }   
           }
         });
@@ -139,17 +140,22 @@ export function Chat() {
             ))}
 
             {chatContext.crossCheckResult !== null ? (
-              <div className={ chatContext.crossCheckResult.risk === 'yellow' ? 'bg-amber-200 grid grid-cols-3 p-5 text-sm' : (chatContext.crossCheckResult.risk === 'red' ? 'bg-red-200 grid grid-cols-3 p-5 text-sm' : 'bg-green-200 grid grid-cols-3 p-5 text-sm')  }><div><strong>AI Crosscheck with LLama 3.1</strong></div><div>validity: <strong>{chatContext.crossCheckResult.validity}</strong></div><div>risk: <strong>{chatContext.crossCheckResult.risk}</strong></div><div className="col-span-3 pt-5">
-                <Markdown className={styles.markdown} remarkPlugins={[remarkGfm]}>{chatContext.crossCheckResult.explanation}
-                </Markdown>
-              </div>
-              <div className="col-span-3 pt-5"><strong>Suggested question to chat: </strong>{chatContext.crossCheckResult.nextQuestion}<Button className="m-2 p-1 h-6 w-6" onClick={(e) => {
-                if (chatContext.crossCheckResult)  {
-                  setCurrentMessage(chatContext.crossCheckResult.nextQuestion);
-                  handleSubmit();
-                }
-              }} ><SendIcon className="w-4 h-4" /></Button></div>
-              </div>
+                <div className={ chatContext.crossCheckResult.risk === 'yellow' ? 'bg-amber-200 grid grid-cols-3 p-5 text-sm' : (chatContext.crossCheckResult.risk === 'red' ? 'bg-red-200 grid grid-cols-3 p-5 text-sm' : 'bg-green-200 grid grid-cols-3 p-5 text-sm')  }><div><strong>AI Crosscheck with LLama 3.1</strong></div><div>validity: <strong>{chatContext.crossCheckResult.validity}</strong></div><div>risk: <strong>{chatContext.crossCheckResult.risk}</strong></div>
+                  <div className="col-span-3 pt-5">
+                    <Markdown className={styles.markdown} remarkPlugins={[remarkGfm]}>{chatContext.crossCheckResult.explanation}
+                    </Markdown>
+                  </div>
+                  <div className="col-span-3 pt-5"><strong>Second opinion answer:</strong>
+                    <Markdown className={styles.markdown} remarkPlugins={[remarkGfm]}>{chatContext.crossCheckResult.answer}
+                    </Markdown>
+                  </div>
+                  <div className="col-span-3 pt-5"><strong>Suggested follow on question: </strong>{chatContext.crossCheckResult.nextQuestion}<Button className="m-2 p-1 h-6 w-6" onClick={(e) => {
+                    if (chatContext.crossCheckResult)  {
+                      setCurrentMessage(chatContext.crossCheckResult.nextQuestion);
+                      handleSubmit();
+                    }
+                  }} ><SendIcon className="w-4 h-4" /></Button></div>
+                </div>
             ):null}
 
             {chatContext.isCrossChecking ? (

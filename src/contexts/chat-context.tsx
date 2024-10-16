@@ -81,6 +81,7 @@ export type CrossCheckResultType = {
     validity: string;
     explanation: string;
     nextQuestion: string;
+    answer: string;
 }
 
 export type ChatContextType = {
@@ -93,7 +94,7 @@ export type ChatContextType = {
     setRecordsLoaded: (value: boolean) => void;
     sendMessage: (msg: CreateMessageEnvelope) => void;
     sendMessages: (msg: CreateMessagesEnvelope) => void;
-    autoCheck: (messages: MessageEx[]) => void;
+    autoCheck: (messages: MessageEx[], modelName: string) => void;
     chatOpen: boolean,
     setChatOpen: (value: boolean) => void;
     chatCustomPromptVisible: boolean;
@@ -121,7 +122,7 @@ export const ChatContext = createContext<ChatContextType>({
     crossCheckResult: null,
     areRecordsLoaded: false,
     setRecordsLoaded: (value: boolean) => {},
-    autoCheck: (messages: MessageEx[]) => {},
+    autoCheck: (messages: MessageEx[], modelName: string) => {},
     sendMessage: (msg: CreateMessageEnvelope) => {},
     sendMessages: (msg: CreateMessagesEnvelope) => {},
     chatOpen: false,
@@ -187,7 +188,7 @@ export const ChatContextProvider: React.FC<PropsWithChildren> = ({ children }) =
         })];
     }
 
-    const aiProvider = async (providerName:string = '') => {
+    const aiProvider = async (providerName:string = '', modelName:string = '') => {
         await checkApiConfig();
 
         if (!providerName) {
@@ -213,7 +214,7 @@ export const ChatContextProvider: React.FC<PropsWithChildren> = ({ children }) =
                     Authorization: `Basic ${btoa(ollamaCredentials[0] + ':' + ollamaCredentials[1])}`
                 }: {}
             });
-            return aiProvider.chat(await config?.getServerConfig('ollamaModel') as string);
+            return aiProvider.chat(modelName ? modelName : await config?.getServerConfig('ollamaModel') as string);
         } else if (providerName === 'chatgpt'){
             const aiProvider = createOpenAI({
                 compatibility: 'strict',
@@ -227,7 +228,7 @@ export const ChatContextProvider: React.FC<PropsWithChildren> = ({ children }) =
     }
 
     /** make the auto check call to a different model */
-    const aiAutoCheckCall = async (messages: MessageEx[], onResult?: OnResultCallback, providerName?: string) => {
+    const aiAutoCheckCall = async (messages: MessageEx[], onResult?: OnResultCallback, providerName?: string, modelName?: string) => {
         try {
             let messagesToSend = messages;
             const resultMessage:MessageEx = {
@@ -239,7 +240,7 @@ export const ChatContextProvider: React.FC<PropsWithChildren> = ({ children }) =
             }            
             setIsCrossChecking(true);
             const result = await streamText({
-                model: await aiProvider(providerName),
+                model: await aiProvider(providerName, modelName),
                 messages: convertToCoreMessages(messagesToSend),
                 maxTokens: process.env.NEXT_PUBLIC_MAX_OUTPUT_TOKENS ? parseInt(process.env.NEXT_PUBLIC_MAX_OUTPUT_TOKENS) : 4096 * 2,
                 onFinish: async (e) =>  {
@@ -260,10 +261,10 @@ export const ChatContextProvider: React.FC<PropsWithChildren> = ({ children }) =
 
     }
 
-    const autoCheck = async (messages: MessageEx[]) => {
+    const autoCheck = async (messages: MessageEx[], modelName:string = 'llama3.1:latest') => {
         setCrossCheckResult(null);
         messages.push({
-                content: 'Check the if last message is correct and valid regarding the medical knowledge and the context included within the conversaion. Score: Green, Yellow or Red the message risk and validity. If needed return the next question I should ask to fix the answer or get deeper. Add the explanation. Return JSON for example: { risk: "green", validity: "green", explanation: "Ibuprofen is not valid for treating asthma", nextQuestion: "What is the recommended treatment for asthma?" }',
+                content: prompts.autoCheck({}),
                 role: 'user',
                 id: nanoid(),
             } as MessageEx            
@@ -276,7 +277,7 @@ export const ChatContextProvider: React.FC<PropsWithChildren> = ({ children }) =
             } catch (e) {
                 toast.error('Error parsing the auto check result: ' + result.content);
             }
-        }, );
+        }, 'ollama', modelName); // TODO: add an option to auto check with different models
     }
 
     const aiApiCall = async (messages: MessageEx[], onResult?: OnResultCallback, providerName?: string) => {
