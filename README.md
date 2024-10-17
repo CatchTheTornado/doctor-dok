@@ -16,6 +16,11 @@ Doctor Dok uses AI to OCR even a hardly readable photo of your healt documents. 
 
 Chat GPT, LLama 3.1 and other Ollama supported AI models avaialble.
 
+## AI Warning - only for research purposes
+
+**NEVER rely** on the output of the language models supported in the application (ChatGPT, LLama 3) for **making decisions** in your healthcare! It's designed strictly for **research purposes only and may contain errors or provide misleading information** due to its nature as an AI-powered tool. Consult qualified medical professionals before taking any action based on the information provided herein.
+
+
 <table>
     <tr>
         <td>
