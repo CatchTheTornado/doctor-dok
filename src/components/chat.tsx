@@ -62,6 +62,7 @@ export function Chat() {
   const [crosscheckModel, setCrosscheckModel] = useState('llama3.1:latest');
   const [crosscheckProvider, setCrosscheckProvider] = useState('ollama');
   const [defaultLLMModel, setDefaultLLMModel] = useState('chatgpt-4o-latest');
+  const [warningRead, setWarningRead] = useState(false);
 
   const [defaultChatProvider, setDefaultChatProvider] = useState('');
   const [ollamaUrl, setOllamaUrl] = useState('');
@@ -217,6 +218,13 @@ export function Chat() {
           
           </DrawerTitle>
         </DrawerHeader>
+        {chatContext.messages.length && !warningRead ? (
+              <div className="p-4 space-y-4 border border-red-500 bg-red-200">
+                <strong>NEVER rely on the output of the language models</strong> supported in the application (ChatGPT, LLama 3) for <strong>making decisions in your healthcare</strong>! It is designed strictly for <strong className="red">research purposes only</strong> and may contain errors or provide misleading information due to its nature as an AI-powered tool. Consult qualified medical professionals before taking any action based on the information provided herein.
+                <Button onClick={(e)=> {setWarningRead(true); }}>OK!</Button>
+              </div>
+            ) : (
+
         <div className="flex flex-col h-[500px] overflow-y-auto">
           <div className="flex-1 p-4 space-y-4">
             {chatContext.messages.length === 1 ? (
@@ -345,7 +353,7 @@ export function Chat() {
               </Avatar>
             </div> */}
           </div>
-        </div>
+        </div>) }
         <DrawerFooter className="bg-muted py-2 px-4">
           {/* <div className="flex items-center gap-2 w-full">
           <div className="flex items-center gap-2">
