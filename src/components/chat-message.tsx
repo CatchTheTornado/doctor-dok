@@ -1,9 +1,9 @@
 import React, { useContext } from 'react';
-import Markdown from 'react-markdown'
 import ZoomableImage from './zoomable-image';
 import { MessageEx, MessageVisibility } from '@/contexts/chat-context';
 import remarkGfm from 'remark-gfm';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from './ui/accordion';
+import Markdown from 'react-markdown'
 import styles from './chat-message.module.css';
 import { useTheme } from 'next-themes';
 import dynamic from 'next/dynamic';

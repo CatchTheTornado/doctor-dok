@@ -63,17 +63,27 @@ export type AIResultEventType = {
     };
     warnings?: CallWarning[];
 }
-type OnResultCallback = (result: MessageEx, eventData: AIResultEventType) => void;
+export type OnResultCallback = (result: MessageEx, eventData: AIResultEventType) => void;
 
 export type CreateMessageEnvelope = {
     message: CreateMessageEx;
     providerName?: string;
+    modelName?: string;
     onResult?: OnResultCallback
 }
 export type CreateMessagesEnvelope = {
     messages: CreateMessageEx[];
     providerName?: string;
+    modelName?: string;
     onResult?: OnResultCallback
+}
+
+export type CrossCheckResultType = {
+    risk: string;
+    validity: string;
+    explanation: string;
+    nextQuestion: string;
+    answer: string;
 }
 
 export type ChatContextType = {
@@ -82,9 +92,11 @@ export type ChatContextType = {
     lastMessage: MessageEx | null;
     providerName?: string;
     areRecordsLoaded: boolean;
+    crossCheckResult: CrossCheckResultType | null;
     setRecordsLoaded: (value: boolean) => void;
     sendMessage: (msg: CreateMessageEnvelope) => void;
     sendMessages: (msg: CreateMessagesEnvelope) => void;
+    autoCheck: (messages: MessageEx[], providerName: string, modelName: string) => void;
     chatOpen: boolean,
     setChatOpen: (value: boolean) => void;
     chatCustomPromptVisible: boolean;
@@ -92,6 +104,7 @@ export type ChatContextType = {
     chatTemplatePromptVisible: boolean;
     setTemplatePromptVisible: (value: boolean) => void;
     isStreaming: boolean;
+    isCrossChecking: boolean;
     checkApiConfig: () => Promise<boolean>;
     promptTemplate: string;
     setPromptTemplate: (value: string) => void;
@@ -108,13 +121,16 @@ export const ChatContext = createContext<ChatContextType>({
     visibleMessages: [],
     lastMessage: null,
     providerName: '',
+    crossCheckResult: null,
     areRecordsLoaded: false,
     setRecordsLoaded: (value: boolean) => {},
+    autoCheck: (messages: MessageEx[], modelName: string) => {},
     sendMessage: (msg: CreateMessageEnvelope) => {},
     sendMessages: (msg: CreateMessagesEnvelope) => {},
     chatOpen: false,
     setChatOpen: (value: boolean) => {},
     isStreaming: false,
+    isCrossChecking: false,
     checkApiConfig: async () => { return false },
     chatCustomPromptVisible: false,
     setChatCustomPromptVisible: (value: boolean) => {},
@@ -145,6 +161,8 @@ export const ChatContextProvider: React.FC<PropsWithChildren> = ({ children }) =
     const [providerName, setProviderName] = useState('');
     const [chatOpen, setChatOpen] = useState(false);
     const [isStreaming, setIsStreaming] = useState(false);
+    const [isCrossChecking, setIsCrossChecking] = useState(false);
+    const [crossCheckResult, setCrossCheckResult] = useState<CrossCheckResultType | null>(null);
     const [areRecordsLoaded, setRecordsLoaded] = useState(false);
     const [chatCustomPromptVisible, setChatCustomPromptVisible] = useState(false);
     const [chatTemplatePromptVisible, setTemplatePromptVisible] = useState(false);
@@ -172,7 +190,7 @@ export const ChatContextProvider: React.FC<PropsWithChildren> = ({ children }) =
         })];
     }
 
-    const aiProvider = async (providerName:string = '') => {
+    const aiProvider = async (providerName:string = '', modelName:string = '') => {
         await checkApiConfig();
 
         if (!providerName) {
@@ -198,20 +216,82 @@ export const ChatContextProvider: React.FC<PropsWithChildren> = ({ children }) =
                     Authorization: `Basic ${btoa(ollamaCredentials[0] + ':' + ollamaCredentials[1])}`
                 }: {}
             });
-            return aiProvider.chat(await config?.getServerConfig('ollamaModel') as string);
+            return aiProvider.chat(modelName ? modelName : await config?.getServerConfig('ollamaModel') as string);
         } else if (providerName === 'chatgpt'){
             const aiProvider = createOpenAI({
                 compatibility: 'strict',
                 apiKey: await config?.getServerConfig('chatGptApiKey') as string
             })
-            return aiProvider.chat('chatgpt-4o-latest')   //gpt-4o-2024-05-13
+            return aiProvider.chat(modelName ? modelName : 'chatgpt-4o-latest')   //gpt-4o-2024-05-13
         } else {
             toast.error('Unknown AI provider ' + providerName);
             throw new Error('Unknown AI provider ' + providerName);
         }
     }
 
-    const aiApiCall = async (messages: MessageEx[], onResult?: OnResultCallback, providerName?: string) => {
+    /** make the auto check call to a different model */
+    const aiDirectCall = async (messages: MessageEx[], onResult?: OnResultCallback, providerName?: string, modelName?: string) => {
+        try {
+            let messagesToSend = messages;
+            const resultMessage:MessageEx = {
+                id: nanoid(),
+                content: '',
+                createdAt: new Date(),
+                role: 'assistant',
+                visibility: MessageVisibility.Visible
+            }            
+            setIsCrossChecking(true);
+            const result = await streamText({
+                model: await aiProvider(providerName, modelName),
+                messages: convertToCoreMessages(messagesToSend),
+                maxTokens: process.env.NEXT_PUBLIC_MAX_OUTPUT_TOKENS ? parseInt(process.env.NEXT_PUBLIC_MAX_OUTPUT_TOKENS) : 4096 * 2,
+                onFinish: async (e) =>  {
+                    resultMessage.finished = true;
+                    setIsCrossChecking(false);
+                    if (onResult) onResult(resultMessage, e);
+                }
+            });
+            
+
+            for await (const delta of result.textStream) {
+                resultMessage.content += delta;
+            }
+        } catch (e) {
+            const errMsg = 'Error while streaming AI Auto Check response: ' + e;
+            toast.error(errMsg);
+        }
+
+    }
+
+    const autoCheck = async (messages: MessageEx[], providerName: string = 'ollama', modelName:string = 'llama3.1:latest') => {
+        setCrossCheckResult(null);
+        messages.push({
+                content: prompts.autoCheck({}),
+                role: 'user',
+                id: nanoid(),
+            } as MessageEx            
+        )
+        aiDirectCall(messages, (result, eventData) => {
+            console.log(result.content);
+            try {
+                const jsonResult = JSON.parse(result.content);
+                setCrossCheckResult(jsonResult as CrossCheckResultType);
+            } catch (e) {
+                console.error(e);
+//                toast.error('Error parsing the auto check result: ' + result.content);
+            setCrossCheckResult({
+                    risk: 'yellow',
+                    validity: 'yellow',
+                    nextQuestion: '',
+                    answer: '',
+                    explanation:  result.content
+                });
+            }
+        }, providerName, modelName); // TODO: add an option to auto check with different models
+    }
+
+    const aiChatCall = async (messages: MessageEx[], onResult?: OnResultCallback, providerName?: string, modelName?: string) => {
+        setCrossCheckResult(null);
 
         if (saasContext.userId) {
             if (saasContext.currentUsage.usedUSDBudget > saasContext.currentQuota.allowedUSDBudget) {
@@ -262,7 +342,7 @@ export const ChatContextProvider: React.FC<PropsWithChildren> = ({ children }) =
                  }
             }
             const result = await streamText({
-                model: await aiProvider(providerName),
+                model: await aiProvider(providerName, modelName),
                 messages: convertToCoreMessages(messagesToSend),
                 maxTokens: process.env.NEXT_PUBLIC_MAX_OUTPUT_TOKENS ? parseInt(process.env.NEXT_PUBLIC_MAX_OUTPUT_TOKENS) : 4096 * 2,
                 onFinish: async (e) =>  {
@@ -316,9 +396,9 @@ export const ChatContextProvider: React.FC<PropsWithChildren> = ({ children }) =
 
         // removing attachments from previously sent messages
         // TODO: remove the workaround with "prev_sent_attachments" by extending the MessageEx type with our own to save space for it
-        aiApiCall([...messages.map(msg => {
+        aiChatCall([...messages.map(msg => {
             return Object.assign(msg, { experimental_attachments: null, prev_sent_attachments: msg.experimental_attachments })
-        }), newlyCreatedOne], envelope.onResult, envelope.providerName);
+        }), newlyCreatedOne], envelope.onResult, envelope.providerName, envelope.modelName);
     }
 
     const sendMessages = (envelope: CreateMessagesEnvelope) => {
@@ -331,9 +411,9 @@ export const ChatContextProvider: React.FC<PropsWithChildren> = ({ children }) =
         // TODO: Add multi LLM support - messages hould be sent to different LLMs based on the message llm model - so the messages should be grouped in threads
 
         // removing attachments from previously sent messages
-        aiApiCall([...messages.map(msg => {
+        aiChatCall([...messages.map(msg => {
             return Object.assign(msg, { experimental_attachments: null, prev_sent_attachments: msg.experimental_attachments })
-        }), ...newMessages], envelope.onResult, envelope.providerName);        
+        }), ...newMessages], envelope.onResult, envelope.providerName, envelope.modelName);        
     }
 
     const aggregatedStats = async (): Promise<AggregatedStatsDTO> => {
@@ -370,6 +450,7 @@ export const ChatContextProvider: React.FC<PropsWithChildren> = ({ children }) =
         chatOpen,
         setChatOpen,
         isStreaming,
+        isCrossChecking,
         areRecordsLoaded,
         setRecordsLoaded,
         checkApiConfig,
@@ -383,7 +464,9 @@ export const ChatContextProvider: React.FC<PropsWithChildren> = ({ children }) =
         setStatsPopupOpen,
         aggregateStats,
         lastRequestStat,
-        aggregatedStats
+        aggregatedStats,
+        crossCheckResult,
+        autoCheck
     }
 
     return (

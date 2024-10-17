@@ -30,6 +30,7 @@ export const ENV_PROVIDED_CONFIG: Record<string, any> = {
   ollamaUrl: process.env.NEXT_PUBLIC_OLLAMA_URL,
   ollamaModel: process.env.NEXT_PUBLIC_OLLAMA_MODEL,
   llmProviderChat: process.env.NEXT_PUBLIC_LLM_PROVIDER_CHAT,
+  llmModelChat: process.env.NEXT_PUBLIC_LLM_MODEL_CHAT,
   llmProviderParse: process.env.NEXT_PUBLIC_LLM_PROVIDER_PARSE,
   llmProviderRemovePII: process.env.NEXT_PUBLIC_LLM_PROVIDER_REMOVE_PII,
   piiGeneralData: process.env.NEXT_PUBLIC_PII_GENERAL_DATA,

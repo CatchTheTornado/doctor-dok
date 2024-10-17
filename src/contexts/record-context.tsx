@@ -9,7 +9,7 @@ import { toast } from 'sonner';
 import { sort } from 'fast-sort';
 import { EncryptedAttachmentApiClient } from '@/data/client/encrypted-attachment-api-client';
 import { DatabaseContext } from './db-context';
-import { ChatContext, CreateMessageEx, MessageType, MessageVisibility } from './chat-context';
+import { ChatContext, CreateMessageEx, MessageType, MessageVisibility, OnResultCallback } from './chat-context';
 import { convertDataContentToBase64String } from "ai";
 import { convert } from '@/lib/pdf2js'
 import { pdfjs } from 'react-pdf'
@@ -72,7 +72,7 @@ export type RecordContextType = {
     extraToRecord: (type: string, promptText: string, record: Record) => void;
     parseRecord: (record: Record) => void;
     sendRecordToChat: (record: Record, forceRefresh: boolean) => void;
-    sendAllRecordsToChat: (customMessage: CreateMessageEx | null, providerName?: string) => void;
+    sendAllRecordsToChat: (customMessage: CreateMessageEx | null, providerName?: string, modelName?: string, onResult?: OnResultCallback) => void;
 
     processParseQueue: () => void;
     filterAvailableTags: FilterTag[];
@@ -532,7 +532,7 @@ export const RecordContextProvider: React.FC<PropsWithChildren> = ({ children })
         processParseQueue();
       }
 
-      const sendAllRecordsToChat = async (customMessage: CreateMessageEx | null = null, providerName?: string) => {
+      const sendAllRecordsToChat = async (customMessage: CreateMessageEx | null = null, providerName?: string, modelName?: string, onResult?: OnResultCallback) => {
         return new Promise((resolve, reject) => {
           // chatContext.setChatOpen(true);
           if (records.length > 0) {
@@ -569,6 +569,7 @@ export const RecordContextProvider: React.FC<PropsWithChildren> = ({ children })
             chatContext.sendMessages({
                 messages: msgs, providerName, onResult: (resultMessage, result) => {
                 console.log('All records sent to chat');
+                if (onResult) onResult(resultMessage, result);
                 if (result.finishReason !== 'error') {
                   resolve(result);
                 } else {
