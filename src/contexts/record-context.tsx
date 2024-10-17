@@ -72,7 +72,7 @@ export type RecordContextType = {
     extraToRecord: (type: string, promptText: string, record: Record) => void;
     parseRecord: (record: Record) => void;
     sendRecordToChat: (record: Record, forceRefresh: boolean) => void;
-    sendAllRecordsToChat: (customMessage: CreateMessageEx | null, providerName?: string, onResult?: OnResultCallback) => void;
+    sendAllRecordsToChat: (customMessage: CreateMessageEx | null, providerName?: string, modelName?: string, onResult?: OnResultCallback) => void;
 
     processParseQueue: () => void;
     filterAvailableTags: FilterTag[];
@@ -532,7 +532,7 @@ export const RecordContextProvider: React.FC<PropsWithChildren> = ({ children })
         processParseQueue();
       }
 
-      const sendAllRecordsToChat = async (customMessage: CreateMessageEx | null = null, providerName?: string, onResult?: OnResultCallback) => {
+      const sendAllRecordsToChat = async (customMessage: CreateMessageEx | null = null, providerName?: string, modelName?: string, onResult?: OnResultCallback) => {
         return new Promise((resolve, reject) => {
           // chatContext.setChatOpen(true);
           if (records.length > 0) {

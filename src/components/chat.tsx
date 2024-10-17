@@ -26,20 +26,27 @@ import { useContext, useEffect, useRef, useState } from "react"
 import { ChatContext, MessageVisibility } from "@/contexts/chat-context"
 import ChatMessage from "./chat-message"
 import DataLoader from "./data-loader"
-import { CheckIcon, SendIcon, SettingsIcon, Wand2 } from "lucide-react"
+import { CheckCircle2, CheckIcon, SendIcon, SettingsIcon, Wand2 } from "lucide-react"
 import { coercedVal, ConfigContext } from "@/contexts/config-context"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "./ui/select"
 import { RecordContext } from "@/contexts/record-context"
 import { toast } from "sonner"
 import { Checkbox } from "@/components/ui/checkbox"
 import ChatCommands from "@/components/chat-commands"
-import { CheckboxIcon, MagicWandIcon } from "@radix-ui/react-icons"
+import { ChatBubbleIcon, CheckboxIcon, MagicWandIcon } from "@radix-ui/react-icons"
 import TemplateStringRenderer from "./template-string-renderer"
 import { OnboardingChat } from "@/components/onboarding-chat"
 import Markdown from 'react-markdown'
 import styles from './chat-message.module.css';
 import remarkGfm from 'remark-gfm';
-
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu"
 
 export function Chat() {
 
@@ -47,11 +54,14 @@ export function Chat() {
   const chatContext = useContext(ChatContext);
   const [currentMessage, setCurrentMessage] = useState('');
   const [llmProvider, setLlmProvider] = useState('chatgpt');
+  const [llmModel, setLlmModel] = useState('chatgpt-4o-latest');
   const messageTextArea = useRef<HTMLTextAreaElement | null>(null);
   const lastMessageRef = useRef<HTMLDivElement | null>(null);
   const [addFolderContext, setFolderContext] = useState(true);
   const [crosscheckAnswers, setCrosscheckAnswers] = useState(process.env.NEXT_PUBLIC_CHAT_CROSSCHECK_DISABLE ? false : true);
   const [crosscheckModel, setCrosscheckModel] = useState('llama3.1:latest');
+  const [crosscheckProvider, setCrosscheckProvider] = useState('ollama');
+  const [defaultLLMModel, setDefaultLLMModel] = useState('chatgpt-4o-latest');
 
   const [defaultChatProvider, setDefaultChatProvider] = useState('');
   const [ollamaUrl, setOllamaUrl] = useState('');
@@ -68,6 +78,7 @@ export function Chat() {
     async function loadConfig() {
       setDefaultChatProvider(await config?.getServerConfig('llmProviderChat') as string);
       setLlmProvider(await config?.getServerConfig('llmProviderChat') as string);
+      setLlmModel(await config?.getServerConfig('llmModelChat') as string ?? 'chatgpt-4o-latest');
       const configOllamaUrl = await config?.getServerConfig('ollamaUrl') as string
       setOllamaUrl(configOllamaUrl);
       setShowProviders(process.env.NEXT_PUBLIC_CHAT_PROVIDER_SELECT !== "" && (configOllamaUrl !== null && typeof configOllamaUrl === 'string' && configOllamaUrl.startsWith('http')));
@@ -94,9 +105,9 @@ export function Chat() {
       if (addFolderContext) {
         if (chatContext.areRecordsLoaded === false && !chatContext.isStreaming && await chatContext.checkApiConfig()) {
           try {
-            recordContext?.sendAllRecordsToChat({ role: 'user', name: 'You', content: currentMessage }, llmProvider ?? defaultChatProvider, (result, eventData) => {
+            recordContext?.sendAllRecordsToChat({ role: 'user', name: 'You', content: currentMessage }, llmProvider ?? defaultChatProvider, llmModel ?? defaultLLMModel, (result, eventData) => {
               if (crosscheckAnswers) {
-                chatContext.autoCheck([...chatContext.visibleMessages, result ], crosscheckModel);
+                chatContext.autoCheck([...chatContext.visibleMessages, result ], crosscheckProvider, crosscheckModel);
               }
             }); // send message along the context
             messageWasDelivered = true;
@@ -108,9 +119,9 @@ export function Chat() {
       } 
       
       if (!messageWasDelivered) {
-        chatContext.sendMessage({ message: { role: 'user', name: 'You', content: currentMessage}, providerName: llmProvider ?? defaultChatProvider, onResult: (result) => {
+        chatContext.sendMessage({ message: { role: 'user', name: 'You', content: currentMessage}, providerName: llmProvider ?? defaultChatProvider, modelName: llmModel ?? defaultLLMModel, onResult: (result) => {
             if (crosscheckAnswers) {
-              chatContext.autoCheck([...chatContext.visibleMessages, result ], crosscheckModel);
+              chatContext.autoCheck([...chatContext.visibleMessages, result ], crosscheckProvider, crosscheckModel);
             }   
           }
         });
@@ -128,7 +139,83 @@ export function Chat() {
       </DrawerTrigger>
       <DrawerContent className="sm:max-w-[825px] bg-white dark:bg-zinc-950">
         <DrawerHeader>
-          <DrawerTitle>Chat with AI <Button variant="ghost" onClick={(e) => { config?.setConfigDialogOpen(true); }}><SettingsIcon className="w-4 h-4" /></Button><Button variant={ crosscheckAnswers ? 'default' : 'secondary' } id="secondOpinion" onClick={(e) => { setCrosscheckAnswers(!crosscheckAnswers); }}><CheckIcon className="w-4 h-4 pr-2" /> AI Crosscheck</Button></DrawerTitle>
+          <DrawerTitle>Chat with AI {!process.env.NEXT_PUBLIC_SAAS ? (<Button variant="ghost" onClick={(e) => { config?.setConfigDialogOpen(true); }}><SettingsIcon className="w-4 h-4" /></Button>) : null}
+          {/* {<DropdownMenu>
+            <DropdownMenuTrigger><Button><ChatBubbleIcon className="w-4 h-4 mr-2"/>AI Model</Button></DropdownMenuTrigger>
+            <DropdownMenuContent className="dark:bg-black bg-white">
+            <DropdownMenuItem onSelect={(e) => {
+                setLlmProvider('chatgpt');
+                setLlmModel('chatgpt-4o-latest');
+              }}> { llmModel === 'chatgpt-4o-latest' || llmModel === '' ? <CheckIcon className="mr-2" /> : null } Chat with ChatGPT</DropdownMenuItem>
+              <DropdownMenuItem onSelect={(e) => {
+                setLlmProvider('ollama');
+                setLlmModel('llama3.1:latest');
+              }}>Chat with LLama 3.1</DropdownMenuItem>
+              <DropdownMenuItem onSelect={(e) => {
+                setLlmProvider('ollama');
+                setLlmModel('medllama2:latest');
+              }}>{ llmModel === 'medllama2:latest' ? <CheckIcon className="mr-2" /> : null } Chat with MedLLama 2</DropdownMenuItem>
+              <DropdownMenuItem onSelect={(e) => {
+                setLlmProvider('ollama');
+                setLlmModel('meditron:latest');
+              }}>{ llmModel === 'meditron:latest' ? <CheckIcon className="mr-2" /> : null } Chat with Meditron</DropdownMenuItem>
+              <DropdownMenuItem onSelect={(e) => {
+                setLlmProvider('ollama');
+                setLlmModel('monotykamary/medichat-llama3:latest');
+              }}>{ llmModel === 'monotykamary/medichat-llama3:latest' ? <CheckIcon className="mr-2" /> : null } Chat with Medichat LLama 3</DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>           } */}
+          
+          {<DropdownMenu>
+            <DropdownMenuTrigger  className="ml-2"><Button><CheckCircle2 className="w-4 h-4 mr-2" /> AI Crosscheck</Button></DropdownMenuTrigger>
+            <DropdownMenuContent className="dark:bg-black bg-white">
+              <DropdownMenuItem onSelect={(e) => {
+                setCrosscheckAnswers(false);
+              }}>{ !crosscheckAnswers ? <CheckIcon className="mr-2" /> : null } Disable AI Crosscheck</DropdownMenuItem>
+              <DropdownMenuItem onSelect={(e) => {
+                setCrosscheckAnswers(true);
+                setCrosscheckProvider('ollama');
+                setCrosscheckModel('llama3.1:latest');
+                if (!chatContext.isCrossChecking) {
+                  chatContext.autoCheck([...chatContext.visibleMessages], 'ollama', 'llama3.1:latest');
+                }
+              }}>{ crosscheckModel === 'llama3.1:latest' ? <CheckIcon className="mr-2" /> : null } Check with LLama 3.1</DropdownMenuItem>
+              <DropdownMenuItem onSelect={(e) => {
+                setCrosscheckAnswers(true);
+                setCrosscheckProvider('chatgpt');
+                setCrosscheckModel('chatgpt-4o-latest');
+                if (!chatContext.isCrossChecking) {
+                  chatContext.autoCheck([...chatContext.visibleMessages], 'chatgpt', 'chatgpt-4o-latest');
+                }
+              }}>{ crosscheckModel === 'chatgpt-4o-latest' ? <CheckIcon className="mr-2" /> : null } Check with ChatGPT</DropdownMenuItem>
+              {/* <DropdownMenuItem onSelect={(e) => {
+                setCrosscheckAnswers(true);
+                setCrosscheckProvider('ollama');
+                setCrosscheckModel('medllama2:latest');
+                if (!chatContext.isCrossChecking) {
+                  chatContext.autoCheck([...chatContext.visibleMessages], 'ollama', 'medllama2:latest');
+                }
+              }}>{ crosscheckModel === 'medllama2:latest' ? <CheckIcon className="mr-2" /> : null } Check with MedLLama 2</DropdownMenuItem>
+              <DropdownMenuItem onSelect={(e) => {
+                setCrosscheckAnswers(true);
+                setCrosscheckProvider('ollama');
+                setCrosscheckModel('meditron:latest');
+                if (!chatContext.isCrossChecking) {
+                  chatContext.autoCheck([...chatContext.visibleMessages], 'ollama', 'meditron:latest');
+                }
+              }}>{ crosscheckModel === 'meditron:latest' ? <CheckIcon className="mr-2" /> : null } Check with Meditron</DropdownMenuItem>
+              <DropdownMenuItem onSelect={(e) => {
+                setCrosscheckAnswers(true);
+                setCrosscheckProvider('ollama');
+                setCrosscheckModel('monotykamary/medichat-llama3:latest');
+                if (!chatContext.isCrossChecking) {
+                  chatContext.autoCheck([...chatContext.visibleMessages], 'ollama', 'monotykamary/medichat-llama3:latest');
+                }
+              }}>{ crosscheckModel === 'monotykamary/medichat-llama3:latest' ? <CheckIcon className="mr-2" /> : null } Check with Medichat LLama 3</DropdownMenuItem> */}
+            </DropdownMenuContent>
+          </DropdownMenu>}
+          
+          </DrawerTitle>
         </DrawerHeader>
         <div className="flex flex-col h-[500px] overflow-y-auto">
           <div className="flex-1 p-4 space-y-4">
@@ -140,30 +227,36 @@ export function Chat() {
             ))}
 
             {chatContext.crossCheckResult !== null ? (
-                <div className={ chatContext.crossCheckResult.risk === 'yellow' ? 'bg-amber-200 grid grid-cols-3 p-5 text-sm' : (chatContext.crossCheckResult.risk === 'red' ? 'bg-red-200 grid grid-cols-3 p-5 text-sm' : 'bg-green-200 grid grid-cols-3 p-5 text-sm')  }><div><strong>AI Crosscheck with LLama 3.1</strong></div><div>validity: <strong>{chatContext.crossCheckResult.validity}</strong></div><div>risk: <strong>{chatContext.crossCheckResult.risk}</strong></div>
+                <div className={ chatContext.crossCheckResult.risk === 'yellow' ? 'bg-amber-200 grid grid-cols-3 p-5 text-sm' : (chatContext.crossCheckResult.risk === 'red' ? 'bg-red-200 grid grid-cols-3 p-5 text-sm' : 'bg-green-200 grid grid-cols-3 p-5 text-sm')  }><div><strong>AI Crosscheck with {crosscheckModel}</strong></div><div>validity: <strong>{chatContext.crossCheckResult.validity}</strong></div><div>risk: <strong>{chatContext.crossCheckResult.risk}</strong></div>
+                
+                  {chatContext.crossCheckResult.explanation ? (
                   <div className="col-span-3 pt-5">
                     <Markdown className={styles.markdown} remarkPlugins={[remarkGfm]}>{chatContext.crossCheckResult.explanation}
                     </Markdown>
-                  </div>
+                  </div>) : null}
+
+                  {chatContext.crossCheckResult.answer ? (
                   <div className="col-span-3 pt-5"><strong>Second opinion answer:</strong>
                     <Markdown className={styles.markdown} remarkPlugins={[remarkGfm]}>{chatContext.crossCheckResult.answer}
                     </Markdown>
-                  </div>
+                  </div>):null}
+                  
+                  {chatContext.crossCheckResult.nextQuestion ? (
                   <div className="col-span-3 pt-5"><strong>Suggested follow on question: </strong>{chatContext.crossCheckResult.nextQuestion}<Button className="m-2 p-1 h-6 w-6" onClick={(e) => {
                     if (chatContext.crossCheckResult)  {
                       setCurrentMessage(chatContext.crossCheckResult.nextQuestion);
                       handleSubmit();
                     }
-                  }} ><SendIcon className="w-4 h-4" /></Button></div>
+                  }} ><SendIcon className="w-4 h-4" /></Button></div>) : null}
                 </div>
             ):null}
 
             {chatContext.isCrossChecking ? (
-              <div className="flex"><div className="ml-2 h-4 w-4 animate-spin rounded-full border-4 border-primary border-t-transparent" /> <span className="text-xs">AI crosschecking in progress, provider: LLama 3.1</span></div>
+              <div className="flex"><div className="ml-2 h-4 w-4 animate-spin rounded-full border-4 border-primary border-t-transparent" /> <span className="text-xs">AI crosschecking in progress, model: {crosscheckModel}</span></div>
             ):null}
 
             {chatContext.isStreaming ? (
-              <div className="flex"><div className="ml-2 h-4 w-4 animate-spin rounded-full border-4 border-primary border-t-transparent" /> <span className="text-xs">AI request in progress, provider: {chatContext?.providerName}</span></div>
+              <div className="flex"><div className="ml-2 h-4 w-4 animate-spin rounded-full border-4 border-primary border-t-transparent" /> <span className="text-xs">AI request in progress, provider: {llmProvider ? llmProvider : chatContext?.providerName}{llmModel ? ' (' + llmModel + ')' : ''}</span></div>
             ):null}
             <div id="last-message" ref={lastMessageRef}></div>
           {/* <div className="flex items-start gap-4 justify-end">
