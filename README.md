@@ -50,6 +50,8 @@ You can host Doctor Dok on your own because it's <a href="LICENSE">MIT Licensed<
 
 <a href="https://doctordok.com"><img src="readme-assets/try-doctordok.png" alt="Try Doctor Dok for free" /></a>
 
+**WARNING:** NEVER rely on the output of the language models supported in the application (ChatGPT, LLama 3) for making decisions in your healthcare! It's designed strictly for **research purposes only and may contain errors or provide misleading information** due to its nature as an AI-powered tool. Consult qualified medical professionals before taking any action based on the information provided herein.
+
 
 ## Key Features:
 
