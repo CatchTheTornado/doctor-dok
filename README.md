@@ -14,7 +14,14 @@ All health history - digitalized - accesible anywhere from Mobile or Desktop. Us
 
 Doctor Dok uses AI to OCR even a hardly readable photo of your healt documents. Then stores it in cloud with [Zero Trust Security architecture](https://github.com/CatchTheTornado/doctor-dok/issues/65) (no body but You can decrypt the data). 
 
-Chat GPT, LLama 3.1 and other Ollama supported AI models avaialble.
+Chat GPT, LLama 3.1 and other Ollama supported AI models available.
+
+
+## Framework for building your Product
+
+Doctor Dok **is not intended for B2C/P** use cases as, due to its AI features, it requires a proper Medical Device compliance and certification process. AI Chat in the app is secured on the prompt level (for not giving any harmful recommendations, including second opinions from different AI Models). However, AI might hallucinate, and to make it B2C-ready, this app will require someone to take care of this process from a medicine standpoint.
+
+Therefore, we are super open to any person or company willing to develop their own product or service based on the Doctor Dok technology platform. It's business-friendly and MIT-licensed. Please contact us if you're interested in this scenario or require any support: https://doctordok.com/contact.
 
 ## AI Warning - only for research purposes
 
