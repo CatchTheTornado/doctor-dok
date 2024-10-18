@@ -93,7 +93,7 @@ You can host Doctor Dok on your own because it's <a href="LICENSE">MIT Licensed<
 <img src="readme-assets/features.png" alt="Features ..." />
 
 ## Software use cases
-- **End user** - using Doctor Dok as health AI cloud,
+- **End user** - using Doctor Dok as health Vault + research tool for "AI in Health",
 - **Med provider** - using Doctor Dok as secure framework - an EHR with per-patient secure folder sharing,
 - **Med tech** - using Doctor Dok as a framework for product development, AI experiments etc.
 
