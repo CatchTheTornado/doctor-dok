@@ -6,11 +6,11 @@ import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from './
 import Markdown from 'react-markdown'
 import styles from './chat-message.module.css';
 import { useTheme } from 'next-themes';
-import dynamic from 'next/dynamic';
+import showdown from 'showdown'
 
 import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
 import { Button } from '@/components/ui/button';
-import { SaveIcon } from 'lucide-react';
+import { DownloadIcon, SaveIcon } from 'lucide-react';
 import { RecordContext } from '@/contexts/record-context';
 
 interface ChatMessageProps {
@@ -100,6 +100,30 @@ const ChatMessage: React.FC<ChatMessageProps> = ({ message, ref }) => {
                 <Button title="Save message as new record" variant="ghost" size="icon" onClick={() => {
                   recordContext?.updateRecordFromText(message.content, message.recordRef ?? null, true);
                 }}><SaveIcon /></Button>
+                <Button title="Save message as new record" variant="ghost" size="icon" onClick={() => {
+
+                    const converter = new showdown.Converter({ tables: true, completeHTMLDocument: true, openLinksInNewWindow: true });
+                    converter.setFlavor('github');
+                    const htmlContent = converter.makeHtml(message.content);
+
+                    const mdElement = document.createElement('a');
+                    const file = new Blob([message.content], { type: 'text/markdown' });
+                    mdElement.href = URL.createObjectURL(file);
+                    mdElement.download = `report-${message.id}.md`;
+                    document.body.appendChild(mdElement);
+                    mdElement.click();
+                    document.body.removeChild(mdElement);
+
+                    const htmlElement = document.createElement('a');
+                    const fileHtml = new Blob([htmlContent], { type: 'text/html' });
+                    htmlElement.href = URL.createObjectURL(fileHtml);
+                    htmlElement.download = `report-${message.id}.html`;
+                    document.body.appendChild(htmlElement);
+                    htmlElement.click();
+                    document.body.removeChild(htmlElement);
+
+                }}><DownloadIcon /></Button>
+
               </div>
               ): null }
               <div className="flex-wrap flex items-center justify-left min-h-100">

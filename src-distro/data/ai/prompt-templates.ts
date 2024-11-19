@@ -48,6 +48,12 @@ export const promptTemplates = {
         template: (context: PromptTemplateContext) => {
             return "What should be my best next diagnostic step for {select:regarding my overal results|" + promptOptions.join('|') + "}? Provide information sources and links."
         },
+    },
+    preVisitSummary: {
+        label: "Prepare a summary for my next doctor's visit",
+        template: (context: PromptTemplateContext) => {
+            return "Prepare a summary report for my next doctor's visit. Format it as a report with proper headings, tables with results etc so it could be printed. Summarize results, mark all exceptions of the norms. Include the following: {select:my full test results|all test results - but just a quick summary|last year full test results|last year summary}. Provide information about the result sources (which examination, date)."
+        },
     },    
 
 }
