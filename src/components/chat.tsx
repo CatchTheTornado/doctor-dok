@@ -219,7 +219,7 @@ export function Chat() {
           </DrawerTitle>
         </DrawerHeader>
         {chatContext.messages.length && !warningRead ? (
-              <div className="p-4 space-y-4 border border-red-500 bg-red-200">
+              <div className="p-4 space-y-4 border border-red-500 bg-red-200 dark:text-black">
                 <strong>NEVER rely on the output of the language models</strong> supported in the application (ChatGPT, LLama 3) for <strong>making decisions in your healthcare</strong>! It is designed strictly for <strong className="red">research purposes only</strong> and may contain errors or provide misleading information due to its nature as an AI-powered tool. Consult qualified medical professionals before taking any action based on the information provided herein.
                 <Button onClick={(e)=> {setWarningRead(true); }}>OK!</Button>
               </div>
@@ -235,7 +235,7 @@ export function Chat() {
             ))}
 
             {chatContext.crossCheckResult !== null ? (
-                <div className={ chatContext.crossCheckResult.risk === 'yellow' ? 'bg-amber-200 grid grid-cols-3 p-5 text-sm' : (chatContext.crossCheckResult.risk === 'red' ? 'bg-red-200 grid grid-cols-3 p-5 text-sm' : 'bg-green-200 grid grid-cols-3 p-5 text-sm')  }><div><strong>AI Crosscheck with {crosscheckModel}</strong></div><div>validity: <strong>{chatContext.crossCheckResult.validity}</strong></div><div>risk: <strong>{chatContext.crossCheckResult.risk}</strong></div>
+                <div className={ chatContext.crossCheckResult.risk === 'yellow' ? ' dark:text-black bg-amber-200 grid grid-cols-3 p-5 text-sm' : (chatContext.crossCheckResult.risk === 'red' ? ' dark:text-black bg-red-200 grid grid-cols-3 p-5 text-sm' : ' dark:text-black bg-green-200 grid grid-cols-3 p-5 text-sm')  }><div><strong>AI Crosscheck with {crosscheckModel}</strong></div><div>validity: <strong>{chatContext.crossCheckResult.validity}</strong></div><div>risk: <strong>{chatContext.crossCheckResult.risk}</strong></div>
                 
                   {chatContext.crossCheckResult.explanation ? (
                   <div className="col-span-3 pt-5">
