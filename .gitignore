@@ -42,3 +42,6 @@ data/db.sqlite
 *.sqlite
 *.bak
 uploads/*
+
+.dev.sh
+.prod.sh
