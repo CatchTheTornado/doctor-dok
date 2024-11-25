@@ -101,6 +101,10 @@ You can host Doctor Dok on your own because it's <a href="LICENSE">MIT Licensed<
 
 Doctor Dok includes a powerfull Web API for building health-related apps including end 2 end encryption features. [Read the docs here](./docs/README.md).
 
+## PDF Extract API
+
+If a document parsing and understanding is your thing, you might be also interested in a offspring project called [pdf-extract-api](https://github.com/CatchTheTornado/pdf-extract-api) which is just an OCR API based on local/open source models so it could be safely used for tasks like removing personal information and processing medical records.
+
 ## Structured data
 
 Doctor Dok uses standarized JSON format to which parses all input health records. By doing so it opens a way for all exciting new features like data summarization, diagraming, data compression, taking even years long health history into AI context. Things that previously were very difficult or even impossible for human beings.
