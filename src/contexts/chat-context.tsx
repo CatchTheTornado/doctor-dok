@@ -278,8 +278,20 @@ export const ChatContextProvider: React.FC<PropsWithChildren> = ({ children }) =
         aiDirectCall(messages, (result, eventData) => {
             console.log(result.content);
             try {
-                const jsonResult = JSON.parse(result.content);
-                setCrossCheckResult(jsonResult as CrossCheckResultType);
+                if (result.content.indexOf('```json') > -1) {
+                    const codeBlocks = findCodeBlocks(result.content);
+                    if (codeBlocks.blocks.length > 0) {
+                        for (const block of codeBlocks.blocks) {
+                            if (block.syntax === 'json') {
+                                const jsonObject = JSON.parse(jsonrepair(block.code));
+                                setCrossCheckResult(jsonObject as CrossCheckResultType);
+                            }
+                        }
+                    }
+                } else {
+                    const jsonResult = JSON.parse(result.content);
+                    setCrossCheckResult(jsonResult as CrossCheckResultType);
+                }
             } catch (e) {
                 console.error(e);
 //                toast.error('Error parsing the auto check result: ' + result.content);

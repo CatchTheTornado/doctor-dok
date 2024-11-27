@@ -93,7 +93,7 @@ const ChatMessage: React.FC<ChatMessageProps> = ({ message, ref }) => {
               </div>
             ) : ((message.displayMode === 'jsonAgentResponse' ? (              
               <Markdown className={styles.markdown} remarkPlugins={[remarkGfm]}>
-                {((message.messageAction && message.messageAction.type === 'agentQuestion') ? (
+                {!message.finished ? 'Thinking ...' : ((message.messageAction && message.messageAction.type === 'agentQuestion') ? (
                   removeCodeBlocks(message.content) + message.messageAction?.params.question
                 ) : (removeCodeBlocks(message.content)))}
               </Markdown>) : (
