@@ -36,6 +36,12 @@ export enum MessageType {
     SafetyMessage = 'safetyMessage'
 }
 
+export type AgentContext ={
+    displayName: string;
+    type: string;
+    crossCheckEnabled:boolean
+}
+
 export type MessageEx = Message & {
     prev_sent_attachments?: Attachment[];
     displayMode?: MessageDisplayMode,
@@ -97,6 +103,11 @@ export type ChatContextType = {
     providerName?: string;
     areRecordsLoaded: boolean;
     crossCheckResult: CrossCheckResultType | null;
+    startAgent: (agentContext: AgentContext, prompt: string) => void;
+    stopAgent: () => void;
+    setCrossCheckResult: (value: CrossCheckResultType | null) => void;
+    agentContext: AgentContext | null;
+    setAgentContext: (value: AgentContext) => void;
     setRecordsLoaded: (value: boolean) => void;
     sendMessage: (msg: CreateMessageEnvelope) => void;
     sendMessages: (msg: CreateMessagesEnvelope) => void;
@@ -125,8 +136,13 @@ export const ChatContext = createContext<ChatContextType>({
     visibleMessages: [],
     lastMessage: null,
     providerName: '',
+    startAgent: (agentContext: AgentContext, prompt: string) => {},
+    stopAgent: () => {},
     crossCheckResult: null,
+    setCrossCheckResult: (value: CrossCheckResultType | null) => {},
     areRecordsLoaded: false,
+    agentContext: null,
+    setAgentContext: (value: AgentContext) => {},
     setRecordsLoaded: (value: boolean) => {},
     autoCheck: (messages: MessageEx[], modelName: string) => {},
     sendMessage: (msg: CreateMessageEnvelope) => {},
@@ -173,6 +189,7 @@ export const ChatContextProvider: React.FC<PropsWithChildren> = ({ children }) =
     const [promptTemplate, setPromptTemplate] = useState('');
     const [statsPopupOpen, setStatsPopupOpen] = useState(false);
     const [lastRequestStat, setLastRequestStat] = useState<StatDTO | null>(null);
+    const [agentContext, setAgentContext] = useState<AgentContext | null>(null);
 
 
     const dbContext = useContext(DatabaseContext);
@@ -267,8 +284,27 @@ export const ChatContextProvider: React.FC<PropsWithChildren> = ({ children }) =
 
     }
 
+    const stopAgent = () => {
+        setAgentContext(null);
+    }
+    const startAgent = (agentContext: AgentContext, prompt: string) => {
+        setAgentContext(agentContext);
+
+        sendMessage({
+            message: {
+              role: 'user',
+              visibility: MessageVisibility.Hidden,
+              createdAt: new Date(),
+              content: prompt
+            }
+          });   
+        setCrossCheckResult(null);
+        setChatOpen(true);        
+    }
+
     const autoCheck = async (messages: MessageEx[], providerName: string = 'ollama', modelName:string = 'llama3.1:latest') => {
         setCrossCheckResult(null);
+        if (agentContext?.crossCheckEnabled === false) return; // do not do crosscheck when agent context is enabled
         messages.push({
                 content: prompts.autoCheck({}),
                 role: 'user',
@@ -308,6 +344,9 @@ export const ChatContextProvider: React.FC<PropsWithChildren> = ({ children }) =
 
     const processMessageAction = (jsonObject: { displayMode: string, type: string, params: any }, resultMessage: MessageEx) => {
         console.log(jsonObject);
+        if (jsonObject.type === 'agentExit') {
+            stopAgent();
+        }
         if (jsonObject.type === 'agentQuestion') {
             resultMessage.messageAction = jsonObject;
             const answerTemplate = jsonObject.params['answerTemplate']
@@ -355,6 +394,7 @@ export const ChatContextProvider: React.FC<PropsWithChildren> = ({ children }) =
                     messagesToSend[messagesToSend.length - 1].type = MessageType.Chat; 
                 if (messagesToSend[messagesToSend.length - 1].displayMode === MessageDisplayMode.InternalJSONRequest) {
                     resultMessage.visibility = !resultMessage.finished ? MessageVisibility.ProgressWhileStreaming : MessageVisibility.Visible; // hide the response until the request is finished
+                    if (agentContext) resultMessage.visibility = MessageVisibility.Hidden; // hide agent requests
                 }
 
                 if (messagesToSend[messagesToSend.length - 1].type == MessageType.Parse) {
@@ -417,7 +457,7 @@ export const ChatContextProvider: React.FC<PropsWithChildren> = ({ children }) =
                 }
             });
             
-
+            if (agentContext) { resultMessage.displayMode = MessageDisplayMode.JSONAgentReponse; } // take it as default when agent
             for await (const delta of result.textStream) {
                 resultMessage.content += delta;
                 setMessages([...messagesToSend, resultMessage])
@@ -521,7 +561,12 @@ export const ChatContextProvider: React.FC<PropsWithChildren> = ({ children }) =
         lastRequestStat,
         aggregatedStats,
         crossCheckResult,
-        autoCheck
+        setCrossCheckResult,
+        autoCheck,
+        agentContext,
+        setAgentContext,
+        startAgent,
+        stopAgent
     }
 
     return (

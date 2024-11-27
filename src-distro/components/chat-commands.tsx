@@ -11,7 +11,7 @@ import { Command, CommandDialog, CommandEmpty, CommandGroup, CommandInput, Comma
 import { RecordContext } from '@/contexts/record-context';
 import { prompts } from '@/data/ai/prompts';
 import { ClipboardPasteIcon, CommandIcon, LanguagesIcon, MoveRight, ShellIcon, TerminalIcon, TextQuoteIcon, Wand2Icon } from 'lucide-react';
-import { ChatContext } from '@/contexts/chat-context';
+import { ChatContext, MessageVisibility } from '@/contexts/chat-context';
 import { promptTemplates  } from '@/data/ai/prompt-templates';
 import { Pencil2Icon, QuestionMarkCircledIcon, QuestionMarkIcon } from '@radix-ui/react-icons';
 import { ConfigContext } from '@/contexts/config-context';
@@ -32,6 +32,7 @@ const ChatCommands: React.FC<Props> = ({ open, setOpen }) => {
             <CommandEmpty>No results found.</CommandEmpty>
             <CommandGroup heading="Suggestions">
                 <CommandItem key="cmd-custom" className="text-xs" onSelect={(v) => {
+                    chatContext.setAgentContext(null);
                     chatContext.setTemplatePromptVisible(false);
                     chatContext.setChatCustomPromptVisible(true);
                     setOpen(false);
@@ -39,6 +40,7 @@ const ChatCommands: React.FC<Props> = ({ open, setOpen }) => {
                   }}><TerminalIcon /> Enter your own question</CommandItem>
                 {Object.entries(promptTemplates).map(promptTpl => (
                     <CommandItem key={promptTpl[0]} className="text-xs" onSelect={(v) => {
+                        chatContext.setAgentContext(null);
                         chatContext.setPromptTemplate(promptTpl[1].template({ config }));
                         chatContext.setChatCustomPromptVisible(false);
                         chatContext.setTemplatePromptVisible(true);
@@ -48,15 +50,12 @@ const ChatCommands: React.FC<Props> = ({ open, setOpen }) => {
                  ))       
                 }
                 <CommandItem key="cmd-commands" className="text-xs" onSelect={(v) => {
-                        chatContext.sendMessage({
-                            message: {
-                              role: 'user',
-                              createdAt: new Date(),
-                              content: prompts.preVisitQuery({ config }),
-                            }
-                          });   
-                          setOpen(false);
-                    chatContext.setChatOpen(true);
+                        chatContext.startAgent({
+                            displayName: 'Pre visit inquiry',
+                            type: 'pre-visit-inquiry',
+                            crossCheckEnabled: false
+                        }, prompts.preVisitQuery({ config }));
+                        setOpen(false);
                 }}><Pencil2Icon className="w-4 h-4 mr-2" />Pre-visit inquiry</CommandItem>
 
             </CommandGroup>

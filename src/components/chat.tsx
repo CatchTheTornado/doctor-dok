@@ -218,6 +218,12 @@ export function Chat() {
           
           </DrawerTitle>
         </DrawerHeader>
+        {chatContext.agentContext ? (
+          <div className="dark:text-black bg-green-200 grid grid-cols-3 p-5 text-sm">
+            <div><strong>AI Agent Context</strong></div>
+            <div>type: <strong>{chatContext.agentContext.displayName}</strong></div>
+          </div>
+        ) : null}
         {chatContext.messages.length && !warningRead ? (
               <div className="p-4 space-y-4 border border-red-500 bg-red-200 dark:text-black">
                 <strong>NEVER rely on the output of the language models</strong> supported in the application (ChatGPT, LLama 3) for <strong>making decisions in your healthcare</strong>! It is designed strictly for <strong className="red">research purposes only</strong> and may contain errors or provide misleading information due to its nature as an AI-powered tool. Consult qualified medical professionals before taking any action based on the information provided herein.

@@ -1,6 +1,6 @@
 import React, { useContext } from 'react';
 import ZoomableImage from './zoomable-image';
-import { MessageEx, MessageVisibility } from '@/contexts/chat-context';
+import { ChatContext, MessageEx, MessageVisibility } from '@/contexts/chat-context';
 import remarkGfm from 'remark-gfm';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from './ui/accordion';
 import Markdown from 'react-markdown'
@@ -13,6 +13,7 @@ import { Button } from '@/components/ui/button';
 import { DownloadIcon, SaveIcon } from 'lucide-react';
 import { RecordContext } from '@/contexts/record-context';
 import { removeCodeBlocks } from '@/lib/utils';
+import DataLoader from './data-loader';
 
 interface ChatMessageProps {
     message: MessageEx;
@@ -21,6 +22,7 @@ interface ChatMessageProps {
 
 const ChatMessage: React.FC<ChatMessageProps> = ({ message, ref }) => {
     const { theme, systemTheme } = useTheme();
+    const chatContext = useContext(ChatContext);
     const recordContext = useContext(RecordContext);
     const shTheme = (theme === 'system' ? systemTheme : theme) === 'dark' ? 'material-dark' : 'material-light';
     return (
@@ -92,11 +94,12 @@ const ChatMessage: React.FC<ChatMessageProps> = ({ message, ref }) => {
                 </Accordion>
               </div>
             ) : ((message.displayMode === 'jsonAgentResponse' ? (              
-              <Markdown className={styles.markdown} remarkPlugins={[remarkGfm]}>
-                {!message.finished ? 'Thinking ...' : ((message.messageAction && message.messageAction.type === 'agentQuestion') ? (
-                  removeCodeBlocks(message.content) + message.messageAction?.params.question
-                ) : (removeCodeBlocks(message.content)))}
-              </Markdown>) : (
+              (!message.finished ? <>Thinking ...</>  : (
+                <Markdown className={styles.markdown} remarkPlugins={[remarkGfm]}>
+                  {((message.messageAction && message.messageAction.type === 'agentQuestion') ? (
+                    removeCodeBlocks(message.content) + message.messageAction?.params.question
+                  ) : (removeCodeBlocks(message.content)))}
+                </Markdown>))) : (
               <Markdown className={styles.markdown} remarkPlugins={[remarkGfm]}>
                 {message.content}
               </Markdown>
