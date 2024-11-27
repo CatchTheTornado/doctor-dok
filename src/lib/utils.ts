@@ -70,6 +70,10 @@ function countLines(text = '') {
 
 const PATTERN = /^([A-Za-z \t]*)```([A-Za-z]*)?\n([\s\S]*?)```([A-Za-z \t]*)*$/gm
 
+export function removeCodeBlocks(text: string) {
+  return text.replace(PATTERN, '');
+}
+
 export function findCodeBlocks(block: string, singleBlockMode = true) {
   let matches
   let errors = []

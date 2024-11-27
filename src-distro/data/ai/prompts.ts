@@ -99,5 +99,13 @@ export const prompts = {
     },
     autoCheck: (context: PromptContext) => {
         return 'Check the if last message is correct and valid regarding the medical knowledge and the context included within the conversaion. Score: Green, Yellow or Red the message risk and validity. If needed return the next question I should ask to fix the answer or get deeper. Add the explanation including your own answer and safe recommendations (include sources). Return ONLY JSON for example: { "risk": "green", "validity": "green", "answer": "For Asthma you should contact your physician. Ibuprofen is not the right answer", "explanation": "Ibuprofen is not valid for treating asthma", nextQuestion: "What is the recommended treatment for asthma?" }'
+    },
+    preVisitQuery: (context: PromptContext) => {
+        return 'You are medical doctor assistant and you are about to make a pre-visit screen. Ask me questions. You could send me an answer template - if so it should be a json: \r\n \
+        <example>```json {displayMode: "jsonAgentResponse", type: "agentQuestion", params: {question: "Enter your age?", answerTemplate: ""}} ````</example> - if there is something I should select from the list return "{select:option1|option2|option3}" inside the answerTemplate - for example \r\n \
+        <example>```json {displayMode: "jsonAgentResponse", type: "agentQuestion", params: {question: "What was your body temperature?",answerTemplate: "My body temperature was higher than > 37 deg. celsius: {select:yes|no}}}" }```</example>\r\n Example with a question requiring just plain text answer: \
+        <example>```json {displayMode: "jsonAgentResponse", type: "agentQuestion", params: {question: "Enter your weight?", answerTemplate: "" }```</example>\r\n \Example with a question requiring complex text answer: \
+        <example>```json {displayMode: "jsonAgentResponse", type: "agentQuestion", params: {question: "What was your weight and age?", answerTemplate: "My age is {input:enter your age...} and my weight is {input:enter your weight}" }```</example>\r\n \
+         This is an option. plain text answers are also fine. Ask me no more than 30 questions - trying to get all the details why I\'m contacting the doctor, symptoms. Dig deeper based on the previous answers. Then sumarrize the interview with a single text (markdown) answer as a preparation for the doctor. Ask one question, wait for answer and only then ask another question.'
     }
 };

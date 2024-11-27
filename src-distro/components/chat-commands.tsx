@@ -13,7 +13,7 @@ import { prompts } from '@/data/ai/prompts';
 import { ClipboardPasteIcon, CommandIcon, LanguagesIcon, MoveRight, ShellIcon, TerminalIcon, TextQuoteIcon, Wand2Icon } from 'lucide-react';
 import { ChatContext } from '@/contexts/chat-context';
 import { promptTemplates  } from '@/data/ai/prompt-templates';
-import { QuestionMarkCircledIcon, QuestionMarkIcon } from '@radix-ui/react-icons';
+import { Pencil2Icon, QuestionMarkCircledIcon, QuestionMarkIcon } from '@radix-ui/react-icons';
 import { ConfigContext } from '@/contexts/config-context';
 
 interface Props {
@@ -47,6 +47,17 @@ const ChatCommands: React.FC<Props> = ({ open, setOpen }) => {
                     }}><QuestionMarkIcon /> {promptTpl[1].label}</CommandItem>        
                  ))       
                 }
+                <CommandItem key="cmd-commands" className="text-xs" onSelect={(v) => {
+                        chatContext.sendMessage({
+                            message: {
+                              role: 'user',
+                              createdAt: new Date(),
+                              content: prompts.preVisitQuery({ config }),
+                            }
+                          });   
+                          setOpen(false);
+                    chatContext.setChatOpen(true);
+                }}><Pencil2Icon className="w-4 h-4 mr-2" />Pre-visit inquiry</CommandItem>
 
             </CommandGroup>
             {/* <CommandSeparator />

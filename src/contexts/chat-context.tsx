@@ -10,14 +10,17 @@ import { Record } from '@/data/client/models';
 import { StatDTO, AggregatedStatsDTO } from '@/data/dto';
 import { AggregatedStatsResponse, AggregateStatResponse, StatApiClient } from '@/data/client/stat-api-client';
 import { DatabaseContext } from './db-context';
-import { getErrorMessage } from '@/lib/utils';
+import { findCodeBlocks, getErrorMessage } from '@/lib/utils';
 import { SaaSContext } from './saas-context';
 import { prompts } from '@/data/ai/prompts';
+import { jsonrepair } from 'jsonrepair';
+import { json } from 'stream/consumers';
 
 export enum MessageDisplayMode {
     Text = 'text',
     InternalJSONRequest = 'internalJSONRequest',
-    InternalJSONResponse= 'internalJSONResponse'
+    InternalJSONResponse= 'internalJSONResponse',
+    JSONAgentReponse = 'jsonAgentResponse'
 }
 
 export enum MessageVisibility {
@@ -35,7 +38,8 @@ export enum MessageType {
 
 export type MessageEx = Message & {
     prev_sent_attachments?: Attachment[];
-    displayMode?: MessageDisplayMode
+    displayMode?: MessageDisplayMode,
+    messageAction?: { displayMode: string, type: string, params: any },
     finished?: boolean
 
     type?: MessageType,
@@ -290,6 +294,24 @@ export const ChatContextProvider: React.FC<PropsWithChildren> = ({ children }) =
         }, providerName, modelName); // TODO: add an option to auto check with different models
     }
 
+    const processMessageAction = (jsonObject: { displayMode: string, type: string, params: any }, resultMessage: MessageEx) => {
+        console.log(jsonObject);
+        if (jsonObject.type === 'agentQuestion') {
+            resultMessage.messageAction = jsonObject;
+            const answerTemplate = jsonObject.params['answerTemplate']
+            if (answerTemplate){ 
+                setChatOpen(true);
+                setChatCustomPromptVisible(false);
+                setTemplatePromptVisible(true);
+                setPromptTemplate(answerTemplate);
+            } else {
+                setChatOpen(true);
+                setChatCustomPromptVisible(true);
+                setTemplatePromptVisible(false);
+            }
+        }
+    }
+
     const aiChatCall = async (messages: MessageEx[], onResult?: OnResultCallback, providerName?: string, modelName?: string) => {
         setCrossCheckResult(null);
 
@@ -356,7 +378,28 @@ export const ChatContextProvider: React.FC<PropsWithChildren> = ({ children }) =
                     } catch (e) {
                         toast.error(getErrorMessage(e));
                     }
-                    e.text.indexOf('```json') > -1 ? resultMessage.displayMode = MessageDisplayMode.InternalJSONResponse : resultMessage.displayMode = MessageDisplayMode.Text
+                    if (e.text.indexOf('```json') > -1) {
+                        resultMessage.displayMode = MessageDisplayMode.InternalJSONResponse 
+
+                        const codeBlocks = findCodeBlocks(e.text);
+                        if (codeBlocks.blocks.length > 0) {
+                            for (const block of codeBlocks.blocks) {
+                                if (block.syntax === 'json') {
+                                    const jsonObject = JSON.parse(jsonrepair(block.code));
+                                    if (jsonObject.displayMode) { // display mode
+                                        resultMessage.displayMode = jsonObject.displayMode;
+                                        processMessageAction(jsonObject, resultMessage);
+                                    }
+                                }
+                            }
+                        } else {
+                            resultMessage.content = e.text;
+                        }
+
+
+                    }  else { 
+                        resultMessage.displayMode = MessageDisplayMode.Text
+                    }
                     resultMessage.finished = true;
                     if (onResult) onResult(resultMessage, e);
                 }

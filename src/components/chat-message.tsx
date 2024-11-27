@@ -12,6 +12,7 @@ import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
 import { Button } from '@/components/ui/button';
 import { DownloadIcon, SaveIcon } from 'lucide-react';
 import { RecordContext } from '@/contexts/record-context';
+import { removeCodeBlocks } from '@/lib/utils';
 
 interface ChatMessageProps {
     message: MessageEx;
@@ -60,7 +61,7 @@ const ChatMessage: React.FC<ChatMessageProps> = ({ message, ref }) => {
                     </AccordionItem>
                 </Accordion>
             </div>                  
-            ) : (message.displayMode === 'internalJSONResponse' ? (
+            ) : ((message.displayMode === 'internalJSONResponse' ? (
               <div className="w-full">
                 <Accordion type="single" collapsible className="w-full">
                     <AccordionItem value="item-1">
@@ -90,11 +91,16 @@ const ChatMessage: React.FC<ChatMessageProps> = ({ message, ref }) => {
                     </AccordionItem>
                 </Accordion>
               </div>
-            ) : (
+            ) : ((message.displayMode === 'jsonAgentResponse' ? (              
+              <Markdown className={styles.markdown} remarkPlugins={[remarkGfm]}>
+                {((message.messageAction && message.messageAction.type === 'agentQuestion') ? (
+                  removeCodeBlocks(message.content) + message.messageAction?.params.question
+                ) : (removeCodeBlocks(message.content)))}
+              </Markdown>) : (
               <Markdown className={styles.markdown} remarkPlugins={[remarkGfm]}>
                 {message.content}
               </Markdown>
-            )))}
+            ))))))}
             {message.role !== 'user'  && message.finished && !message.recordSaved ? (
               <div className="flex-wrap flex items-center justify-left">
                 <Button title="Save message as new record" variant="ghost" size="icon" onClick={() => {
