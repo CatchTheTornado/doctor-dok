@@ -58,9 +58,7 @@ export function Chat() {
   const messageTextArea = useRef<HTMLTextAreaElement | null>(null);
   const lastMessageRef = useRef<HTMLDivElement | null>(null);
   const [addFolderContext, setFolderContext] = useState(true);
-  const [crosscheckAnswers, setCrosscheckAnswers] = useState(process.env.NEXT_PUBLIC_CHAT_CROSSCHECK_DISABLE ? false : true);
-  const [crosscheckModel, setCrosscheckModel] = useState('llama3.1:latest');
-  const [crosscheckProvider, setCrosscheckProvider] = useState('ollama');
+
   const [defaultLLMModel, setDefaultLLMModel] = useState('chatgpt-4o-latest');
   const [warningRead, setWarningRead] = useState(false);
 
@@ -107,8 +105,8 @@ export function Chat() {
         if (chatContext.areRecordsLoaded === false && !chatContext.isStreaming && await chatContext.checkApiConfig()) {
           try {
             recordContext?.sendAllRecordsToChat({ role: 'user', name: 'You', content: currentMessage }, llmProvider ?? defaultChatProvider, llmModel ?? defaultLLMModel, (result, eventData) => {
-              if (crosscheckAnswers) {
-                chatContext.autoCheck([...chatContext.visibleMessages, result ], crosscheckProvider, crosscheckModel);
+              if (chatContext.crosscheckAnswers) {
+                chatContext.autoCheck([...chatContext.visibleMessages, result ], chatContext.crosscheckProvider, chatContext.crosscheckModel);
               }
             }); // send message along the context
             messageWasDelivered = true;
@@ -121,8 +119,8 @@ export function Chat() {
       
       if (!messageWasDelivered) {
         chatContext.sendMessage({ message: { role: 'user', name: 'You', content: currentMessage}, providerName: llmProvider ?? defaultChatProvider, modelName: llmModel ?? defaultLLMModel, onResult: (result) => {
-            if (crosscheckAnswers) {
-              chatContext.autoCheck([...chatContext.visibleMessages, result ], crosscheckProvider, crosscheckModel);
+            if (chatContext.crosscheckAnswers) {
+              chatContext.autoCheck([...chatContext.visibleMessages, result ], chatContext.crosscheckProvider, chatContext.crosscheckModel);
             }   
           }
         });
@@ -171,24 +169,24 @@ export function Chat() {
             <DropdownMenuTrigger  className="ml-2"><Button><CheckCircle2 className="w-4 h-4 mr-2" /> AI Crosscheck</Button></DropdownMenuTrigger>
             <DropdownMenuContent className="dark:bg-black bg-white">
               <DropdownMenuItem onSelect={(e) => {
-                setCrosscheckAnswers(false);
-              }}>{ !crosscheckAnswers ? <CheckIcon className="mr-2" /> : null } Disable AI Crosscheck</DropdownMenuItem>
+                chatContext.setCrosscheckAnswers(false);
+              }}>{ !chatContext.crosscheckAnswers ? <CheckIcon className="mr-2" /> : null } Disable AI Crosscheck</DropdownMenuItem>
               <DropdownMenuItem onSelect={(e) => {
-                setCrosscheckAnswers(true);
-                setCrosscheckProvider('ollama');
-                setCrosscheckModel('llama3.1:latest');
+                chatContext.setCrosscheckAnswers(true);
+                chatContext.setCrosscheckProvider('ollama');
+                chatContext.setCrosscheckModel('llama3.1:latest');
                 if (!chatContext.isCrossChecking) {
                   chatContext.autoCheck([...chatContext.visibleMessages], 'ollama', 'llama3.1:latest');
                 }
-              }}>{ crosscheckModel === 'llama3.1:latest' ? <CheckIcon className="mr-2" /> : null } Check with LLama 3.1</DropdownMenuItem>
+              }}>{ chatContext.crosscheckModel === 'llama3.1:latest' ? <CheckIcon className="mr-2" /> : null } Check with LLama 3.1</DropdownMenuItem>
               <DropdownMenuItem onSelect={(e) => {
-                setCrosscheckAnswers(true);
-                setCrosscheckProvider('chatgpt');
-                setCrosscheckModel('chatgpt-4o-latest');
+                chatContext.setCrosscheckAnswers(true);
+                chatContext.setCrosscheckProvider('chatgpt');
+                chatContext.setCrosscheckModel('chatgpt-4o-latest');
                 if (!chatContext.isCrossChecking) {
                   chatContext.autoCheck([...chatContext.visibleMessages], 'chatgpt', 'chatgpt-4o-latest');
                 }
-              }}>{ crosscheckModel === 'chatgpt-4o-latest' ? <CheckIcon className="mr-2" /> : null } Check with ChatGPT</DropdownMenuItem>
+              }}>{ chatContext.crosscheckModel === 'chatgpt-4o-latest' ? <CheckIcon className="mr-2" /> : null } Check with ChatGPT</DropdownMenuItem>
               {/* <DropdownMenuItem onSelect={(e) => {
                 setCrosscheckAnswers(true);
                 setCrosscheckProvider('ollama');

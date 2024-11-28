@@ -53,7 +53,11 @@ const ChatCommands: React.FC<Props> = ({ open, setOpen }) => {
                         chatContext.startAgent({
                             displayName: 'Pre visit inquiry',
                             type: 'pre-visit-inquiry',
-                            crossCheckEnabled: false
+                            crossCheckEnabled: false,
+                            onAgentFinished(messageAction, lastMessage) {
+                                chatContext.autoCheck(chatContext.visibleMessages); // do the autocheck
+                            },
+                            
                         }, prompts.preVisitQuery({ config }));
                         setOpen(false);
                 }}><Pencil2Icon className="w-4 h-4 mr-2" />Pre-visit inquiry</CommandItem>

@@ -30,6 +30,12 @@ export enum MessageVisibility {
     ProgressWhileStreaming = 'progressWhileStreaming'
 }
 
+export type MessageAction = {
+    displayMode: string;
+    type: string;
+    params: any;
+}
+
 export enum MessageType {
     Chat = 'chat',
     Parse = 'parse',
@@ -39,7 +45,9 @@ export enum MessageType {
 export type AgentContext ={
     displayName: string;
     type: string;
-    crossCheckEnabled:boolean
+    crossCheckEnabled:boolean;
+    onMessageAction?: (messageAction:MessageAction, message:Message) => void;
+    onAgentFinished?: (messageAction:MessageAction, lastMessage:Message) => void;
 }
 
 export type MessageEx = Message & {
@@ -103,6 +111,12 @@ export type ChatContextType = {
     providerName?: string;
     areRecordsLoaded: boolean;
     crossCheckResult: CrossCheckResultType | null;
+    setCrosscheckAnswers: (value: boolean) => void;
+    crosscheckAnswers: boolean;
+    setCrosscheckModel: (value: string) => void;
+    crosscheckModel: string;
+    setCrosscheckProvider: (value: string) => void;
+    crosscheckProvider: string;
     startAgent: (agentContext: AgentContext, prompt: string) => void;
     stopAgent: () => void;
     setCrossCheckResult: (value: CrossCheckResultType | null) => void;
@@ -111,7 +125,7 @@ export type ChatContextType = {
     setRecordsLoaded: (value: boolean) => void;
     sendMessage: (msg: CreateMessageEnvelope) => void;
     sendMessages: (msg: CreateMessagesEnvelope) => void;
-    autoCheck: (messages: MessageEx[], providerName: string, modelName: string) => void;
+    autoCheck: (messages: MessageEx[], providerName?: string, modelName?: string) => void;
     chatOpen: boolean,
     setChatOpen: (value: boolean) => void;
     chatCustomPromptVisible: boolean;
@@ -138,13 +152,19 @@ export const ChatContext = createContext<ChatContextType>({
     providerName: '',
     startAgent: (agentContext: AgentContext, prompt: string) => {},
     stopAgent: () => {},
+    crosscheckAnswers: true,
+    setCrosscheckAnswers: (value: boolean) => {},
+    crosscheckModel: 'llama3.1:latest',
+    setCrosscheckModel: (value: string) => {},
+    crosscheckProvider: 'ollama',
+    setCrosscheckProvider: (value: string) => {},
     crossCheckResult: null,
     setCrossCheckResult: (value: CrossCheckResultType | null) => {},
     areRecordsLoaded: false,
     agentContext: null,
     setAgentContext: (value: AgentContext) => {},
     setRecordsLoaded: (value: boolean) => {},
-    autoCheck: (messages: MessageEx[], modelName: string) => {},
+    autoCheck: (messages: MessageEx[], providerName?, modelName?: string) => {},
     sendMessage: (msg: CreateMessageEnvelope) => {},
     sendMessages: (msg: CreateMessagesEnvelope) => {},
     chatOpen: false,
@@ -183,6 +203,10 @@ export const ChatContextProvider: React.FC<PropsWithChildren> = ({ children }) =
     const [isStreaming, setIsStreaming] = useState(false);
     const [isCrossChecking, setIsCrossChecking] = useState(false);
     const [crossCheckResult, setCrossCheckResult] = useState<CrossCheckResultType | null>(null);
+    const [crosscheckAnswers, setCrosscheckAnswers] = useState(process.env.NEXT_PUBLIC_CHAT_CROSSCHECK_DISABLE ? false : true);
+    const [crosscheckModel, setCrosscheckModel] = useState('llama3.1:latest');
+    const [crosscheckProvider, setCrosscheckProvider] = useState('ollama');
+
     const [areRecordsLoaded, setRecordsLoaded] = useState(false);
     const [chatCustomPromptVisible, setChatCustomPromptVisible] = useState(false);
     const [chatTemplatePromptVisible, setTemplatePromptVisible] = useState(false);
@@ -302,7 +326,7 @@ export const ChatContextProvider: React.FC<PropsWithChildren> = ({ children }) =
         setChatOpen(true);        
     }
 
-    const autoCheck = async (messages: MessageEx[], providerName: string = 'ollama', modelName:string = 'llama3.1:latest') => {
+    const autoCheck = async (messages: MessageEx[], providerName: string = crosscheckProvider, modelName:string =  crosscheckModel) => {
         setCrossCheckResult(null);
         if (agentContext?.crossCheckEnabled === false) return; // do not do crosscheck when agent context is enabled
         messages.push({
@@ -342,9 +366,14 @@ export const ChatContextProvider: React.FC<PropsWithChildren> = ({ children }) =
         }, providerName, modelName); // TODO: add an option to auto check with different models
     }
 
-    const processMessageAction = (jsonObject: { displayMode: string, type: string, params: any }, resultMessage: MessageEx) => {
+    /// TODO: instead of actions we could process tool calls but actually it didn't matter that much
+    const processMessageAction = (jsonObject: MessageAction, resultMessage: MessageEx) => {
         console.log(jsonObject);
+        
+        if (agentContext?.onMessageAction) agentContext.onMessageAction(jsonObject, resultMessage);
+
         if (jsonObject.type === 'agentExit') {
+            if (agentContext?.onAgentFinished) agentContext.onAgentFinished(jsonObject, resultMessage);
             stopAgent();
         }
         if (jsonObject.type === 'agentQuestion') {
@@ -566,7 +595,14 @@ export const ChatContextProvider: React.FC<PropsWithChildren> = ({ children }) =
         agentContext,
         setAgentContext,
         startAgent,
-        stopAgent
+        stopAgent,
+        crosscheckAnswers,
+        crosscheckModel,
+        crosscheckProvider,
+        setCrosscheckAnswers,
+        setCrosscheckModel,
+        setCrosscheckProvider
+
     }
 
     return (
