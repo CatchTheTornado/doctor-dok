@@ -239,7 +239,7 @@ export function Chat() {
             ))}
 
             {chatContext.crossCheckResult !== null ? (
-                <div className={ chatContext.crossCheckResult.risk === 'yellow' ? ' dark:text-black bg-amber-200 grid grid-cols-3 p-5 text-sm' : (chatContext.crossCheckResult.risk === 'red' ? ' dark:text-black bg-red-200 grid grid-cols-3 p-5 text-sm' : ' dark:text-black bg-green-200 grid grid-cols-3 p-5 text-sm')  }><div><strong>AI Crosscheck with {crosscheckModel}</strong></div><div>validity: <strong>{chatContext.crossCheckResult.validity}</strong></div><div>risk: <strong>{chatContext.crossCheckResult.risk}</strong></div>
+                <div className={ chatContext.crossCheckResult.risk === 'yellow' ? ' dark:text-black bg-amber-200 grid grid-cols-3 p-5 text-sm' : (chatContext.crossCheckResult.risk === 'red' ? ' dark:text-black bg-red-200 grid grid-cols-3 p-5 text-sm' : ' dark:text-black bg-green-200 grid grid-cols-3 p-5 text-sm')  }><div><strong>AI Crosscheck with {chatContext.crosscheckModel}</strong></div><div>validity: <strong>{chatContext.crossCheckResult.validity}</strong></div><div>risk: <strong>{chatContext.crossCheckResult.risk}</strong></div>
                 
                   {chatContext.crossCheckResult.explanation ? (
                   <div className="col-span-3 pt-5">
@@ -264,7 +264,7 @@ export function Chat() {
             ):null}
 
             {chatContext.isCrossChecking ? (
-              <div className="flex"><div className="ml-2 h-4 w-4 animate-spin rounded-full border-4 border-primary border-t-transparent" /> <span className="text-xs">AI crosschecking in progress, model: {crosscheckModel}</span></div>
+              <div className="flex"><div className="ml-2 h-4 w-4 animate-spin rounded-full border-4 border-primary border-t-transparent" /> <span className="text-xs">AI crosschecking in progress, model: {chatContext.crosscheckModel}</span></div>
             ):null}
 
             {chatContext.isStreaming ? (
