@@ -15,6 +15,8 @@ import { SaaSContext } from './saas-context';
 import { prompts } from '@/data/ai/prompts';
 import { jsonrepair } from 'jsonrepair';
 import { json } from 'stream/consumers';
+import showdown from 'showdown';
+import { set } from 'date-fns';
 
 export enum MessageDisplayMode {
     Text = 'text',
@@ -46,6 +48,8 @@ export type AgentContext ={
     displayName: string;
     type: string;
     crossCheckEnabled:boolean;
+    agentFinishMessage?: string;
+    agentFinishDialog?: boolean;
     onMessageAction?: (messageAction:MessageAction, message:Message) => void;
     onAgentFinished?: (messageAction:MessageAction, lastMessage:Message) => void;
 }
@@ -117,15 +121,18 @@ export type ChatContextType = {
     crosscheckModel: string;
     setCrosscheckProvider: (value: string) => void;
     crosscheckProvider: string;
-    startAgent: (agentContext: AgentContext, prompt: string) => void;
+    newChat(): void; 
+    downloadMessage: (message: MessageEx, filename: string, format: string) => void;
+    startAgent: (agentContext: AgentContext, prompt: string, initialMessages: MessageEx[]) => void;
     stopAgent: () => void;
     setCrossCheckResult: (value: CrossCheckResultType | null) => void;
     agentContext: AgentContext | null;
     setAgentContext: (value: AgentContext) => void;
     setRecordsLoaded: (value: boolean) => void;
-    sendMessage: (msg: CreateMessageEnvelope) => void;
-    sendMessages: (msg: CreateMessagesEnvelope) => void;
+    sendMessage: (msg: CreateMessageEnvelope, includeExistingMessagesAsContext?: boolean) => void;
+    sendMessages: (msg: CreateMessagesEnvelope, includeExistingMessagesAsContext?: boolean) => void;
     autoCheck: (messages: MessageEx[], providerName?: string, modelName?: string) => void;
+    agentFinishedDialogOpen: boolean;
     chatOpen: boolean,
     setChatOpen: (value: boolean) => void;
     chatCustomPromptVisible: boolean;
@@ -150,7 +157,9 @@ export const ChatContext = createContext<ChatContextType>({
     visibleMessages: [],
     lastMessage: null,
     providerName: '',
-    startAgent: (agentContext: AgentContext, prompt: string) => {},
+    newChat: () => {},
+    downloadMessage: (message: MessageEx, filename: string = message.id, format: string = 'html') => {},
+    startAgent: (agentContext: AgentContext, prompt: string, initialMessages: MessageEx[]) => {},
     stopAgent: () => {},
     crosscheckAnswers: true,
     setCrosscheckAnswers: (value: boolean) => {},
@@ -165,9 +174,10 @@ export const ChatContext = createContext<ChatContextType>({
     setAgentContext: (value: AgentContext) => {},
     setRecordsLoaded: (value: boolean) => {},
     autoCheck: (messages: MessageEx[], providerName?, modelName?: string) => {},
-    sendMessage: (msg: CreateMessageEnvelope) => {},
-    sendMessages: (msg: CreateMessagesEnvelope) => {},
+    sendMessage: (msg: CreateMessageEnvelope, includeExistingMessagesAsContext: boolean = true) => {},
+    sendMessages: (msg: CreateMessagesEnvelope, includeExistingMessagesAsContext: boolean = true) => {},
     chatOpen: false,
+    agentFinishedDialogOpen: false,
     setChatOpen: (value: boolean) => {},
     isStreaming: false,
     isCrossChecking: false,
@@ -215,6 +225,8 @@ export const ChatContextProvider: React.FC<PropsWithChildren> = ({ children }) =
     const [lastRequestStat, setLastRequestStat] = useState<StatDTO | null>(null);
     const [agentContext, setAgentContext] = useState<AgentContext | null>(null);
 
+    const [agentFinishedDialogOpen, setAgentFinishedDialogOpen] = useState(false);
+
 
     const dbContext = useContext(DatabaseContext);
     const saasContext = useContext(SaaSContext);
@@ -227,6 +239,42 @@ export const ChatContextProvider: React.FC<PropsWithChildren> = ({ children }) =
             return false;
         } else return true;
     }
+
+    const downloadMessage = (message: MessageEx, filename = message.id, format = 'html') => {
+
+        if (format === 'html') {
+            const converter = new showdown.Converter({ tables: true, completeHTMLDocument: true, openLinksInNewWindow: true });
+            converter.setFlavor('github');
+            const htmlContent = converter.makeHtml(message.content);
+            const htmlElement = document.createElement('a');
+            const fileHtml = new Blob([htmlContent], { type: 'text/html' });
+            htmlElement.href = URL.createObjectURL(fileHtml);
+            htmlElement.download = filename + `.html`;
+            document.body.appendChild(htmlElement);
+            htmlElement.click();
+            document.body.removeChild(htmlElement);
+        }  else {
+            const mdElement = document.createElement('a');
+            const file = new Blob([message.content], { type: 'text/markdown' });
+            mdElement.href = URL.createObjectURL(file);
+            mdElement.download = filename + `.md`;
+            document.body.appendChild(mdElement);
+            mdElement.click();
+            document.body.removeChild(mdElement);        
+        }
+    }
+
+    const newChat = (templateMessages:MessageEx[] = [
+        { role: 'user', name: 'You', content: 'Hi there! I will send in this conversation some medical records, please help me understand it and answer the questions. Because you are not a real phisican, never suggest diagnosis or non OTC medicaments. Please provide sources and links where suitable.', visibility: MessageVisibility.Hidden } as MessageEx
+    ]) => { 
+        setAgentFinishedDialogOpen(false);
+        setAgentContext(null);
+        setMessages(prvMessages=> [...templateMessages]);
+        setVisibleMessages(prvMessages => [...filterVisibleMessages(templateMessages)]);
+        setCrossCheckResult(null);
+        setRecordsLoaded(false);
+    }
+
 
     const filterVisibleMessages = (messages: MessageEx[]): MessageEx[] => {
         return [...messages.filter(msg => { // display only visible messages
@@ -311,18 +359,21 @@ export const ChatContextProvider: React.FC<PropsWithChildren> = ({ children }) =
     const stopAgent = () => {
         setAgentContext(null);
     }
-    const startAgent = (agentContext: AgentContext, prompt: string) => {
+    const startAgent = (agentContext: AgentContext, prompt: string, initialMessages: MessageEx[] = []) => {
+        newChat();
         setAgentContext(agentContext);
-
-        sendMessage({
-            message: {
+        sendMessages({
+            messages: [...initialMessages, {
               role: 'user',
               visibility: MessageVisibility.Hidden,
               createdAt: new Date(),
               content: prompt
-            }
-          });   
+            }]
+          }, false /** do not send existing messages */);   
+        setAgentFinishedDialogOpen(false)
         setCrossCheckResult(null);
+        setTemplatePromptVisible(false);
+        setChatCustomPromptVisible(true)
         setChatOpen(true);        
     }
 
@@ -336,7 +387,6 @@ export const ChatContextProvider: React.FC<PropsWithChildren> = ({ children }) =
             } as MessageEx            
         )
         aiDirectCall(messages, (result, eventData) => {
-            console.log(result.content);
             try {
                 if (result.content.indexOf('```json') > -1) {
                     const codeBlocks = findCodeBlocks(result.content);
@@ -368,13 +418,15 @@ export const ChatContextProvider: React.FC<PropsWithChildren> = ({ children }) =
 
     /// TODO: instead of actions we could process tool calls but actually it didn't matter that much
     const processMessageAction = (jsonObject: MessageAction, resultMessage: MessageEx) => {
-        console.log(jsonObject);
-        
         if (agentContext?.onMessageAction) agentContext.onMessageAction(jsonObject, resultMessage);
-
         if (jsonObject.type === 'agentExit') {
             if (agentContext?.onAgentFinished) agentContext.onAgentFinished(jsonObject, resultMessage);
+            if (agentContext?.agentFinishDialog) setAgentFinishedDialogOpen(true);
             stopAgent();
+        }
+        if(jsonObject.type === 'meta') {
+            resultMessage.messageAction = jsonObject;
+            // console.log(jsonObject.params);
         }
         if (jsonObject.type === 'agentQuestion') {
             resultMessage.messageAction = jsonObject;
@@ -510,22 +562,22 @@ export const ChatContextProvider: React.FC<PropsWithChildren> = ({ children }) =
         } else {
             newlyCreatedOne.displayMode = MessageDisplayMode.Text;
         }
-        setMessages([...messages, newlyCreatedOne]);
-        setVisibleMessages(filterVisibleMessages([...messages, newlyCreatedOne]));
+        setMessages(prevMessages => [...prevMessages, newlyCreatedOne]);
+        setVisibleMessages(prevMessages => filterVisibleMessages([...prevMessages, newlyCreatedOne]));
         setLastMessage(newlyCreatedOne);
         return newlyCreatedOne;
     }    
-    const sendMessage = (envelope: CreateMessageEnvelope) => {
+    const sendMessage = (envelope: CreateMessageEnvelope, includeExistingMessagesAsContext: boolean = true) => {
         const newlyCreatedOne = prepareMessage(envelope.message, setMessages, messages, setLastMessage);
 
         // removing attachments from previously sent messages
         // TODO: remove the workaround with "prev_sent_attachments" by extending the MessageEx type with our own to save space for it
-        aiChatCall([...messages.map(msg => {
+        aiChatCall(includeExistingMessagesAsContext? [...messages.map(msg => {
             return Object.assign(msg, { experimental_attachments: null, prev_sent_attachments: msg.experimental_attachments })
-        }), newlyCreatedOne], envelope.onResult, envelope.providerName, envelope.modelName);
+        }), newlyCreatedOne] : [newlyCreatedOne], envelope.onResult, envelope.providerName, envelope.modelName);
     }
 
-    const sendMessages = (envelope: CreateMessagesEnvelope) => {
+    const sendMessages = (envelope: CreateMessagesEnvelope, includeExistingMessagesAsContext: boolean = true) => {
         const newMessages = [];
         for (const msg of envelope.messages) {
             const newlyCreatedOne = prepareMessage(msg, setMessages, messages, setLastMessage);
@@ -535,9 +587,9 @@ export const ChatContextProvider: React.FC<PropsWithChildren> = ({ children }) =
         // TODO: Add multi LLM support - messages hould be sent to different LLMs based on the message llm model - so the messages should be grouped in threads
 
         // removing attachments from previously sent messages
-        aiChatCall([...messages.map(msg => {
+        aiChatCall(includeExistingMessagesAsContext ? [...messages.map(msg => {
             return Object.assign(msg, { experimental_attachments: null, prev_sent_attachments: msg.experimental_attachments })
-        }), ...newMessages], envelope.onResult, envelope.providerName, envelope.modelName);        
+        }), ...newMessages] : [...newMessages], envelope.onResult, envelope.providerName, envelope.modelName);        
     }
 
     const aggregatedStats = async (): Promise<AggregatedStatsDTO> => {
@@ -601,8 +653,11 @@ export const ChatContextProvider: React.FC<PropsWithChildren> = ({ children }) =
         crosscheckProvider,
         setCrosscheckAnswers,
         setCrosscheckModel,
-        setCrosscheckProvider
-
+        setCrosscheckProvider,
+        newChat,
+        downloadMessage,
+        agentFinishedDialogOpen,
+        setAgentFinishedDialogOpen
     }
 
     return (

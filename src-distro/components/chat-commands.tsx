@@ -15,6 +15,9 @@ import { ChatContext, MessageVisibility } from '@/contexts/chat-context';
 import { promptTemplates  } from '@/data/ai/prompt-templates';
 import { Pencil2Icon, QuestionMarkCircledIcon, QuestionMarkIcon } from '@radix-ui/react-icons';
 import { ConfigContext } from '@/contexts/config-context';
+import { toast } from 'sonner';
+import { nanoid } from 'nanoid';
+import { removeCodeBlocks } from '@/lib/utils';
 
 interface Props {
     open: boolean;
@@ -54,11 +57,20 @@ const ChatCommands: React.FC<Props> = ({ open, setOpen }) => {
                             displayName: 'Pre visit inquiry',
                             type: 'pre-visit-inquiry',
                             crossCheckEnabled: false,
+                            agentFinishDialog: true,
+                            agentFinishMessage: 'Check the Results in Downloads folder on your device. If you click YES the messages will be cleared and the context will be reset so you can start a new thread. Otherwise you will stay in the agent context. You can always use New Chat button to clear the context.',
                             onAgentFinished(messageAction, lastMessage) {
-                                chatContext.autoCheck(chatContext.visibleMessages); // do the autocheck
+                                // last message is patient summary
+                                const filename = `pre-visit-inquiry-${new Date().toDateString()}.html`;
+                                lastMessage.content = removeCodeBlocks(lastMessage.content);
+                                chatContext.downloadMessage(lastMessage, filename, 'html');
+
+                                toast('Pre-visit inquiry completed. Message saved as HTML file you can pass to your doctor!');
+                                //setTimeout(() => chatContext.newChat(), 1000);
+                                
                             },
                             
-                        }, prompts.preVisitQuery({ config }));
+                        }, prompts.preVisitQuery({ config }), []);
                         setOpen(false);
                 }}><Pencil2Icon className="w-4 h-4 mr-2" />Pre-visit inquiry</CommandItem>
 

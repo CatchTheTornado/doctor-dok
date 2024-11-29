@@ -26,7 +26,7 @@ import { useContext, useEffect, useRef, useState } from "react"
 import { ChatContext, MessageVisibility } from "@/contexts/chat-context"
 import ChatMessage from "./chat-message"
 import DataLoader from "./data-loader"
-import { CheckCircle2, CheckIcon, SendIcon, SettingsIcon, Wand2 } from "lucide-react"
+import { CheckCircle2, CheckIcon, FileIcon, SendIcon, SettingsIcon, Trash2Icon, Wand2 } from "lucide-react"
 import { coercedVal, ConfigContext } from "@/contexts/config-context"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "./ui/select"
 import { RecordContext } from "@/contexts/record-context"
@@ -47,6 +47,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "./ui/alert-dialog"
 
 export function Chat() {
 
@@ -213,9 +214,31 @@ export function Chat() {
               }}>{ crosscheckModel === 'monotykamary/medichat-llama3:latest' ? <CheckIcon className="mr-2" /> : null } Check with Medichat LLama 3</DropdownMenuItem> */}
             </DropdownMenuContent>
           </DropdownMenu>}
-          
+          <Button className="ml-2" onClick={(e) => {
+            chatContext.newChat();
+          }}><FileIcon  className="w-4 h-4 mr-2" />New Chat</Button>
           </DrawerTitle>
         </DrawerHeader>
+
+        <AlertDialog open={chatContext.agentFinishedDialogOpen}>
+          <AlertDialogContent className="bg-white dark:bg-zinc-950">
+            <AlertDialogHeader>
+              <AlertDialogTitle>The agent has finished. Do you want to clear the context and start New Chat?</AlertDialogTitle>
+              <AlertDialogDescription>
+                {chatContext.agentContext?.agentFinishMessage}
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel>No</AlertDialogCancel>
+              <AlertDialogAction onClick={(e) => 
+                {
+                  chatContext.newChat();
+                }
+              }>YES</AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>      
+                
         {chatContext.agentContext ? (
           <div className="dark:text-black bg-green-200 grid grid-cols-3 p-5 text-sm">
             <div><strong>AI Agent Context</strong></div>

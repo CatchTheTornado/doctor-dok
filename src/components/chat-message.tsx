@@ -14,6 +14,8 @@ import { DownloadIcon, SaveIcon } from 'lucide-react';
 import { RecordContext } from '@/contexts/record-context';
 import { removeCodeBlocks } from '@/lib/utils';
 import DataLoader from './data-loader';
+import { QuestionMarkCircledIcon, QuestionMarkIcon } from '@radix-ui/react-icons';
+import { toast } from 'sonner';
 
 interface ChatMessageProps {
     message: MessageEx;
@@ -95,11 +97,11 @@ const ChatMessage: React.FC<ChatMessageProps> = ({ message, ref }) => {
               </div>
             ) : ((message.displayMode === 'jsonAgentResponse' ? (              
               (!message.finished ? <>Thinking ...</>  : (
-                <Markdown className={styles.markdown} remarkPlugins={[remarkGfm]}>
+                <><Markdown className={styles.markdown} remarkPlugins={[remarkGfm]}>
                   {((message.messageAction && message.messageAction.type === 'agentQuestion') ? (
                     removeCodeBlocks(message.content) + message.messageAction?.params.question
                   ) : (removeCodeBlocks(message.content)))}
-                </Markdown>))) : (
+                </Markdown>{(message.messageAction?.params.reason ? (<QuestionMarkCircledIcon className='m-2 w-4 h-4 cursor-pointer' onClick={(e) => toast(message.messageAction?.params.reason)} />) : (null))}</>))) : (
               <Markdown className={styles.markdown} remarkPlugins={[remarkGfm]}>
                 {message.content}
               </Markdown>
@@ -110,27 +112,7 @@ const ChatMessage: React.FC<ChatMessageProps> = ({ message, ref }) => {
                   recordContext?.updateRecordFromText(message.content, message.recordRef ?? null, true);
                 }}><SaveIcon /></Button>
                 <Button title="Save message as new record" variant="ghost" size="icon" onClick={() => {
-
-                    const converter = new showdown.Converter({ tables: true, completeHTMLDocument: true, openLinksInNewWindow: true });
-                    converter.setFlavor('github');
-                    const htmlContent = converter.makeHtml(message.content);
-
-                    const mdElement = document.createElement('a');
-                    const file = new Blob([message.content], { type: 'text/markdown' });
-                    mdElement.href = URL.createObjectURL(file);
-                    mdElement.download = `report-${message.id}.md`;
-                    document.body.appendChild(mdElement);
-                    mdElement.click();
-                    document.body.removeChild(mdElement);
-
-                    const htmlElement = document.createElement('a');
-                    const fileHtml = new Blob([htmlContent], { type: 'text/html' });
-                    htmlElement.href = URL.createObjectURL(fileHtml);
-                    htmlElement.download = `report-${message.id}.html`;
-                    document.body.appendChild(htmlElement);
-                    htmlElement.click();
-                    document.body.removeChild(htmlElement);
-
+                  chatContext.downloadMessage(message, `report-${message.id}`, 'html');
                 }}><DownloadIcon /></Button>
 
               </div>
