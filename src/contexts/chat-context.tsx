@@ -133,6 +133,7 @@ export type ChatContextType = {
     sendMessages: (msg: CreateMessagesEnvelope, includeExistingMessagesAsContext?: boolean) => void;
     autoCheck: (messages: MessageEx[], providerName?: string, modelName?: string) => void;
     agentFinishedDialogOpen: boolean;
+    agentFinishMessage: string;
     chatOpen: boolean,
     setChatOpen: (value: boolean) => void;
     chatCustomPromptVisible: boolean;
@@ -178,6 +179,7 @@ export const ChatContext = createContext<ChatContextType>({
     sendMessages: (msg: CreateMessagesEnvelope, includeExistingMessagesAsContext: boolean = true) => {},
     chatOpen: false,
     agentFinishedDialogOpen: false,
+    agentFinishMessage: '',
     setChatOpen: (value: boolean) => {},
     isStreaming: false,
     isCrossChecking: false,
@@ -226,6 +228,7 @@ export const ChatContextProvider: React.FC<PropsWithChildren> = ({ children }) =
     const [agentContext, setAgentContext] = useState<AgentContext | null>(null);
 
     const [agentFinishedDialogOpen, setAgentFinishedDialogOpen] = useState(false);
+    const [agentFinishMessage, setAgentFinishMessage] = useState('');
 
 
     const dbContext = useContext(DatabaseContext);
@@ -362,6 +365,7 @@ export const ChatContextProvider: React.FC<PropsWithChildren> = ({ children }) =
     const startAgent = (agentContext: AgentContext, prompt: string, initialMessages: MessageEx[] = []) => {
         newChat();
         setAgentContext(agentContext);
+        setAgentFinishMessage(agentContext.agentFinishMessage ? agentContext.agentFinishMessage : '');
         sendMessages({
             messages: [...initialMessages, {
               role: 'user',
@@ -420,6 +424,7 @@ export const ChatContextProvider: React.FC<PropsWithChildren> = ({ children }) =
     const processMessageAction = (jsonObject: MessageAction, resultMessage: MessageEx) => {
         if (agentContext?.onMessageAction) agentContext.onMessageAction(jsonObject, resultMessage);
         if (jsonObject.type === 'agentExit') {
+            if (agentContext?.agentFinishMessage) setAgentFinishMessage(agentContext?.agentFinishMessage);
             if (agentContext?.onAgentFinished) agentContext.onAgentFinished(jsonObject, resultMessage);
             if (agentContext?.agentFinishDialog) setAgentFinishedDialogOpen(true);
             stopAgent();
@@ -657,7 +662,8 @@ export const ChatContextProvider: React.FC<PropsWithChildren> = ({ children }) =
         newChat,
         downloadMessage,
         agentFinishedDialogOpen,
-        setAgentFinishedDialogOpen
+        setAgentFinishedDialogOpen,
+        agentFinishMessage
     }
 
     return (
