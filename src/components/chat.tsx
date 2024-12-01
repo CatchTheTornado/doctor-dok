@@ -26,7 +26,7 @@ import { useContext, useEffect, useRef, useState } from "react"
 import { ChatContext, MessageVisibility } from "@/contexts/chat-context"
 import ChatMessage from "./chat-message"
 import DataLoader from "./data-loader"
-import { CheckCircle2, CheckIcon, SendIcon, SettingsIcon, Wand2 } from "lucide-react"
+import { CheckCircle2, CheckIcon, FileIcon, SendIcon, SettingsIcon, Trash2Icon, Wand2 } from "lucide-react"
 import { coercedVal, ConfigContext } from "@/contexts/config-context"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "./ui/select"
 import { RecordContext } from "@/contexts/record-context"
@@ -47,6 +47,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "./ui/alert-dialog"
 
 export function Chat() {
 
@@ -58,9 +59,7 @@ export function Chat() {
   const messageTextArea = useRef<HTMLTextAreaElement | null>(null);
   const lastMessageRef = useRef<HTMLDivElement | null>(null);
   const [addFolderContext, setFolderContext] = useState(true);
-  const [crosscheckAnswers, setCrosscheckAnswers] = useState(process.env.NEXT_PUBLIC_CHAT_CROSSCHECK_DISABLE ? false : true);
-  const [crosscheckModel, setCrosscheckModel] = useState('llama3.1:latest');
-  const [crosscheckProvider, setCrosscheckProvider] = useState('ollama');
+
   const [defaultLLMModel, setDefaultLLMModel] = useState('chatgpt-4o-latest');
   const [warningRead, setWarningRead] = useState(false);
 
@@ -107,8 +106,8 @@ export function Chat() {
         if (chatContext.areRecordsLoaded === false && !chatContext.isStreaming && await chatContext.checkApiConfig()) {
           try {
             recordContext?.sendAllRecordsToChat({ role: 'user', name: 'You', content: currentMessage }, llmProvider ?? defaultChatProvider, llmModel ?? defaultLLMModel, (result, eventData) => {
-              if (crosscheckAnswers) {
-                chatContext.autoCheck([...chatContext.visibleMessages, result ], crosscheckProvider, crosscheckModel);
+              if (chatContext.crosscheckAnswers) {
+                chatContext.autoCheck([...chatContext.visibleMessages, result ], chatContext.crosscheckProvider, chatContext.crosscheckModel);
               }
             }); // send message along the context
             messageWasDelivered = true;
@@ -121,8 +120,8 @@ export function Chat() {
       
       if (!messageWasDelivered) {
         chatContext.sendMessage({ message: { role: 'user', name: 'You', content: currentMessage}, providerName: llmProvider ?? defaultChatProvider, modelName: llmModel ?? defaultLLMModel, onResult: (result) => {
-            if (crosscheckAnswers) {
-              chatContext.autoCheck([...chatContext.visibleMessages, result ], crosscheckProvider, crosscheckModel);
+            if (chatContext.crosscheckAnswers) {
+              chatContext.autoCheck([...chatContext.visibleMessages, result ], chatContext.crosscheckProvider, chatContext.crosscheckModel);
             }   
           }
         });
@@ -171,24 +170,24 @@ export function Chat() {
             <DropdownMenuTrigger  className="ml-2"><Button><CheckCircle2 className="w-4 h-4 mr-2" /> AI Crosscheck</Button></DropdownMenuTrigger>
             <DropdownMenuContent className="dark:bg-black bg-white">
               <DropdownMenuItem onSelect={(e) => {
-                setCrosscheckAnswers(false);
-              }}>{ !crosscheckAnswers ? <CheckIcon className="mr-2" /> : null } Disable AI Crosscheck</DropdownMenuItem>
+                chatContext.setCrosscheckAnswers(false);
+              }}>{ !chatContext.crosscheckAnswers ? <CheckIcon className="mr-2" /> : null } Disable AI Crosscheck</DropdownMenuItem>
               <DropdownMenuItem onSelect={(e) => {
-                setCrosscheckAnswers(true);
-                setCrosscheckProvider('ollama');
-                setCrosscheckModel('llama3.1:latest');
+                chatContext.setCrosscheckAnswers(true);
+                chatContext.setCrosscheckProvider('ollama');
+                chatContext.setCrosscheckModel('llama3.1:latest');
                 if (!chatContext.isCrossChecking) {
                   chatContext.autoCheck([...chatContext.visibleMessages], 'ollama', 'llama3.1:latest');
                 }
-              }}>{ crosscheckModel === 'llama3.1:latest' ? <CheckIcon className="mr-2" /> : null } Check with LLama 3.1</DropdownMenuItem>
+              }}>{ chatContext.crosscheckModel === 'llama3.1:latest' ? <CheckIcon className="mr-2" /> : null } Check with LLama 3.1</DropdownMenuItem>
               <DropdownMenuItem onSelect={(e) => {
-                setCrosscheckAnswers(true);
-                setCrosscheckProvider('chatgpt');
-                setCrosscheckModel('chatgpt-4o-latest');
+                chatContext.setCrosscheckAnswers(true);
+                chatContext.setCrosscheckProvider('chatgpt');
+                chatContext.setCrosscheckModel('chatgpt-4o-latest');
                 if (!chatContext.isCrossChecking) {
                   chatContext.autoCheck([...chatContext.visibleMessages], 'chatgpt', 'chatgpt-4o-latest');
                 }
-              }}>{ crosscheckModel === 'chatgpt-4o-latest' ? <CheckIcon className="mr-2" /> : null } Check with ChatGPT</DropdownMenuItem>
+              }}>{ chatContext.crosscheckModel === 'chatgpt-4o-latest' ? <CheckIcon className="mr-2" /> : null } Check with ChatGPT</DropdownMenuItem>
               {/* <DropdownMenuItem onSelect={(e) => {
                 setCrosscheckAnswers(true);
                 setCrosscheckProvider('ollama');
@@ -215,9 +214,37 @@ export function Chat() {
               }}>{ crosscheckModel === 'monotykamary/medichat-llama3:latest' ? <CheckIcon className="mr-2" /> : null } Check with Medichat LLama 3</DropdownMenuItem> */}
             </DropdownMenuContent>
           </DropdownMenu>}
-          
+          <Button className="ml-2" onClick={(e) => {
+            chatContext.newChat();
+          }}><FileIcon  className="w-4 h-4 mr-2" />New Chat</Button>
           </DrawerTitle>
         </DrawerHeader>
+
+        <AlertDialog open={chatContext.agentFinishedDialogOpen}>
+          <AlertDialogContent className="bg-white dark:bg-zinc-950">
+            <AlertDialogHeader>
+              <AlertDialogTitle>The agent has finished. Do you want to clear the context and start New Chat?</AlertDialogTitle>
+              <AlertDialogDescription>
+                {chatContext.agentContext?.agentFinishMessage}
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel>No</AlertDialogCancel>
+              <AlertDialogAction onClick={(e) => 
+                {
+                  chatContext.newChat();
+                }
+              }>YES</AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>      
+                
+        {chatContext.agentContext ? (
+          <div className="dark:text-black bg-green-200 grid grid-cols-3 p-5 text-sm">
+            <div><strong>AI Agent Context</strong></div>
+            <div>type: <strong>{chatContext.agentContext.displayName}</strong></div>
+          </div>
+        ) : null}
         {chatContext.messages.length && !warningRead ? (
               <div className="p-4 space-y-4 border border-red-500 bg-red-200 dark:text-black">
                 <strong>NEVER rely on the output of the language models</strong> supported in the application (ChatGPT, LLama 3) for <strong>making decisions in your healthcare</strong>! It is designed strictly for <strong className="red">research purposes only</strong> and may contain errors or provide misleading information due to its nature as an AI-powered tool. Consult qualified medical professionals before taking any action based on the information provided herein.
@@ -235,7 +262,7 @@ export function Chat() {
             ))}
 
             {chatContext.crossCheckResult !== null ? (
-                <div className={ chatContext.crossCheckResult.risk === 'yellow' ? ' dark:text-black bg-amber-200 grid grid-cols-3 p-5 text-sm' : (chatContext.crossCheckResult.risk === 'red' ? ' dark:text-black bg-red-200 grid grid-cols-3 p-5 text-sm' : ' dark:text-black bg-green-200 grid grid-cols-3 p-5 text-sm')  }><div><strong>AI Crosscheck with {crosscheckModel}</strong></div><div>validity: <strong>{chatContext.crossCheckResult.validity}</strong></div><div>risk: <strong>{chatContext.crossCheckResult.risk}</strong></div>
+                <div className={ chatContext.crossCheckResult.risk === 'yellow' ? ' dark:text-black bg-amber-200 grid grid-cols-3 p-5 text-sm' : (chatContext.crossCheckResult.risk === 'red' ? ' dark:text-black bg-red-200 grid grid-cols-3 p-5 text-sm' : ' dark:text-black bg-green-200 grid grid-cols-3 p-5 text-sm')  }><div><strong>AI Crosscheck with {chatContext.crosscheckModel}</strong></div><div>validity: <strong>{chatContext.crossCheckResult.validity}</strong></div><div>risk: <strong>{chatContext.crossCheckResult.risk}</strong></div>
                 
                   {chatContext.crossCheckResult.explanation ? (
                   <div className="col-span-3 pt-5">
@@ -260,7 +287,7 @@ export function Chat() {
             ):null}
 
             {chatContext.isCrossChecking ? (
-              <div className="flex"><div className="ml-2 h-4 w-4 animate-spin rounded-full border-4 border-primary border-t-transparent" /> <span className="text-xs">AI crosschecking in progress, model: {crosscheckModel}</span></div>
+              <div className="flex"><div className="ml-2 h-4 w-4 animate-spin rounded-full border-4 border-primary border-t-transparent" /> <span className="text-xs">AI crosschecking in progress, model: {chatContext.crosscheckModel}</span></div>
             ):null}
 
             {chatContext.isStreaming ? (

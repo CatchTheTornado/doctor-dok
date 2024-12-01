@@ -1,6 +1,6 @@
 import React, { useContext } from 'react';
 import ZoomableImage from './zoomable-image';
-import { MessageEx, MessageVisibility } from '@/contexts/chat-context';
+import { ChatContext, MessageEx, MessageVisibility } from '@/contexts/chat-context';
 import remarkGfm from 'remark-gfm';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from './ui/accordion';
 import Markdown from 'react-markdown'
@@ -12,6 +12,10 @@ import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
 import { Button } from '@/components/ui/button';
 import { DownloadIcon, SaveIcon } from 'lucide-react';
 import { RecordContext } from '@/contexts/record-context';
+import { removeCodeBlocks } from '@/lib/utils';
+import DataLoader from './data-loader';
+import { QuestionMarkCircledIcon, QuestionMarkIcon } from '@radix-ui/react-icons';
+import { toast } from 'sonner';
 
 interface ChatMessageProps {
     message: MessageEx;
@@ -20,6 +24,7 @@ interface ChatMessageProps {
 
 const ChatMessage: React.FC<ChatMessageProps> = ({ message, ref }) => {
     const { theme, systemTheme } = useTheme();
+    const chatContext = useContext(ChatContext);
     const recordContext = useContext(RecordContext);
     const shTheme = (theme === 'system' ? systemTheme : theme) === 'dark' ? 'material-dark' : 'material-light';
     return (
@@ -60,7 +65,7 @@ const ChatMessage: React.FC<ChatMessageProps> = ({ message, ref }) => {
                     </AccordionItem>
                 </Accordion>
             </div>                  
-            ) : (message.displayMode === 'internalJSONResponse' ? (
+            ) : ((message.displayMode === 'internalJSONResponse' ? (
               <div className="w-full">
                 <Accordion type="single" collapsible className="w-full">
                     <AccordionItem value="item-1">
@@ -90,38 +95,24 @@ const ChatMessage: React.FC<ChatMessageProps> = ({ message, ref }) => {
                     </AccordionItem>
                 </Accordion>
               </div>
-            ) : (
+            ) : ((message.displayMode === 'jsonAgentResponse' ? (              
+              (!message.finished ? <>Thinking ...</>  : (
+                <><Markdown className={styles.markdown} remarkPlugins={[remarkGfm]}>
+                  {((message.messageAction && message.messageAction.type === 'agentQuestion') ? (
+                    removeCodeBlocks(message.content) + message.messageAction?.params.question
+                  ) : (removeCodeBlocks(message.content)))}
+                </Markdown>{(message.messageAction?.params.reason ? (<QuestionMarkCircledIcon className='m-2 w-4 h-4 cursor-pointer' onClick={(e) => toast(message.messageAction?.params.reason)} />) : (null))}</>))) : (
               <Markdown className={styles.markdown} remarkPlugins={[remarkGfm]}>
                 {message.content}
               </Markdown>
-            )))}
+            ))))))}
             {message.role !== 'user'  && message.finished && !message.recordSaved ? (
               <div className="flex-wrap flex items-center justify-left">
                 <Button title="Save message as new record" variant="ghost" size="icon" onClick={() => {
                   recordContext?.updateRecordFromText(message.content, message.recordRef ?? null, true);
                 }}><SaveIcon /></Button>
                 <Button title="Save message as new record" variant="ghost" size="icon" onClick={() => {
-
-                    const converter = new showdown.Converter({ tables: true, completeHTMLDocument: true, openLinksInNewWindow: true });
-                    converter.setFlavor('github');
-                    const htmlContent = converter.makeHtml(message.content);
-
-                    const mdElement = document.createElement('a');
-                    const file = new Blob([message.content], { type: 'text/markdown' });
-                    mdElement.href = URL.createObjectURL(file);
-                    mdElement.download = `report-${message.id}.md`;
-                    document.body.appendChild(mdElement);
-                    mdElement.click();
-                    document.body.removeChild(mdElement);
-
-                    const htmlElement = document.createElement('a');
-                    const fileHtml = new Blob([htmlContent], { type: 'text/html' });
-                    htmlElement.href = URL.createObjectURL(fileHtml);
-                    htmlElement.download = `report-${message.id}.html`;
-                    document.body.appendChild(htmlElement);
-                    htmlElement.click();
-                    document.body.removeChild(htmlElement);
-
+                  chatContext.downloadMessage(message, `report-${message.id}`, 'html');
                 }}><DownloadIcon /></Button>
 
               </div>
