@@ -225,7 +225,7 @@ export function Chat() {
             <AlertDialogHeader>
               <AlertDialogTitle>The agent has finished. Do you want to clear the context and start New Chat?</AlertDialogTitle>
               <AlertDialogDescription>
-                {chatContext.agentContext?.agentFinishMessage}
+                {chatContext.agentFinishMessage}
               </AlertDialogDescription>
             </AlertDialogHeader>
             <AlertDialogFooter>
