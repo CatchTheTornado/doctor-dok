@@ -13,7 +13,7 @@ export default class ServerStatRepository extends BaseRepository<StatDTO> {
     async thisAndLastMonth(): Promise<AggregatedStatsDTO> {
         const db = (await this.db());
         const thisMonth = db.select().from(stats).where(and(eq(stats.createdMonth, new Date().getMonth()), eq(stats.createdYear, new Date().getFullYear()))).all() as StatDTO[];
-        const today = db.select().from(stats).where(and(eq(stats.createdMonth, new Date().getMonth()), eq(stats.createdYear, new Date().getFullYear()), eq(stats.createdDay, new Date().getDay()))).all() as StatDTO[];
+        const today = db.select().from(stats).where(and(eq(stats.createdMonth, new Date().getMonth()), eq(stats.createdYear, new Date().getFullYear()), eq(stats.createdDay, new Date().getDate()))).all() as StatDTO[];
 
         let lastMonthNo = new Date().getMonth() - 1;
         let lastMonthYearNo = new Date().getFullYear();
@@ -60,13 +60,13 @@ export default class ServerStatRepository extends BaseRepository<StatDTO> {
 
         const date = new Date(newItem.createdAt);
 
-        let existingAggregate:StatDTO = db.select().from(stats).where(and(eq(stats.createdHour, date.getHours()), eq(stats.createdDay, date.getDay()), eq(stats.createdMonth, date.getMonth()), eq(stats.eventName, newItem.eventName as string), eq(stats.createdYear, date.getFullYear()))).get() as StatDTO
+        let existingAggregate:StatDTO = db.select().from(stats).where(and(eq(stats.createdHour, date.getHours()), eq(stats.createdDay, date.getDate()), eq(stats.createdMonth, date.getMonth()), eq(stats.eventName, newItem.eventName as string), eq(stats.createdYear, date.getFullYear()))).get() as StatDTO
         if (!existingAggregate) {
             existingAggregate = db.insert(stats).values({
                 completionTokens: newItem.completionTokens,
                 promptTokens: newItem.promptTokens,
                 createdAt: newItem.createdAt,
-                createdDay: date.getDay(),
+                createdDay: date.getDate(),
                 createdHour: date.getHours(),
                 createdMonth: date.getMonth(),
                 createdYear: date.getFullYear(),
